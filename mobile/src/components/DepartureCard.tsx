@@ -68,13 +68,18 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
         </Text>
       </View>
 
-      {/* Bottom row: train info */}
+      {/* Middle row: origin → destination */}
+      <Text style={[styles.route, { color: colors.text }]} numberOfLines={1}>
+        {item.origin}
+        <Text style={{ color: colors.textTertiary }}> → </Text>
+        {item.destination}
+      </Text>
+
+      {/* Bottom row: train info + badges */}
       <View style={styles.info}>
         <Text style={[styles.trainNum, { color: colors.textSecondary }]}>
           {item.number}
-          {item.code ? (
-            <Text style={{ color: colors.text }}> · {item.code}</Text>
-          ) : null}
+          {item.code ? ` · ${item.code}` : ''}
         </Text>
         <View style={styles.badges}>
           <LineChip shortName={item.line} size="sm" />
@@ -100,7 +105,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   timeGroup: {
     flexDirection: 'row',
@@ -121,13 +126,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+  route: {
+    fontSize: 15,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
   info: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   trainNum: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
   badges: {
