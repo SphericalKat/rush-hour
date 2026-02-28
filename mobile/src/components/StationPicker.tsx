@@ -13,8 +13,15 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  Vibration,
   View,
 } from 'react-native';
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { fetchStations } from '../api/lines';
 import type { Station } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
@@ -24,14 +31,91 @@ interface Props {
   selected: Station | null;
   onSelect: (s: Station) => void;
   onClose: () => void;
+  title?: string;
 }
 
-export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
+interface StationRowProps {
+  item: Station;
+  index: number;
+  active: boolean;
+  onSelect: (s: Station) => void;
+  onHaptic: () => void;
+  colors: ReturnType<typeof useTheme>['colors'];
+}
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+function StationRow({ item, index, active, onSelect, onHaptic, colors }: StationRowProps) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedPressable
+      entering={index < 18 ? FadeInDown.duration(250).delay(index * 14) : undefined}
+      style={[
+        styles.row,
+        animatedStyle,
+        {
+          backgroundColor: active ? colors.primaryMuted : colors.surface,
+          borderColor: active ? colors.primary : colors.border,
+        },
+      ]}
+      onPressIn={() => { scale.value = withSpring(0.985, { damping: 22 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 22 }); }}
+      onPress={() => {
+        onHaptic();
+        onSelect(item);
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={`Select station ${item.name}`}
+      accessibilityState={{ selected: active }}
+    >
+      <View
+        style={[
+          styles.rowAccent,
+          { backgroundColor: active ? colors.primary : 'transparent' },
+        ]}
+      />
+      <View style={styles.rowMain}>
+        <View style={styles.rowContent}>
+          <Text
+            style={[
+              styles.stationName,
+              { color: active ? colors.primary : colors.text },
+              active && { fontWeight: '700' },
+            ]}
+          >
+            {item.name}
+          </Text>
+          {item.code ? (
+            <View style={[styles.codePill, { backgroundColor: colors.surfaceSecondary }]}>
+              <Text style={[styles.stationCode, { color: colors.textSecondary }]}>
+                {item.code}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        {active ? (
+          <View style={[styles.currentPill, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.currentPillLabel, { color: colors.textOnPrimary }]}>
+              Current
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </AnimatedPressable>
+  );
+}
+
+export function StationPicker({ visible, selected, onSelect, onClose, title = 'Select Station' }: Props) {
   const { colors } = useTheme();
   const [query, setQuery] = useState('');
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(false);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const hapticsRef = useRef<{ selectionAsync?: () => Promise<void> } | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -70,62 +154,32 @@ export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: Station }) => {
+    ({ item, index }: { item: Station; index: number }) => {
       const active = selected?.id === item.id;
       return (
-        <Pressable
-          style={({ pressed }) => [
-            styles.row,
-            {
-              backgroundColor: active
-                ? colors.primaryMuted
-                : pressed
-                  ? colors.surfaceSecondary
-                  : colors.surface,
-              borderColor: active ? colors.primary : colors.border,
-            },
-          ]}
-          hitSlop={2}
-          onPress={() => {
-            onSelect(item);
+        <StationRow
+          item={item}
+          index={index}
+          active={active}
+          onSelect={(s) => {
+            onSelect(s);
             onClose();
           }}
-          accessibilityRole="button"
-          accessibilityLabel={`Select station ${item.name}`}
-          accessibilityState={{ selected: active }}
-        >
-          <View style={styles.rowContent}>
-            <Text
-              style={[
-                styles.stationName,
-                { color: active ? colors.primary : colors.text },
-                active && { fontWeight: '700' },
-              ]}
-            >
-              {item.name}
-            </Text>
-            {item.code ? (
-              <View style={[styles.codePill, { backgroundColor: colors.surfaceSecondary }]}>
-                <Text style={[styles.stationCode, { color: colors.textSecondary }]}>
-                  {item.code}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-          <View
-            style={[
-              styles.checkContainer,
-              {
-                backgroundColor: active ? colors.primary : 'transparent',
-                borderColor: active ? colors.primary : colors.border,
-              },
-            ]}
-          >
-            {active ? (
-              <Ionicons name="checkmark" size={14} color={colors.textOnPrimary} />
-            ) : null}
-          </View>
-        </Pressable>
+          onHaptic={() => {
+            try {
+              if (!hapticsRef.current) {
+                // Optional module in this project; fallback keeps interaction tactile.
+                hapticsRef.current = require('expo-haptics');
+              }
+              hapticsRef.current?.selectionAsync?.();
+            } catch {
+              if (Platform.OS !== 'web') {
+                Vibration.vibrate(8);
+              }
+            }
+          }}
+          colors={colors}
+        />
       );
     },
     [selected, colors, onSelect, onClose],
@@ -155,7 +209,7 @@ export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
       <View style={[styles.header, { borderBottomColor: colors.separator }]}>
         <View>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Select Station
+            {title}
           </Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
             {filtered.length} result{filtered.length === 1 ? '' : 's'}
@@ -303,11 +357,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   row: {
+    position: 'relative',
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  rowAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+  },
+  rowMain: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 14,
-    borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
@@ -332,13 +397,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  checkContainer: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
+  currentPill: {
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  currentPillLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   emptyText: {
     textAlign: 'center',

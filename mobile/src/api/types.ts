@@ -18,6 +18,7 @@ export interface Departure {
   is_fast: boolean;
   direction: string;
   line: string;
+  line_name: string;
   departure: number; // minutes from midnight
   station: string;
   origin: string;
