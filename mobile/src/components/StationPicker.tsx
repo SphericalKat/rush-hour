@@ -5,6 +5,7 @@ import {
   BottomSheetModal,
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -58,7 +59,12 @@ export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.38}
+      />
     ),
     [],
   );
@@ -70,32 +76,55 @@ export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
         <Pressable
           style={({ pressed }) => [
             styles.row,
-            { backgroundColor: pressed ? colors.surfaceSecondary : colors.surface },
+            {
+              backgroundColor: active
+                ? colors.primaryMuted
+                : pressed
+                  ? colors.surfaceSecondary
+                  : colors.surface,
+              borderColor: active ? colors.primary : colors.border,
+            },
           ]}
+          hitSlop={2}
           onPress={() => {
             onSelect(item);
             onClose();
           }}
+          accessibilityRole="button"
+          accessibilityLabel={`Select station ${item.name}`}
+          accessibilityState={{ selected: active }}
         >
           <View style={styles.rowContent}>
             <Text
               style={[
                 styles.stationName,
                 { color: active ? colors.primary : colors.text },
-                active && { fontWeight: '600' },
+                active && { fontWeight: '700' },
               ]}
             >
               {item.name}
             </Text>
             {item.code ? (
-              <Text style={[styles.stationCode, { color: colors.textTertiary }]}>
-                {item.code}
-              </Text>
+              <View style={[styles.codePill, { backgroundColor: colors.surfaceSecondary }]}>
+                <Text style={[styles.stationCode, { color: colors.textSecondary }]}>
+                  {item.code}
+                </Text>
+              </View>
             ) : null}
           </View>
-          {active && (
-            <Text style={[styles.checkmark, { color: colors.primary }]}>✓</Text>
-          )}
+          <View
+            style={[
+              styles.checkContainer,
+              {
+                backgroundColor: active ? colors.primary : 'transparent',
+                borderColor: active ? colors.primary : colors.border,
+              },
+            ]}
+          >
+            {active ? (
+              <Ionicons name="checkmark" size={14} color={colors.textOnPrimary} />
+            ) : null}
+          </View>
         </Pressable>
       );
     },
@@ -105,7 +134,7 @@ export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['90%']}
+      snapPoints={['84%']}
       enableDynamicSizing={false}
       enablePanDownToClose
       onDismiss={onClose}
@@ -113,50 +142,82 @@ export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
-      backgroundStyle={{ backgroundColor: colors.background }}
-      handleIndicatorStyle={{ backgroundColor: colors.separator }}
+      backgroundStyle={[
+        styles.sheetBackground,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+        },
+      ]}
+      handleIndicatorStyle={[styles.handle, { backgroundColor: colors.separator }]}
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.separator }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Select Station
-        </Text>
-        <Pressable onPress={onClose} hitSlop={12}>
+        <View>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            Select Station
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+            {filtered.length} result{filtered.length === 1 ? '' : 's'}
+          </Text>
+        </View>
+        <Pressable onPress={onClose} hitSlop={12} style={styles.cancelBtn}>
           <Text style={[styles.cancel, { color: colors.primary }]}>Cancel</Text>
         </Pressable>
       </View>
 
       {/* Search */}
-      <View style={[styles.searchRow, { backgroundColor: colors.surfaceSecondary }]}>
+      <View
+        style={[
+          styles.searchRow,
+          {
+            backgroundColor: colors.surfaceSecondary,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <Ionicons name="search" size={16} color={colors.textSecondary} />
         <BottomSheetTextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Search stations…"
+          placeholder="Search stations"
           placeholderTextColor={colors.textTertiary}
           style={[styles.searchInput, { color: colors.text }]}
           returnKeyType="search"
-          clearButtonMode="while-editing"
           autoCapitalize="none"
           autoCorrect={false}
         />
+        {query.length > 0 ? (
+          <Pressable
+            onPress={() => setQuery('')}
+            hitSlop={8}
+            style={[styles.clearBtn, { backgroundColor: colors.border }]}
+            accessibilityRole="button"
+            accessibilityLabel="Clear search query"
+          >
+            <Ionicons name="close" size={12} color={colors.textSecondary} />
+          </Pressable>
+        ) : null}
       </View>
 
       {/* List */}
       {loading ? (
-        <ActivityIndicator style={styles.spinner} color={colors.primary} />
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator style={styles.spinner} color={colors.primary} />
+          <Text style={[styles.loadingLabel, { color: colors.textSecondary }]}>
+            Loading stations...
+          </Text>
+        </View>
       ) : (
         <BottomSheetFlatList
           data={filtered}
           keyExtractor={(s: Station) => String(s.id)}
           contentContainerStyle={styles.listContent}
           keyboardShouldPersistTaps="handled"
-          ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-          )}
           renderItem={renderItem}
           ListEmptyComponent={
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No stations found
+              No stations match your search
             </Text>
           }
         />
@@ -166,42 +227,89 @@ export function StationPicker({ visible, selected, onSelect, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
+  sheetBackground: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  handle: {
+    width: 44,
+    height: 5,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  cancelBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
   },
   cancel: {
-    fontSize: 17,
+    fontSize: 16,
+    fontWeight: '600',
   },
   searchRow: {
     marginHorizontal: 12,
-    marginVertical: 8,
-    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 4,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 6,
   },
   searchInput: {
     fontSize: 16,
+    flex: 1,
+    paddingVertical: 0,
+  },
+  clearBtn: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingWrap: {
+    marginTop: 40,
+    alignItems: 'center',
+    gap: 8,
+  },
+  loadingLabel: {
+    fontSize: 14,
   },
   spinner: {
-    marginTop: 40,
+    marginTop: 0,
   },
   listContent: {
-    paddingBottom: 16,
+    paddingHorizontal: 12,
+    paddingBottom: 20,
+    gap: 8,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    justifyContent: 'space-between',
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   rowContent: {
     flex: 1,
@@ -211,22 +319,30 @@ const styles = StyleSheet.create({
   },
   stationName: {
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: '500',
+    flexShrink: 1,
+  },
+  codePill: {
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   stationCode: {
-    fontSize: 12,
-  },
-  checkmark: {
-    fontSize: 18,
+    fontSize: 11,
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 16,
+  checkContainer: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyText: {
     textAlign: 'center',
-    marginTop: 40,
+    marginTop: 56,
     fontSize: 15,
   },
 });

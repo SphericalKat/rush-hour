@@ -34,8 +34,10 @@ export function DirectionToggle({ value, onChange }: Props) {
             key={opt.value}
             style={styles.option}
             onPress={() => onChange(opt.value)}
-            accessibilityRole="button"
+            accessibilityRole="tab"
+            accessibilityLabel={`${opt.label} direction`}
             accessibilityState={{ selected: active }}
+            hitSlop={4}
           >
             {active && (
               <View
@@ -62,7 +64,7 @@ export function DirectionToggle({ value, onChange }: Props) {
                 styles.label,
                 {
                   color: active ? colors.text : colors.textSecondary,
-                  fontWeight: active ? '600' : '400',
+                  fontWeight: active ? '700' : '500',
                 },
               ]}
             >
@@ -84,7 +86,7 @@ const styles = StyleSheet.create({
   },
   option: {
     flex: 1,
-    paddingVertical: 7,
+    paddingVertical: 8,
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
