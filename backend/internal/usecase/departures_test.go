@@ -17,7 +17,7 @@ type mockTrainRepo struct {
 	result      []train.Departure
 }
 
-func (m *mockTrainRepo) GetDepartures(_ context.Context, _ int64, _ string, from, until int) ([]train.Departure, error) {
+func (m *mockTrainRepo) GetDepartures(_ context.Context, _ int64, _ string, from, until int, _ *int64) ([]train.Departure, error) {
 	m.calledFrom = from
 	m.calledUntil = until
 	return m.result, nil
@@ -27,7 +27,7 @@ func TestDeparturesWindowCalc(t *testing.T) {
 	mock := &mockTrainRepo{}
 	uc := usecase.NewDepartures(mock)
 
-	_, err := uc.GetDepartures(context.Background(), 1, "down", 300, 60)
+	_, err := uc.GetDepartures(context.Background(), 1, "down", 300, 60, nil)
 	require.NoError(t, err)
 	require.Equal(t, 300, mock.calledFrom)
 	require.Equal(t, 360, mock.calledUntil)
@@ -38,7 +38,7 @@ func TestDeparturesWindowMidnightWrap(t *testing.T) {
 	uc := usecase.NewDepartures(mock)
 
 	// 23:30 = 1410, window 60 → until = 1470 (> 1440, crosses midnight)
-	_, err := uc.GetDepartures(context.Background(), 1, "down", 1410, 60)
+	_, err := uc.GetDepartures(context.Background(), 1, "down", 1410, 60, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1410, mock.calledFrom)
 	require.Equal(t, 1470, mock.calledUntil)
@@ -51,7 +51,7 @@ func TestDeparturesPassesResultsThrough(t *testing.T) {
 	mock := &mockTrainRepo{result: expected}
 	uc := usecase.NewDepartures(mock)
 
-	got, err := uc.GetDepartures(context.Background(), 1, "down", 280, 60)
+	got, err := uc.GetDepartures(context.Background(), 1, "down", 280, 60, nil)
 	require.NoError(t, err)
 	require.Equal(t, expected, got)
 }

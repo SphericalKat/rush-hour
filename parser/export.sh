@@ -8,12 +8,12 @@ DB=data/timetable.db
 rm -f "$DB"
 echo "Building $DB..."
 
-# CR Main Line (2024)
+# CR Central Line (2024)
 uv run python -m rush_hour_parser export "$DB" \
   --down "data/1728294831372-SUB PTT DN ML'24.pdf" \
   --up   "data/1728294891897-SUB PTT UP ML'24.pdf" \
   --operator "Central Railway" --operator-short CR \
-  --line "Main Line" --line-short CR-ML
+  --line "Central Line" --line-short CR-ML
 
 # CR Harbour Line (Oct 2024)
 uv run python -m rush_hour_parser export "$DB" \
