@@ -55,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--up", metavar="PDF", help="PDF for the up direction")
     e.add_argument("--operator", required=True, metavar="NAME", help='e.g. "Central Railway"')
     e.add_argument("--operator-short", required=True, metavar="CODE", help='e.g. "CR"')
-    e.add_argument("--line", required=True, metavar="NAME", help='e.g. "Main Line"')
+    e.add_argument("--line", required=True, metavar="NAME", help='e.g. "Central Line"')
     e.add_argument("--line-short", required=True, metavar="CODE", help='e.g. "CR-ML"')
     e.add_argument(
         "--line-type",

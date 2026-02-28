@@ -67,10 +67,20 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 		}
 	}
 
+	var destinationID *int64
+	if s := r.URL.Query().Get("destination"); s != "" {
+		parsed, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid destination id", http.StatusBadRequest)
+			return
+		}
+		destinationID = &parsed
+	}
+
 	now := time.Now()
 	fromMinute := now.Hour()*60 + now.Minute()
 
-	deps, err := h.uc.GetDepartures(r.Context(), id, direction, fromMinute, window)
+	deps, err := h.uc.GetDepartures(r.Context(), id, direction, fromMinute, window, destinationID)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
@@ -85,6 +95,7 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 			IsFast:      d.IsFast,
 			Direction:   d.Direction,
 			Line:        d.Line,
+			LineName:    d.LineName,
 			Departure:   d.Departure,
 			Station:     d.Station,
 			Origin:      d.Origin,

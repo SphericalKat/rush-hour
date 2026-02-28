@@ -7,6 +7,7 @@ type DepartureResponse struct {
 	IsFast      bool   `json:"is_fast"`
 	Direction   string `json:"direction"`
 	Line        string `json:"line"`
+	LineName    string `json:"line_name"`
 	Departure   int    `json:"departure"`
 	Station     string `json:"station"`
 	Origin      string `json:"origin"`

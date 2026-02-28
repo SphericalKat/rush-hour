@@ -15,11 +15,11 @@ func NewTrainRepo(db *sqlx.DB) train.Repository {
 	return &trainRepo{db: db}
 }
 
-// departuresQuery finds trains departing from a station within a time window.
+// departuresBase is the common SELECT for departures queries.
 // The midnight-wraparound clause handles windows that cross 00:00 (until > 1440).
-const departuresQuery = `
+const departuresBase = `
 SELECT t.number, COALESCE(t.code, '') AS code, t.is_ac, t.is_fast, t.direction,
-       l.short_name AS line, s.departure, st.name AS station,
+       l.short_name AS line, l.name AS line_name, s.departure, st.name AS station,
        COALESCE(t.origin, '') AS origin, COALESCE(t.destination, '') AS destination
 FROM stops s
 JOIN trains t    ON s.train_id   = t.id
@@ -30,13 +30,32 @@ WHERE s.station_id = ?
   AND (
         (s.departure >= ? AND s.departure < ?)
      OR (? > 1440 AND s.departure < (? - 1440))
-  )
+  )`
+
+const destinationFilter = `
+  AND EXISTS (
+    SELECT 1 FROM stops s2
+    WHERE s2.train_id = t.id
+      AND s2.station_id = ?
+      AND s2.stop_sequence > s.stop_sequence
+  )`
+
+const departuresOrder = `
 ORDER BY s.departure
 LIMIT 50`
 
-func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, direction string, fromMinute, untilMinute int) ([]train.Departure, error) {
-	rows, err := r.db.QueryxContext(ctx, departuresQuery,
-		stationID, direction, fromMinute, untilMinute, untilMinute, untilMinute)
+func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, direction string, fromMinute, untilMinute int, destinationID *int64) ([]train.Departure, error) {
+	query := departuresBase
+	args := []any{stationID, direction, fromMinute, untilMinute, untilMinute, untilMinute}
+
+	if destinationID != nil {
+		query += destinationFilter
+		args = append(args, *destinationID)
+	}
+
+	query += departuresOrder
+
+	rows, err := r.db.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

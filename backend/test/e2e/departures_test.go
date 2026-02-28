@@ -59,6 +59,34 @@ func TestDepartures_DefaultDirection(t *testing.T) {
 	_ = resp
 }
 
+func TestDepartures_DestinationFilter(t *testing.T) {
+	// Station 1 (CSMT), down direction, destination=3 (Thane).
+	// Trains 90011, 90013, 90099, and 90021 all go through CSMT and Thane.
+	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&window=1440&destination=3")
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var deps []dto.DepartureResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&deps))
+	require.NotEmpty(t, deps)
+	for _, d := range deps {
+		require.Equal(t, "down", d.Direction)
+	}
+
+	// Filter by destination=5 (Borivali) — no CR trains go there, so should be empty.
+	resp2, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&window=1440&destination=5")
+	require.NoError(t, err)
+	defer resp2.Body.Close()
+
+	require.Equal(t, http.StatusOK, resp2.StatusCode)
+
+	var deps2 []dto.DepartureResponse
+	require.NoError(t, json.NewDecoder(resp2.Body).Decode(&deps2))
+	require.Empty(t, deps2)
+}
+
 func TestDepartures_ACTrain(t *testing.T) {
 	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&window=1440")
 	require.NoError(t, err)
