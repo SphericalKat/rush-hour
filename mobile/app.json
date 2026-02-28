@@ -33,7 +33,9 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-system-ui"
+      "expo-system-ui",
+      "expo-font",
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true

@@ -33,6 +33,8 @@ export default function DeparturesScreen() {
     station?.id ?? null,
     direction,
   );
+  const stationFieldText = station ? station.name : 'Search stations';
+  const stationFieldSubtext = station?.code ? `Code ${station.code}` : 'Tap to choose your departure station';
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -50,6 +52,9 @@ export default function DeparturesScreen() {
         <Text style={[styles.navTitle, { color: colors.text }]}>
           Rush Hour
         </Text>
+        <Text style={[styles.navSubtitle, { color: colors.textSecondary }]}>
+          Live suburban departures
+        </Text>
       </View>
 
       {/* Station picker button */}
@@ -62,34 +67,45 @@ export default function DeparturesScreen() {
           },
         ]}
       >
+        <Text style={[styles.stationPrompt, { color: colors.textSecondary }]}>
+          From station
+        </Text>
         <Pressable
           onPress={() => setPickerOpen(true)}
           style={({ pressed }) => [
             styles.stationButton,
             {
               backgroundColor: pressed
-                ? colors.surfaceSecondary
+                ? colors.primaryMuted
                 : colors.surfaceSecondary,
-              borderColor: colors.border,
+              borderColor: station ? colors.primary : colors.border,
             },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Select station"
+          accessibilityLabel={station ? `Change station, current ${station.name}` : 'Select station'}
         >
           <Ionicons
-            name="location-outline"
-            size={16}
-            color={station ? colors.primary : colors.textTertiary}
+            name={station ? 'location' : 'search-outline'}
+            size={18}
+            color={station ? colors.primary : colors.textSecondary}
           />
-          <Text
-            style={[
-              styles.stationLabel,
-              { color: station ? colors.text : colors.textTertiary },
-            ]}
-            numberOfLines={1}
-          >
-            {station ? station.name : 'Select a station…'}
-          </Text>
+          <View style={styles.stationTextGroup}>
+            <Text
+              style={[
+                styles.stationLabel,
+                { color: station ? colors.text : colors.textSecondary },
+              ]}
+              numberOfLines={1}
+            >
+              {stationFieldText}
+            </Text>
+            <Text
+              style={[styles.stationSubtext, { color: colors.textTertiary }]}
+              numberOfLines={1}
+            >
+              {stationFieldSubtext}
+            </Text>
+          </View>
           <Ionicons
             name="chevron-down"
             size={14}
@@ -108,6 +124,9 @@ export default function DeparturesScreen() {
           },
         ]}
       >
+        <Text style={[styles.toggleLabel, { color: colors.textSecondary }]}>
+          Direction
+        </Text>
         <DirectionToggle value={direction} onChange={setDirection} />
       </View>
 
@@ -141,12 +160,20 @@ export default function DeparturesScreen() {
             />
           }
           ListHeaderComponent={
-            loading && data.length === 0 ? (
-              <ActivityIndicator
-                color={colors.primary}
-                style={styles.spinner}
-              />
-            ) : null
+            <View style={styles.listHeader}>
+              <Text style={[styles.listTitle, { color: colors.text }]}>
+                Next departures
+              </Text>
+              <Text style={[styles.listMeta, { color: colors.textSecondary }]}>
+                {loading && data.length === 0 ? 'Updating…' : `${data.length} train${data.length === 1 ? '' : 's'}`}
+              </Text>
+              {loading && data.length === 0 ? (
+                <ActivityIndicator
+                  color={colors.primary}
+                  style={styles.spinner}
+                />
+              ) : null}
+            </View>
           }
           ListEmptyComponent={
             !loading ? (
@@ -196,33 +223,66 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
     marginTop: Platform.OS === 'android' ? 12 : 6,
   },
+  navSubtitle: {
+    fontSize: 14,
+    marginTop: 2,
+  },
   stationBar: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  stationPrompt: {
+    fontSize: 13,
+    marginBottom: 6,
+    fontWeight: '500',
+  },
   stationButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 9,
+  },
+  stationTextGroup: {
+    flex: 1,
   },
   stationLabel: {
-    flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
+  },
+  stationSubtext: {
+    fontSize: 12,
+    marginTop: 1,
   },
   toggleRow: {
     paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 8,
+  },
+  toggleLabel: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   listContent: {
-    paddingTop: 12,
+    paddingTop: 10,
+  },
+  listHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  listMeta: {
+    fontSize: 13,
+    marginTop: 2,
   },
   spinner: {
-    marginTop: 40,
+    marginTop: 20,
   },
 });
