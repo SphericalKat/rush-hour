@@ -9,7 +9,16 @@ from .models import Stop, Timetable, Train
 _NO_STOP = {"", "…", "..."}
 
 # Canonical station names. Keys are lowercase for case-insensitive lookup.
+# Covers three kinds of problems:
+#   1. Spelling variants across PDFs (e.g. "Santacruz" vs "Santa Cruz")
+#   2. All-caps names from Harbour/THL/Port/WR PDFs that have Title-Case
+#      equivalents in CR Main Line PDFs (case duplicates)
+#   3. Abbreviation expansion or suffix normalisation (e.g. "BELAPUR" → "Belapur CBD")
+# The general all-caps fallback in _normalize_station handles simple
+# cases not listed here; add explicit entries only when the fallback
+# would produce a wrong result.
 _CANONICAL: dict[str, str] = {
+    # --- CR Main Line spelling corrections ---
     "bhivpuri road": "Bhivpuri Road",
     "currey road": "Currey Road",
     "diwa": "Diva",
@@ -17,7 +26,8 @@ _CANONICAL: dict[str, str] = {
     "sandhurst road": "Sandhurst Road",
     "ulhas nagar": "Ulhas Nagar",
     "umbermalli": "Umbermali",
-    # WR: normalise spelling variants between DN and UP PDFs
+
+    # --- WR: spelling variants between DN and UP PDFs ---
     "m'bai central (l)": "Mumbai Central (L)",
     "m'bai central(l)": "Mumbai Central (L)",
     "kandivli": "Kandivali",
@@ -25,11 +35,34 @@ _CANONICAL: dict[str, str] = {
     "vasai road": "Vasai Road",
     "nalla sopara": "Nalla Sopara",
     "mahim jn.": "Mahim Jn.",
+    "mahim jn": "Mahim Jn.",
+
+    # --- Harbour Line PDF spelling variants ---
+    "santacruz": "Santa Cruz",
+    "vileparle": "Vile Parle",
+    "seawood darave": "Seawoods Darave",   # HB PDFs drop the 's'
+    "mumbai csmt": "CSMT",                 # HB PDFs use full name
+
+    # --- THL/Port Line: all-caps spelling variants ---
+    "seawoods darawe": "Seawoods Darave",          # THL typo
+    "seawoods darave karave": "Seawoods Darave",   # Port Line extra word
+    "nhave sheva": "Nhava Sheva",                  # Port Line typo
+    "belapur": "Belapur CBD",                      # THL/Port use bare "BELAPUR"
+
+    # --- Acronyms: preserve all-caps, override the isupper() fallback ---
+    "csmt": "CSMT",
 }
 
 
 def _normalize_station(name: str) -> str:
-    return _CANONICAL.get(name.lower(), name)
+    canonical = _CANONICAL.get(name.lower())
+    if canonical:
+        return canonical
+    # All-caps names (Harbour Line / THL / Port Line / WR PDFs) → Title Case.
+    # str.title() mis-capitalises after apostrophes ("King'S Circle") so fix that.
+    if name.isupper():
+        return re.sub(r"(?<=')S(?=\s|$)", "s", name.title())
+    return name
 
 
 def _fix_doubled(s: str) -> str:
