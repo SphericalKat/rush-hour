@@ -82,6 +82,7 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 			Number:      d.Number,
 			Code:        d.Code,
 			IsAC:        d.IsAC,
+			IsFast:      d.IsFast,
 			Direction:   d.Direction,
 			Line:        d.Line,
 			Departure:   d.Departure,
