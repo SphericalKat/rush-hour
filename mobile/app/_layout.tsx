@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
@@ -10,19 +11,21 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="train/[number]"
-            options={{
-              headerBackTitle: 'Back',
-              headerTitle: '',
-              headerTransparent: true,
-              presentation: 'card',
-            }}
-          />
-        </Stack>
+        <BottomSheetModalProvider>
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="train/[number]"
+              options={{
+                headerBackTitle: 'Back',
+                headerTitle: '',
+                headerTransparent: true,
+                presentation: 'card',
+              }}
+            />
+          </Stack>
+        </BottomSheetModalProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
