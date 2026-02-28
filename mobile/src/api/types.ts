@@ -19,6 +19,8 @@ export interface Departure {
   line: string;
   departure: number; // minutes from midnight
   station: string;
+  origin: string;
+  destination: string;
 }
 
 export interface TrainStatus {
