@@ -11,9 +11,10 @@ class Stop:
 
 @dataclass
 class Train:
-    number: str   # e.g. "96301"
-    code: str     # Raw type/destination code from timetable, e.g. "A 1"
+    number: str    # e.g. "96301"
+    code: str      # Raw destination code from timetable, e.g. "A 1"
     is_ac: bool
+    is_fast: bool = False  # True if the train skips intermediate stations (…)
     stops: list[Stop] = field(default_factory=list)
 
 

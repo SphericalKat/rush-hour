@@ -15,6 +15,7 @@ export interface Departure {
   number: string;
   code: string;
   is_ac: boolean;
+  is_fast: boolean;
   direction: string;
   line: string;
   departure: number; // minutes from midnight

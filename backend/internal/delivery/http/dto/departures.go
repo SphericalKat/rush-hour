@@ -4,6 +4,7 @@ type DepartureResponse struct {
 	Number      string `json:"number"`
 	Code        string `json:"code"`
 	IsAC        bool   `json:"is_ac"`
+	IsFast      bool   `json:"is_fast"`
 	Direction   string `json:"direction"`
 	Line        string `json:"line"`
 	Departure   int    `json:"departure"`

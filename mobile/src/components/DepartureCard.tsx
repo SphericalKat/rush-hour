@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -41,6 +42,8 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
       onPress={onPress}
       onPressIn={() => { scale.value = withSpring(0.97, { damping: 20 }); }}
       onPressOut={() => { scale.value = withSpring(1, { damping: 20 }); }}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.number} to ${item.destination}, departs at ${minutesToHHMM(item.departure)}`}
       style={[
         animatedStyle,
         styles.card,
@@ -77,18 +80,26 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
 
       {/* Bottom row: train info + badges */}
       <View style={styles.info}>
-        <Text style={[styles.trainNum, { color: colors.textSecondary }]}>
-          {item.number}
-          {item.code ? ` · ${item.code}` : ''}
-        </Text>
-        <View style={styles.badges}>
-          <LineChip shortName={item.line} size="sm" />
-          {item.is_ac && (
-            <View style={[styles.acBadge, { backgroundColor: colors.ac + '20' }]}>
-              <Text style={[styles.acLabel, { color: colors.ac }]}>AC</Text>
-            </View>
-          )}
+        <View style={styles.leftInfo}>
+          <Text style={[styles.trainNum, { color: colors.textSecondary }]}>
+            {item.number}
+            {item.code ? ` · ${item.code}` : ''}
+          </Text>
+          <View style={styles.badges}>
+            <LineChip shortName={item.line} size="sm" />
+            {item.is_fast && (
+              <View style={[styles.badge, { backgroundColor: colors.primary + '20' }]}>
+                <Text style={[styles.badgeLabel, { color: colors.primary }]}>Fast</Text>
+              </View>
+            )}
+            {item.is_ac && (
+              <View style={[styles.badge, { backgroundColor: colors.ac + '20' }]}>
+                <Text style={[styles.badgeLabel, { color: colors.ac }]}>AC</Text>
+              </View>
+            )}
+          </View>
         </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
       </View>
     </AnimatedPressable>
   );
@@ -134,7 +145,11 @@ const styles = StyleSheet.create({
   info: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+  },
+  leftInfo: {
+    gap: 6,
+    flex: 1,
   },
   trainNum: {
     fontSize: 13,
@@ -145,12 +160,12 @@ const styles = StyleSheet.create({
     gap: 6,
     alignItems: 'center',
   },
-  acBadge: {
+  badge: {
     borderRadius: 4,
     paddingHorizontal: 5,
     paddingVertical: 1,
   },
-  acLabel: {
+  badgeLabel: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,

@@ -237,6 +237,8 @@ def _parse_page(
             col_map.append((col_idx, sub_idx))
 
     raw_stops: list[list[tuple[str, int]]] = [[] for _ in trains]
+    # '…'/'...' means the train passes through but does not stop → fast train
+    has_skip: list[bool] = [False] * len(trains)
 
     station_idx = 0
     for raw_row in table[header_row_idx + 1 :]:
@@ -271,6 +273,8 @@ def _parse_page(
                 cell = _split_merged_cell(raw_cell)[0]
             else:
                 cell = raw_cell
+            if cell.strip() in ("…", "..."):
+                has_skip[train_idx] = True
             minutes = _parse_time(cell)
             if minutes is not None:
                 raw_stops[train_idx].append((station, minutes))
@@ -278,6 +282,7 @@ def _parse_page(
     for i, train in enumerate(trains):
         fixed = _fix_midnight(raw_stops[i])
         train.stops = [Stop(station=s, departure=t) for s, t in fixed]
+        train.is_fast = has_skip[i]
 
     return trains
 
@@ -474,6 +479,7 @@ def _parse_wr_page(page: pdfplumber.page.Page) -> list[Train]:
         trains.append(Train(number=nw["text"], code=code, is_ac=is_ac))
 
     raw_stops: list[list[tuple[str, int]]] = [[] for _ in trains]
+    has_skip: list[bool] = [False] * len(trains)
     _time_re = re.compile(r"^\d{1,2}:\d{2}$")
     _skip_words = {"STATIONS", "DN", "UP", "TRAINS", "CAR", "W.E.F."}
 
@@ -492,16 +498,21 @@ def _parse_wr_page(page: pdfplumber.page.Page) -> list[Train]:
         station = _normalize_station(_fix_doubled(_merge_station_name(station_word_objs)))
 
         for w in row:
-            if w["x0"] < station_threshold or not _time_re.match(w["text"]):
+            if w["x0"] < station_threshold:
                 continue
-            nearest_idx = min(range(len(col_xs)), key=lambda i: abs(col_xs[i] - w["x0"]))
-            minutes = _parse_time(w["text"])
-            if minutes is not None:
-                raw_stops[nearest_idx].append((station, minutes))
+            if w["text"] in ("…", "..."):
+                nearest_idx = min(range(len(col_xs)), key=lambda i: abs(col_xs[i] - w["x0"]))
+                has_skip[nearest_idx] = True
+            elif _time_re.match(w["text"]):
+                nearest_idx = min(range(len(col_xs)), key=lambda i: abs(col_xs[i] - w["x0"]))
+                minutes = _parse_time(w["text"])
+                if minutes is not None:
+                    raw_stops[nearest_idx].append((station, minutes))
 
     for i, train in enumerate(trains):
         fixed = _fix_midnight(raw_stops[i])
         train.stops = [Stop(station=s, departure=t) for s, t in fixed]
+        train.is_fast = has_skip[i]
 
     return trains
 

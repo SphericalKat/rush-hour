@@ -36,12 +36,15 @@ CREATE TABLE IF NOT EXISTS line_stations (
 );
 
 CREATE TABLE IF NOT EXISTS trains (
-    id        INTEGER PRIMARY KEY,
-    line_id   INTEGER NOT NULL REFERENCES lines(id),
-    number    TEXT NOT NULL,
-    code      TEXT,
-    is_ac     INTEGER NOT NULL DEFAULT 0,
-    direction TEXT NOT NULL
+    id          INTEGER PRIMARY KEY,
+    line_id     INTEGER NOT NULL REFERENCES lines(id),
+    number      TEXT NOT NULL,
+    code        TEXT,
+    is_ac       INTEGER NOT NULL DEFAULT 0,
+    is_fast     INTEGER NOT NULL DEFAULT 0,
+    direction   TEXT NOT NULL,
+    origin      TEXT,
+    destination TEXT
 );
 
 CREATE TABLE IF NOT EXISTS stops (
@@ -152,9 +155,13 @@ def export(
     # Trains and stops
     for timetable in timetables:
         for train in timetable.trains:
+            origin = train.stops[0].station if train.stops else None
+            destination = train.stops[-1].station if train.stops else None
             cur = conn.execute(
-                "INSERT INTO trains (line_id, number, code, is_ac, direction) VALUES (?, ?, ?, ?, ?)",
-                (line_id, train.number, train.code, int(train.is_ac), timetable.direction),
+                "INSERT INTO trains (line_id, number, code, is_ac, is_fast, direction, origin, destination)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (line_id, train.number, train.code, int(train.is_ac), int(train.is_fast),
+                 timetable.direction, origin, destination),
             )
             train_db_id = cur.lastrowid
             for seq, stop in enumerate(train.stops):
