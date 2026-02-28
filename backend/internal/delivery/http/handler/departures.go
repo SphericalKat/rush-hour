@@ -79,13 +79,15 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 	resp := make([]dto.DepartureResponse, len(deps))
 	for i, d := range deps {
 		resp[i] = dto.DepartureResponse{
-			Number:    d.Number,
-			Code:      d.Code,
-			IsAC:      d.IsAC,
-			Direction: d.Direction,
-			Line:      d.Line,
-			Departure: d.Departure,
-			Station:   d.Station,
+			Number:      d.Number,
+			Code:        d.Code,
+			IsAC:        d.IsAC,
+			Direction:   d.Direction,
+			Line:        d.Line,
+			Departure:   d.Departure,
+			Station:     d.Station,
+			Origin:      d.Origin,
+			Destination: d.Destination,
 		}
 	}
 
