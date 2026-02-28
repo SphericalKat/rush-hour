@@ -87,6 +87,9 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
           </Text>
           <View style={styles.badges}>
             <LineChip shortName={item.line} size="sm" />
+            <Text style={[styles.lineName, { color: colors.textSecondary }]}>
+              {item.line_name}
+            </Text>
             {item.is_fast && (
               <View style={[styles.badge, { backgroundColor: colors.primary + '20' }]}>
                 <Text style={[styles.badgeLabel, { color: colors.primary }]}>Fast</Text>
@@ -159,6 +162,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
     alignItems: 'center',
+  },
+  lineName: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   badge: {
     borderRadius: 4,

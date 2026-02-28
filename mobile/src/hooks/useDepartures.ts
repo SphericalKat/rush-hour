@@ -12,6 +12,7 @@ export function useDepartures(
   stationId: number | null,
   direction: Direction,
   window = 90,
+  destinationId?: number | null,
 ) {
   const [state, setState] = useState<State>({
     data: [],
@@ -24,7 +25,7 @@ export function useDepartures(
     if (!stationId) return;
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const data = await fetchDepartures(stationId, direction, window);
+      const data = await fetchDepartures(stationId, direction, window, destinationId ?? undefined);
       setState({ data: data ?? [], loading: false, error: null });
     } catch (e) {
       setState((s) => ({
@@ -33,7 +34,7 @@ export function useDepartures(
         error: e instanceof Error ? e.message : 'Failed to load',
       }));
     }
-  }, [stationId, direction, window]);
+  }, [stationId, direction, window, destinationId]);
 
   useEffect(() => {
     load();

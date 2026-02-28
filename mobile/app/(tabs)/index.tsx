@@ -26,15 +26,21 @@ export default function DeparturesScreen() {
   const router = useRouter();
 
   const [station, setStation] = useState<Station | null>(null);
+  const [destination, setDestination] = useState<Station | null>(null);
   const [direction, setDirection] = useState<Direction>('down');
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [destPickerOpen, setDestPickerOpen] = useState(false);
 
   const { data, loading, error, refresh } = useDepartures(
     station?.id ?? null,
     direction,
+    90,
+    destination?.id,
   );
   const stationFieldText = station ? station.name : 'Search stations';
   const stationFieldSubtext = station?.code ? `Code ${station.code}` : 'Tap to choose your departure station';
+  const destFieldText = destination ? destination.name : 'Any destination';
+  const destFieldSubtext = destination?.code ? `Code ${destination.code}` : 'Tap to filter by destination';
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -112,6 +118,77 @@ export default function DeparturesScreen() {
             color={colors.textSecondary}
           />
         </Pressable>
+      </View>
+
+      {/* Destination picker button */}
+      <View
+        style={[
+          styles.stationBar,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.separator,
+          },
+        ]}
+      >
+        <Text style={[styles.stationPrompt, { color: colors.textSecondary }]}>
+          To station
+        </Text>
+        <View style={styles.destRow}>
+          <Pressable
+            onPress={() => setDestPickerOpen(true)}
+            style={({ pressed }) => [
+              styles.stationButton,
+              styles.destButton,
+              {
+                backgroundColor: pressed
+                  ? colors.primaryMuted
+                  : colors.surfaceSecondary,
+                borderColor: destination ? colors.primary : colors.border,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={destination ? `Change destination, current ${destination.name}` : 'Select destination'}
+          >
+            <Ionicons
+              name={destination ? 'navigate' : 'search-outline'}
+              size={18}
+              color={destination ? colors.primary : colors.textSecondary}
+            />
+            <View style={styles.stationTextGroup}>
+              <Text
+                style={[
+                  styles.stationLabel,
+                  { color: destination ? colors.text : colors.textSecondary },
+                ]}
+                numberOfLines={1}
+              >
+                {destFieldText}
+              </Text>
+              <Text
+                style={[styles.stationSubtext, { color: colors.textTertiary }]}
+                numberOfLines={1}
+              >
+                {destFieldSubtext}
+              </Text>
+            </View>
+            <Ionicons
+              name="chevron-down"
+              size={14}
+              color={colors.textSecondary}
+            />
+          </Pressable>
+          {destination ? (
+            <Pressable
+              onPress={() => setDestination(null)}
+              style={[styles.clearDest, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Clear destination filter"
+            >
+              <Ionicons name="close" size={16} color={colors.textSecondary} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       {/* Direction toggle */}
@@ -204,6 +281,13 @@ export default function DeparturesScreen() {
         onSelect={setStation}
         onClose={() => setPickerOpen(false)}
       />
+      <StationPicker
+        visible={destPickerOpen}
+        selected={destination}
+        onSelect={setDestination}
+        onClose={() => setDestPickerOpen(false)}
+        title="Select Destination"
+      />
     </View>
   );
 }
@@ -256,6 +340,22 @@ const styles = StyleSheet.create({
   stationSubtext: {
     fontSize: 12,
     marginTop: 1,
+  },
+  destRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  destButton: {
+    flex: 1,
+  },
+  clearDest: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   toggleRow: {
     paddingVertical: 10,
