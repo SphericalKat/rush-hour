@@ -56,6 +56,8 @@ func TestGetDepartures_NormalWindow(t *testing.T) {
 	require.Len(t, deps, 1)
 	require.Equal(t, "90001", deps[0].Number)
 	require.Equal(t, 300, deps[0].Departure)
+	require.Equal(t, "CSMT", deps[0].Origin)
+	require.Equal(t, "Thane", deps[0].Destination)
 }
 
 func TestGetDepartures_EmptyWindow(t *testing.T) {
@@ -79,6 +81,8 @@ func TestGetDepartures_MidnightWrap(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, deps, 1)
 	require.Equal(t, "90003", deps[0].Number)
+	require.Equal(t, "CSMT", deps[0].Origin)
+	require.Equal(t, "Thane", deps[0].Destination)
 }
 
 func TestGetDepartures_MidnightWrap_CrossesMidnight(t *testing.T) {
