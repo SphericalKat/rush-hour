@@ -28,12 +28,20 @@ export default function DeparturesScreen() {
   const [destination, setDestination] = useState<Station | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [destPickerOpen, setDestPickerOpen] = useState(false);
+  const [filterFast, setFilterFast] = useState(false);
+  const [filterAC, setFilterAC] = useState(false);
 
   const { data, loading, error, refresh } = useDepartures(
     station?.id ?? null,
     destination?.id,
   );
   const liveTrains = useLiveTrains();
+  const filteredData = data.filter(d => {
+    if (filterFast && !d.is_fast) return false;
+    if (filterAC && !d.is_ac) return false;
+    return true;
+  });
+
   const stationFieldText = station ? station.name : 'From';
   const destFieldText = destination ? destination.name : 'To (any)';
 
@@ -110,6 +118,37 @@ export default function DeparturesScreen() {
             </Pressable>
           ) : null}
         </View>
+
+        {station && (
+          <View style={styles.filterRow}>
+            <Pressable
+              onPress={() => setFilterFast(f => !f)}
+              style={[
+                styles.filterChip,
+                filterFast
+                  ? { backgroundColor: 'rgba(255,255,255,0.95)' }
+                  : { backgroundColor: 'rgba(255,255,255,0.15)' },
+              ]}
+            >
+              <Text style={[styles.filterLabel, { color: filterFast ? colors.primary : 'rgba(255,255,255,0.8)' }]}>
+                Fast
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setFilterAC(f => !f)}
+              style={[
+                styles.filterChip,
+                filterAC
+                  ? { backgroundColor: 'rgba(255,255,255,0.95)' }
+                  : { backgroundColor: 'rgba(255,255,255,0.15)' },
+              ]}
+            >
+              <Text style={[styles.filterLabel, { color: filterAC ? colors.primary : 'rgba(255,255,255,0.8)' }]}>
+                AC
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </View>
 
       {/* Departure list */}
@@ -127,7 +166,7 @@ export default function DeparturesScreen() {
         />
       ) : (
         <FlatList
-          data={data}
+          data={filteredData}
           keyExtractor={(d) => `${d.number}-${d.departure}`}
           contentContainerStyle={[
             styles.listContent,
@@ -150,7 +189,7 @@ export default function DeparturesScreen() {
                 <ActivityIndicator color={colors.primary} size="small" />
               ) : (
                 <Text style={[styles.listMeta, { color: colors.textSecondary }]}>
-                  {`${data.length} train${data.length === 1 ? '' : 's'}`}
+                  {`${filteredData.length} train${filteredData.length === 1 ? '' : 's'}`}
                 </Text>
               )}
             </View>
@@ -224,6 +263,20 @@ const styles = StyleSheet.create({
   },
   stationLabel: {
     fontSize: 13,
+    fontWeight: '600',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  filterChip: {
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  filterLabel: {
+    fontSize: 12,
     fontWeight: '600',
   },
   clearDest: {
