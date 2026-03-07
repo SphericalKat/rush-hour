@@ -34,7 +34,6 @@ export default function DeparturesScreen() {
   const { data, loading, error, refresh } = useDepartures(
     station?.id ?? null,
     direction,
-    90,
     destination?.id,
   );
   const stationFieldText = station ? station.name : 'Search stations';
@@ -78,12 +77,10 @@ export default function DeparturesScreen() {
         </Text>
         <Pressable
           onPress={() => setPickerOpen(true)}
-          style={({ pressed }) => [
+          style={[
             styles.stationButton,
             {
-              backgroundColor: pressed
-                ? colors.primaryMuted
-                : colors.surfaceSecondary,
+              backgroundColor: colors.surfaceSecondary,
               borderColor: station ? colors.primary : colors.border,
             },
           ]}
@@ -136,13 +133,11 @@ export default function DeparturesScreen() {
         <View style={styles.destRow}>
           <Pressable
             onPress={() => setDestPickerOpen(true)}
-            style={({ pressed }) => [
+            style={[
               styles.stationButton,
               styles.destButton,
               {
-                backgroundColor: pressed
-                  ? colors.primaryMuted
-                  : colors.surfaceSecondary,
+                backgroundColor: colors.surfaceSecondary,
                 borderColor: destination ? colors.primary : colors.border,
               },
             ]}
@@ -256,7 +251,7 @@ export default function DeparturesScreen() {
             !loading ? (
               <EmptyState
                 icon="😴"
-                title="No trains in the next 90 min"
+                title="No upcoming trains"
                 subtitle={`Try changing direction or check back later.`}
               />
             ) : null
