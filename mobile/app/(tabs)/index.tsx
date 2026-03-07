@@ -171,7 +171,7 @@ export default function DeparturesScreen() {
               onPress={() =>
                 router.push({
                   pathname: '/train/[number]',
-                  params: { number: item.number, station: station.name },
+                  params: { number: item.number, station: station.name, origin: item.origin, destination: item.destination },
                 })
               }
             />

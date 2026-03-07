@@ -8,6 +8,7 @@ import { minutesToHHMM } from '../utils/time';
 interface Props {
   stops: TrainStop[];
   livePosition: LiveTrainPosition | null;
+  delayMinutes?: number;
 }
 
 type StopState = 'passed' | 'current' | 'approaching' | 'upcoming';
@@ -47,25 +48,20 @@ function resolveStopStates(
   }
 
   if (statusType === '2' && betweenFromIdx >= 0 && betweenToIdx >= 0) {
-    // Between two stations
     const minIdx = Math.min(betweenFromIdx, betweenToIdx);
     const maxIdx = Math.max(betweenFromIdx, betweenToIdx);
     for (let i = 0; i <= minIdx; i++) states[i] = 'passed';
     states[maxIdx] = 'approaching';
-    // everything after maxIdx stays 'upcoming'
   } else if (statusType === '0' && liveIdx >= 0) {
-    // At station
     for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
     states[liveIdx] = 'current';
   } else if ((statusType === '1' || statusType === '3') && liveIdx >= 0) {
-    // Approaching or departed from station
     for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
     states[liveIdx] = statusType === '1' ? 'approaching' : 'passed';
     if (statusType === '3' && liveIdx + 1 < stops.length) {
       states[liveIdx + 1] = 'approaching';
     }
   } else if (liveIdx >= 0) {
-    // Fallback: mark everything up to liveIdx as passed
     for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
     states[liveIdx] = 'current';
   }
@@ -73,10 +69,36 @@ function resolveStopStates(
   return states;
 }
 
-export function StationTimeline({ stops, livePosition }: Props) {
+// Estimate delay by comparing current time to the scheduled departure
+// at the station the train is currently at/approaching.
+function estimateDelay(
+  stops: TrainStop[],
+  states: StopState[],
+): number {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  for (let i = 0; i < states.length; i++) {
+    if (states[i] === 'current' || states[i] === 'approaching') {
+      const scheduled = stops[i].departure % 1440;
+      let diff = currentMinutes - scheduled;
+      // Handle midnight wrap
+      if (diff < -720) diff += 1440;
+      if (diff > 720) diff -= 1440;
+      return Math.max(0, diff);
+    }
+  }
+  return 0;
+}
+
+export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
   const { colors } = useTheme();
   const states = resolveStopStates(stops, livePosition);
   const hasLive = livePosition != null && 'position' in livePosition;
+
+  // Use provided delay, or estimate from live position
+  const delay = delayMinutes ?? (hasLive ? estimateDelay(stops, states) : 0);
+  const hasDelay = delay > 0;
 
   return (
     <View style={styles.container}>
@@ -85,7 +107,6 @@ export function StationTimeline({ stops, livePosition }: Props) {
         const isFirst = i === 0;
         const isLast = i === stops.length - 1;
 
-        // Visual properties based on state
         const dotColor =
           state === 'current' ? colors.success :
           state === 'approaching' ? colors.warning :
@@ -113,9 +134,13 @@ export function StationTimeline({ stops, livePosition }: Props) {
         const isCurrent = state === 'current';
         const isApproaching = state === 'approaching';
 
+        // Expected time for non-passed stops when delayed
+        const isUpcoming = state !== 'passed';
+        const expectedMinutes = stop.departure + delay;
+
         return (
           <View key={`${stop.station}-${i}`} style={styles.row}>
-            {/* Time column */}
+            {/* Scheduled time column */}
             <View style={styles.timeCol}>
               <Text
                 style={[
@@ -123,6 +148,7 @@ export function StationTimeline({ stops, livePosition }: Props) {
                   {
                     color: isCurrent || isApproaching ? colors.text : colors.textTertiary,
                     fontWeight: isCurrent ? '700' : '400',
+                    textDecorationLine: hasDelay && isUpcoming ? 'line-through' : 'none',
                   },
                 ]}
               >
@@ -132,12 +158,9 @@ export function StationTimeline({ stops, livePosition }: Props) {
 
             {/* Timeline column: line + dot */}
             <View style={styles.dotCol}>
-              {/* Top line segment */}
               {!isFirst && (
                 <View style={[styles.lineSegment, { backgroundColor: lineColor }]} />
               )}
-
-              {/* Dot */}
               <View
                 style={[
                   isCurrent ? styles.dotOuter : styles.dotSmall,
@@ -154,8 +177,6 @@ export function StationTimeline({ stops, livePosition }: Props) {
                   <View style={[styles.dotPulse, { backgroundColor: dotColor }]} />
                 )}
               </View>
-
-              {/* Bottom line segment */}
               {!isLast && (
                 <View style={[styles.lineSegment, { backgroundColor: nextLineColor }]} />
               )}
@@ -197,7 +218,6 @@ export function StationTimeline({ stops, livePosition }: Props) {
                 ) : null}
               </View>
 
-              {/* Status label for live states */}
               {hasLive && isCurrent && (
                 <View style={[styles.statusBadge, { backgroundColor: colors.success + '18' }]}>
                   <View style={[styles.statusDot, { backgroundColor: colors.success }]} />
@@ -214,6 +234,27 @@ export function StationTimeline({ stops, livePosition }: Props) {
                   </Text>
                 </View>
               )}
+            </View>
+
+            {/* Expected time column — always shown */}
+            <View style={styles.expectedCol}>
+              <Text
+                style={[
+                  styles.expectedTime,
+                  {
+                    color: state === 'passed'
+                      ? colors.textTertiary
+                      : hasDelay
+                        ? colors.danger
+                        : isCurrent || isApproaching
+                          ? colors.text
+                          : colors.textSecondary,
+                    fontWeight: isCurrent ? '700' : '400',
+                  },
+                ]}
+              >
+                {minutesToHHMM(hasDelay && isUpcoming ? expectedMinutes : stop.departure)}
+              </Text>
             </View>
           </View>
         );
@@ -332,5 +373,14 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 10,
     fontWeight: '700',
+  },
+  expectedCol: {
+    width: 48,
+    alignItems: 'flex-start',
+    paddingLeft: 4,
+  },
+  expectedTime: {
+    fontSize: 12,
+    fontVariant: ['tabular-nums'],
   },
 });
