@@ -23,6 +23,7 @@ export interface Departure {
   station: string;
   origin: string;
   destination: string;
+  platform: string;
 }
 
 export interface TrainStatus {
