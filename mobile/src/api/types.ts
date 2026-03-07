@@ -24,6 +24,8 @@ export interface Departure {
   origin: string;
   destination: string;
   platform: string;
+  runs_on: string;
+  note: string;
 }
 
 export interface TrainStatus {

@@ -20,6 +20,15 @@ interface Props {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+const _RUNS_ON_LABELS: Record<string, string> = {
+  not_sunday: 'No Sun',
+  sunday_only: 'Sun only',
+  weekdays_only: 'Mon–Fri',
+  not_saturday: 'No Sat',
+  not_fri_sat: 'No Fri/Sat',
+  not_thu_fri: 'No Thu/Fri',
+};
+
 function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['colors']) {
   if (item.is_ac) return colors.trainAC;
   if (item.is_fast) return colors.trainFast;
@@ -126,6 +135,20 @@ export function DepartureCard({ item, onPress, delayMinutes = 0, liveStatus }: P
               <Text style={[styles.badgeLabel, { color: colors.trainAC }]}>AC</Text>
             </View>
           )}
+          {item.runs_on && item.runs_on !== 'daily' && (
+            <View style={[styles.badge, { backgroundColor: colors.warning + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: colors.warning }]}>
+                {_RUNS_ON_LABELS[item.runs_on] ?? item.runs_on}
+              </Text>
+            </View>
+          )}
+          {item.note ? (
+            <View style={[styles.badge, { backgroundColor: colors.textTertiary + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+                {item.note}
+              </Text>
+            </View>
+          ) : null}
           <View style={{ flex: 1 }} />
           <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
         </View>
