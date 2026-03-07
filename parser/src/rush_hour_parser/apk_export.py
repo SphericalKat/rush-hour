@@ -54,7 +54,9 @@ CREATE TABLE IF NOT EXISTS trains (
     is_fast     INTEGER NOT NULL DEFAULT 0,
     direction   TEXT NOT NULL,
     origin      TEXT,
-    destination TEXT
+    destination TEXT,
+    runs_on     TEXT NOT NULL DEFAULT 'daily',
+    note        TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS stops (
@@ -119,7 +121,39 @@ class _ParsedTrain:
     direction: str  # "up" or "down"
     is_fast: bool
     is_ac: bool
+    runs_on: str    # "daily", "not_sunday", "sunday_only", "weekdays_only", etc.
+    note: str       # freeform schedule note, e.g. "General on Sat & Sun"
     stops: list[_Stop] = field(default_factory=list)
+
+
+def _parse_schedule(extra: str) -> tuple[str, str]:
+    """Parse the extra field into (runs_on, note)."""
+    lower = extra.lower()
+
+    # Check for specific schedule patterns
+    if "sunday only" in lower:
+        return "sunday_only", ""
+    if "not on saturday and sunday" in lower:
+        return "weekdays_only", ""
+    if "not on friday & saturday" in lower or "not on friday and saturday" in lower:
+        return "not_fri_sat", ""
+    if "not on thursday & friday" in lower or "not on thursday and friday" in lower:
+        return "not_thu_fri", ""
+    if "not on saturday" in lower and "sunday" not in lower:
+        return "not_saturday", ""
+    if "not on sunday" in lower:
+        return "not_sunday", ""
+
+    # Notes that don't affect runs_on but are useful
+    notes = []
+    if "general on saturday and sunday" in lower:
+        notes.append("General on Sat & Sun")
+    if "general on sunday" in lower and "saturday" not in lower:
+        notes.append("General on Sun")
+    if "ladies" in lower:
+        notes.append("Ladies Special")
+
+    return "daily", ", ".join(notes)
 
 
 def _parse_index(data: bytes) -> dict:
@@ -239,6 +273,7 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
         direction = "up" if meta.direction == 1 else "down"
         is_fast = meta.name.startswith("F") or meta.name.startswith("SF")
         is_ac = "AC" in meta.extra
+        runs_on, note = _parse_schedule(meta.extra)
 
         # Sort stops by departure time, handling midnight wraparound
         stops.sort(key=lambda s: s.departure)
@@ -262,6 +297,8 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
             direction=direction,
             is_fast=is_fast,
             is_ac=is_ac,
+            runs_on=runs_on,
+            note=note,
             stops=fixed,
         ))
 
@@ -355,9 +392,9 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
             # Insert trains and stops
             for t in trains:
                 cur = conn.execute(
-                    "INSERT INTO trains (line_id, number, code, is_ac, is_fast, direction, origin, destination)"
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (line_id, t.number, "", int(t.is_ac), int(t.is_fast), t.direction, t.origin, t.dest),
+                    "INSERT INTO trains (line_id, number, code, is_ac, is_fast, direction, origin, destination, runs_on, note)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (line_id, t.number, "", int(t.is_ac), int(t.is_fast), t.direction, t.origin, t.dest, t.runs_on, t.note),
                 )
                 train_db_id = cur.lastrowid
                 for seq, s in enumerate(t.stops):
