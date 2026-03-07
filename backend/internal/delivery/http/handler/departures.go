@@ -90,6 +90,8 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 			Origin:      d.Origin,
 			Destination: d.Destination,
 			Platform:    d.Platform,
+			RunsOn:      d.RunsOn,
+			Note:        d.Note,
 		}
 	}
 
