@@ -37,6 +37,32 @@ export interface TimetableVersion {
   updated_at: string;
 }
 
+// Live tracking from crowdsourced GPS data
+export type LiveTrainMap = Record<string, string>; // train_number → status text
+
+export type LiveTrainPosition = {
+  live: false;
+} | {
+  pc: number;       // people count sharing
+  t: number;        // timestamp (unix ms)
+  mv: boolean;      // has moved (accuracy indicator)
+  position: {
+    msg: string;     // "At DADAR" or "Between DADAR - THANE"
+    st: string;      // status type: 0=at, 1=approaching, 2=between, 3=departed
+    a: boolean;      // is accurate
+    s: string;       // station name
+    d: number;       // direction
+  };
+}
+
+export interface TrainStop {
+  station: string;
+  departure: number;  // minutes from midnight
+  stop_sequence: number;
+  platform: string;
+  side: string;       // "L" or "R" — which side doors open
+}
+
 export type Direction = 'down' | 'up';
 export type CrowdLevel = 'low' | 'moderate' | 'crowded';
 

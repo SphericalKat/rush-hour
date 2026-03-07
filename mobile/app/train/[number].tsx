@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,12 +13,22 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { fetchTrainStops } from '../../src/api/live';
 import { submitCount, submitDelay } from '../../src/api/reports';
-import type { CrowdLevel } from '../../src/api/types';
+import type { CrowdLevel, TrainStop } from '../../src/api/types';
+import { StationTimeline } from '../../src/components/StationTimeline';
 import { useDeviceId } from '../../src/hooks/useDeviceId';
+import { useLiveTrainInfo } from '../../src/hooks/useLiveTrainInfo';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useTrainStatus } from '../../src/hooks/useTrainStatus';
 import { shadow } from '../../src/theme';
+
+function formatLiveAge(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes} min ago`;
+}
 
 const CROWD_LEVELS: { value: CrowdLevel; label: string; emoji: string }[] = [
   { value: 'low', label: 'Empty', emoji: '🙂' },
@@ -37,13 +47,15 @@ export default function TrainScreen() {
   const deviceId = useDeviceId();
 
   const { status, loading, liveLevel } = useTrainStatus(number);
+  const { position: livePosition, loading: liveLoading } = useLiveTrainInfo(number);
+  const [stops, setStops] = useState<TrainStop[]>([]);
+  const [stopsLoading, setStopsLoading] = useState(true);
 
   const [delayInput, setDelayInput] = useState('');
   const [submittingDelay, setSubmittingDelay] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<CrowdLevel | null>(null);
   const [submittingCount, setSubmittingCount] = useState(false);
 
-  // Set the nav bar title
   useEffect(() => {
     navigation.setOptions({
       headerTitle: number,
@@ -52,6 +64,21 @@ export default function TrainScreen() {
       headerStyle: { backgroundColor: colors.surface },
     });
   }, [number, colors, navigation]);
+
+  const loadStops = useCallback(async () => {
+    try {
+      const data = await fetchTrainStops(number);
+      setStops(data ?? []);
+    } catch {
+      // best-effort
+    } finally {
+      setStopsLoading(false);
+    }
+  }, [number]);
+
+  useEffect(() => {
+    loadStops();
+  }, [loadStops]);
 
   const handleDelaySubmit = async () => {
     const minutes = parseInt(delayInput, 10);
@@ -77,7 +104,6 @@ export default function TrainScreen() {
     setSelectedLevel(level);
     setSubmittingCount(true);
     try {
-      // station param is the name; the API wants station_id — we use name as a proxy key
       await submitCount(number, station, level, deviceId);
       Alert.alert('Thanks!', 'Crowding level reported.');
     } catch {
@@ -87,20 +113,27 @@ export default function TrainScreen() {
     }
   };
 
+  const hasLive = livePosition != null && 'position' in livePosition;
+
   function Section({
     title,
     children,
+    rightLabel,
   }: {
     title: string;
     children: React.ReactNode;
+    rightLabel?: React.ReactNode;
   }) {
     return (
       <View style={styles.section}>
-        <Text
-          style={[styles.sectionTitle, { color: colors.textSecondary }]}
-        >
-          {title}
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Text
+            style={[styles.sectionTitle, { color: colors.textSecondary }]}
+          >
+            {title}
+          </Text>
+          {rightLabel}
+        </View>
         <View
           style={[
             styles.card,
@@ -124,7 +157,7 @@ export default function TrainScreen() {
       contentContainerStyle={[
         styles.scroll,
         {
-          paddingTop: insets.top + 60, // below transparent header
+          paddingTop: insets.top + 60,
           paddingBottom: insets.bottom + 32,
         },
       ]}
@@ -141,6 +174,53 @@ export default function TrainScreen() {
           </Text>
         ) : null}
       </View>
+
+      {/* Route timeline with live tracking overlay */}
+      <Section
+        title="ROUTE"
+        rightLabel={
+          hasLive ? (
+            <View style={[styles.liveBadge, { backgroundColor: colors.success + '18' }]}>
+              <View style={[styles.liveBadgeDot, { backgroundColor: colors.success }]} />
+              <Text style={[styles.liveBadgeText, { color: colors.success }]}>
+                LIVE
+              </Text>
+              <Text style={[styles.liveBadgeAge, { color: colors.success + 'AA' }]}>
+                {formatLiveAge((livePosition as any).t)}
+              </Text>
+            </View>
+          ) : !liveLoading ? (
+            <Text style={[styles.noLiveText, { color: colors.textTertiary }]}>
+              No live data
+            </Text>
+          ) : null
+        }
+      >
+        {stopsLoading ? (
+          <ActivityIndicator
+            color={colors.primary}
+            style={styles.spinner}
+          />
+        ) : stops.length > 0 ? (
+          <StationTimeline stops={stops} livePosition={livePosition} />
+        ) : (
+          <View style={styles.emptyStops}>
+            <Text style={[styles.emptyStopsText, { color: colors.textTertiary }]}>
+              Route information unavailable
+            </Text>
+          </View>
+        )}
+      </Section>
+
+      {/* People sharing count */}
+      {hasLive && (livePosition as any).pc > 0 && (
+        <View style={[styles.peopleBanner, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
+          <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
+          <Text style={[styles.peopleText, { color: colors.textSecondary }]}>
+            {(livePosition as any).pc} {(livePosition as any).pc === 1 ? 'person' : 'people'} sharing live location
+          </Text>
+        </View>
+      )}
 
       {/* Current status */}
       <Section title="STATUS">
@@ -206,7 +286,7 @@ export default function TrainScreen() {
           <TextInput
             value={delayInput}
             onChangeText={setDelayInput}
-            placeholder="Minutes late…"
+            placeholder="Minutes late..."
             placeholderTextColor={colors.textTertiary}
             keyboardType="number-pad"
             returnKeyType="done"
@@ -297,8 +377,8 @@ export default function TrainScreen() {
           size={12}
           color={colors.textTertiary}
         />
-        <Text style={[styles.liveText, { color: colors.textTertiary }]}>
-          Status updates live via WebSocket
+        <Text style={[styles.footerNote, { color: colors.textTertiary }]}>
+          Live position from crowdsourced GPS data. Updates every 15s.
         </Text>
       </View>
     </ScrollView>
@@ -348,11 +428,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 8,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+  },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '500',
     letterSpacing: 0.5,
-    paddingHorizontal: 4,
   },
   card: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -361,6 +446,53 @@ const styles = StyleSheet.create({
   spinner: {
     marginVertical: 20,
   },
+  // Live badge in section header
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  liveBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  liveBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  liveBadgeAge: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  noLiveText: {
+    fontSize: 11,
+  },
+  emptyStops: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyStopsText: {
+    fontSize: 14,
+  },
+  // People sharing banner
+  peopleBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  peopleText: {
+    fontSize: 13,
+  },
+  // Status tiles
   statusGrid: {
     flexDirection: 'row',
     padding: 16,
@@ -383,6 +515,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     marginHorizontal: 8,
   },
+  // Report delay
   delayRow: {
     flexDirection: 'row',
     gap: 10,
@@ -409,6 +542,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  // Crowding
   crowdRow: {
     flexDirection: 'row',
     padding: 12,
@@ -428,6 +562,7 @@ const styles = StyleSheet.create({
   crowdLabel: {
     fontSize: 12,
   },
+  // Footer
   liveNote: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -435,7 +570,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 24,
   },
-  liveText: {
+  footerNote: {
     fontSize: 12,
   },
 });
