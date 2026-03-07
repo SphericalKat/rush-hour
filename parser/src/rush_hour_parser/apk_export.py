@@ -367,5 +367,33 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
                         (train_db_id, sid, s.departure, seq, s.platform or None, s.side or None),
                     )
 
+        # Populate station coordinates from bundled CSV
+        try:
+            csv_data = zf.read("assets/mumbai/local/all_stations_lat_lon.csv").decode()
+            coords: dict[str, tuple[float, float]] = {}
+            for line in csv_data.strip().split("\n"):
+                parts = line.strip().split(",")
+                if len(parts) == 3:
+                    coords[parts[0].strip().upper()] = (float(parts[1]), float(parts[2]))
+
+            # Name variants: our DB may use slightly different spellings
+            aliases = {
+                "AMBERNATH": "AMBARNATH",
+                "BHAYANDER": "BHAYANDAR",
+                "DIGHA": "DIGHA GAON",
+                "KELVA ROAD": "KELVE ROAD",
+                "SEAWOOD DARAVE": "SEAWOOD DARAVE KARAVE",
+            }
+
+            for row in conn.execute("SELECT id, name FROM stations"):
+                sid, name = row
+                key = name.upper()
+                csv_key = aliases.get(key, key)
+                if csv_key in coords:
+                    lat, lng = coords[csv_key]
+                    conn.execute("UPDATE stations SET lat=?, lng=? WHERE id=?", (lat, lng, sid))
+        except KeyError:
+            print("  warning: all_stations_lat_lon.csv not found in APK", file=sys.stderr)
+
     conn.commit()
     conn.close()
