@@ -19,7 +19,8 @@ func NewTrainRepo(db *sqlx.DB) train.Repository {
 const departuresBase = `
 SELECT t.number, COALESCE(t.code, '') AS code, t.is_ac, t.is_fast, t.direction,
        l.short_name AS line, l.name AS line_name, s.departure, st.name AS station,
-       COALESCE(t.origin, '') AS origin, COALESCE(t.destination, '') AS destination
+       COALESCE(t.origin, '') AS origin, COALESCE(t.destination, '') AS destination,
+       COALESCE(s.platform, '') AS platform
 FROM stops s
 JOIN trains t    ON s.train_id   = t.id
 JOIN stations st ON s.station_id = st.id

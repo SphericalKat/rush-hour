@@ -12,4 +12,5 @@ type DepartureResponse struct {
 	Station     string `json:"station"`
 	Origin      string `json:"origin"`
 	Destination string `json:"destination"`
+	Platform    string `json:"platform"`
 }
