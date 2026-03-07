@@ -37,6 +37,22 @@ const destinationFilter = `
 const departuresOrder = `
 ORDER BY s.departure`
 
+const stopsQuery = `
+SELECT st.name AS station, s.departure, s.stop_sequence, COALESCE(s.platform, '') AS platform, COALESCE(s.side, '') AS side
+FROM stops s
+JOIN stations st ON s.station_id = st.id
+JOIN trains t ON s.train_id = t.id
+WHERE t.number = ?
+ORDER BY s.stop_sequence`
+
+func (r *trainRepo) GetStops(ctx context.Context, trainNumber string) ([]train.Stop, error) {
+	var out []train.Stop
+	if err := r.db.SelectContext(ctx, &out, stopsQuery, trainNumber); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, destinationID *int64) ([]train.Departure, error) {
 	query := departuresBase
 	args := []any{stationID}
