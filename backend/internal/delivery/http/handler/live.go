@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/redis/go-redis/v9"
 	"github.com/sphericalkat/rush-hour/backend/internal/domain/train"
 )
 
@@ -21,14 +22,16 @@ const (
 )
 
 type LiveHandler struct {
-	client   *http.Client
+	client    *http.Client
 	trainRepo train.Repository
+	redis     *redis.Client
 }
 
-func NewLive(trainRepo train.Repository) *LiveHandler {
+func NewLive(trainRepo train.Repository, rc *redis.Client) *LiveHandler {
 	return &LiveHandler{
 		client:    &http.Client{Timeout: 10 * time.Second},
 		trainRepo: trainRepo,
+		redis:     rc,
 	}
 }
 
@@ -59,7 +62,8 @@ func (h *LiveHandler) GetAllLiveTrains(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, resp.Body)
 }
 
-// GetLiveTrainInfo proxies the mobond getlivetraininfo endpoint for a single train.
+// GetLiveTrainInfo returns live position for a train by merging m-indicator
+// upstream data with our own crowdsourced positions from Redis.
 func (h *LiveHandler) GetLiveTrainInfo(w http.ResponseWriter, r *http.Request) {
 	trainNumber := chi.URLParam(r, "number")
 	if trainNumber == "" {
@@ -67,27 +71,49 @@ func (h *LiveHandler) GetLiveTrainInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch m-indicator data
+	var mobondData map[string]any
 	resp, err := h.postMobond(liveTrainInfoURL, "tn="+trainNumber)
-	if err != nil {
-		http.Error(w, "upstream error", http.StatusBadGateway)
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		http.Error(w, "read error", http.StatusBadGateway)
-		return
+	if err == nil {
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		if len(body) > 0 {
+			json.Unmarshal(body, &mobondData)
+		}
 	}
 
-	if len(body) == 0 {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"live": false})
-		return
-	}
+	// Fetch our own crowdsourced data
+	ourData := GetOurPosition(r.Context(), h.redis, trainNumber)
+
+	// Merge: prefer m-indicator if available (larger user base, more accurate),
+	// fall back to our data, combine people counts
+	result := h.mergePositions(mobondData, ourData)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(body)
+	json.NewEncoder(w).Encode(result)
+}
+
+func (h *LiveHandler) mergePositions(mobond, ours map[string]any) any {
+	hasMobond := mobond != nil && mobond["position"] != nil
+	hasOurs := ours != nil && ours["position"] != nil
+
+	if !hasMobond && !hasOurs {
+		return map[string]any{"live": false}
+	}
+
+	if hasMobond && !hasOurs {
+		return mobond
+	}
+
+	if !hasMobond && hasOurs {
+		return ours
+	}
+
+	// Both available — use m-indicator position (larger crowd) but add our people count
+	mobondPC, _ := mobond["pc"].(float64)
+	oursPC, _ := ours["pc"].(float64)
+	mobond["pc"] = int(mobondPC) + int(oursPC)
+	return mobond
 }
 
 // GetStops returns the ordered list of stops for a given train number.
@@ -112,9 +138,9 @@ func (h *LiveHandler) GetStops(w http.ResponseWriter, r *http.Request) {
 		Side         string `json:"side"`
 	}
 
-	resp := make([]stopResp, len(stops))
+	out := make([]stopResp, len(stops))
 	for i, s := range stops {
-		resp[i] = stopResp{
+		out[i] = stopResp{
 			Station:      s.Station,
 			Departure:    s.Departure,
 			StopSequence: s.StopSequence,
@@ -124,5 +150,5 @@ func (h *LiveHandler) GetStops(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(out)
 }

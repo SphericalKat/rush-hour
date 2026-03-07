@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/redis/go-redis/v9"
 	"github.com/sphericalkat/rush-hour/backend/internal/delivery/http/handler"
 	"github.com/sphericalkat/rush-hour/backend/internal/delivery/http/middleware"
 	"github.com/sphericalkat/rush-hour/backend/internal/domain/station"
@@ -16,6 +17,7 @@ import (
 func NewRouter(
 	stationRepo station.Repository,
 	trainRepo train.Repository,
+	redisClient *redis.Client,
 	departuresUC *usecase.DeparturesUseCase,
 	statusUC *usecase.StatusUseCase,
 	reportUC *usecase.ReportUseCase,
@@ -26,7 +28,8 @@ func NewRouter(
 	departuresH := handler.NewDepartures(departuresUC)
 	statusH := handler.NewStatus(statusUC)
 	reportH := handler.NewReport(reportUC)
-	liveH := handler.NewLive(trainRepo)
+	liveH := handler.NewLive(trainRepo, redisClient)
+	locationH := handler.NewLocation(trainRepo, redisClient)
 	wsH := handler.NewWS(wsHub)
 
 	r := chi.NewRouter()
@@ -40,6 +43,7 @@ func NewRouter(
 		r.Get("/trains/{number}/status", statusH.GetStatus)
 		r.Get("/trains/{number}/live", liveH.GetLiveTrainInfo)
 		r.Get("/trains/{number}/stops", liveH.GetStops)
+		r.Post("/trains/{number}/location", locationH.PushLocation)
 
 		r.Get("/live/trains", liveH.GetAllLiveTrains)
 
