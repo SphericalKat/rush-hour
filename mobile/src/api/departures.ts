@@ -1,14 +1,13 @@
 import { request } from './client';
-import type { Departure, Direction } from './types';
+import type { Departure } from './types';
 
 export function fetchDepartures(
   stationId: number,
-  direction: Direction,
   destinationId?: number,
 ): Promise<Departure[]> {
-  let url = `/api/v1/stations/${stationId}/departures?direction=${direction}`;
+  let url = `/api/v1/stations/${stationId}/departures`;
   if (destinationId != null) {
-    url += `&destination=${destinationId}`;
+    url += `?destination=${destinationId}`;
   }
   return request<Departure[]>(url);
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchDepartures } from '../api/departures';
-import type { Departure, Direction } from '../api/types';
+import type { Departure } from '../api/types';
 
 interface State {
   data: Departure[];
@@ -10,7 +10,6 @@ interface State {
 
 export function useDepartures(
   stationId: number | null,
-  direction: Direction,
   destinationId?: number | null,
 ) {
   const [state, setState] = useState<State>({
@@ -24,7 +23,7 @@ export function useDepartures(
     if (!stationId) return;
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const data = await fetchDepartures(stationId, direction, destinationId ?? undefined);
+      const data = await fetchDepartures(stationId, destinationId ?? undefined);
       setState({ data: data ?? [], loading: false, error: null });
     } catch (e) {
       setState((s) => ({
@@ -33,11 +32,10 @@ export function useDepartures(
         error: e instanceof Error ? e.message : 'Failed to load',
       }));
     }
-  }, [stationId, direction, destinationId]);
+  }, [stationId, destinationId]);
 
   useEffect(() => {
     load();
-    // Refresh every 30s to keep the countdown accurate
     intervalRef.current = setInterval(load, 30_000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
