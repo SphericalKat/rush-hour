@@ -15,6 +15,7 @@ interface Props {
   item: Departure;
   onPress: () => void;
   delayMinutes?: number;
+  liveStatus?: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -25,7 +26,7 @@ function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['col
   return colors.trainSlow;
 }
 
-export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
+export function DepartureCard({ item, onPress, delayMinutes = 0, liveStatus }: Props) {
   const { colors } = useTheme();
   const scale = useSharedValue(1);
 
@@ -98,6 +99,16 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
           <Text style={{ color: colors.textTertiary }}>{' \u2192 '}</Text>
           {item.destination}
         </Text>
+
+        {/* Live tracking status */}
+        {liveStatus ? (
+          <View style={[styles.liveRow, { backgroundColor: colors.success + '14' }]}>
+            <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
+            <Text style={[styles.liveText, { color: colors.success }]} numberOfLines={1}>
+              {liveStatus}
+            </Text>
+          </View>
+        ) : null}
 
         {/* Bottom row: meta + badges */}
         <View style={styles.meta}>
@@ -179,6 +190,24 @@ const styles = StyleSheet.create({
   route: {
     fontSize: 13,
     fontWeight: '500',
+  },
+  liveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  liveText: {
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1,
   },
   meta: {
     flexDirection: 'row',

@@ -6,18 +6,18 @@ import {
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
   Pressable,
   StyleSheet,
   Text,
+  type TextInput,
   Vibration,
   View,
 } from 'react-native';
 import Animated, {
-  FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -36,7 +36,6 @@ interface Props {
 
 interface StationRowProps {
   item: Station;
-  index: number;
   active: boolean;
   onSelect: (s: Station) => void;
   onHaptic: () => void;
@@ -45,7 +44,7 @@ interface StationRowProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function StationRow({ item, index, active, onSelect, onHaptic, colors }: StationRowProps) {
+function StationRow({ item, active, onSelect, onHaptic, colors }: StationRowProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -53,7 +52,6 @@ function StationRow({ item, index, active, onSelect, onHaptic, colors }: Station
 
   return (
     <AnimatedPressable
-      entering={index < 18 ? FadeInDown.duration(250).delay(index * 14) : undefined}
       style={[
         styles.row,
         animatedStyle,
@@ -112,14 +110,17 @@ function StationRow({ item, index, active, onSelect, onHaptic, colors }: Station
 export function StationPicker({ visible, selected, onSelect, onClose, title = 'Select Station' }: Props) {
   const { colors } = useTheme();
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(false);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const inputRef = useRef<TextInput>(null);
   const hapticsRef = useRef<{ selectionAsync?: () => Promise<void> } | null>(null);
 
   useEffect(() => {
     if (visible) {
       setQuery('');
+      inputRef.current?.clear();
       setLoading(true);
       fetchStations()
         .then(setStations)
@@ -132,14 +133,14 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
   }, [visible]);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return stations;
-    const q = query.toLowerCase();
+    if (!deferredQuery.trim()) return stations;
+    const q = deferredQuery.toLowerCase();
     return stations.filter(
       (s) =>
         s.name.toLowerCase().includes(q) ||
         s.code?.toLowerCase().includes(q),
     );
-  }, [stations, query]);
+  }, [stations, deferredQuery]);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -154,12 +155,11 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: Station; index: number }) => {
+    ({ item }: { item: Station }) => {
       const active = selected?.id === item.id;
       return (
         <StationRow
           item={item}
-          index={index}
           active={active}
           onSelect={(s) => {
             onSelect(s);
@@ -232,7 +232,7 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
       >
         <Ionicons name="search" size={16} color={colors.textSecondary} />
         <BottomSheetTextInput
-          value={query}
+          ref={inputRef as React.RefObject<any>}
           onChangeText={setQuery}
           placeholder="Search stations"
           placeholderTextColor={colors.textTertiary}
@@ -243,7 +243,7 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
         />
         {query.length > 0 ? (
           <Pressable
-            onPress={() => setQuery('')}
+            onPress={() => { setQuery(''); inputRef.current?.clear(); }}
             hitSlop={8}
             style={[styles.clearBtn, { backgroundColor: colors.border }]}
             accessibilityRole="button"

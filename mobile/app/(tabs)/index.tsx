@@ -16,6 +16,7 @@ import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { StationPicker } from '../../src/components/StationPicker';
 import { useDepartures } from '../../src/hooks/useDepartures';
+import { useLiveTrains } from '../../src/hooks/useLiveTrains';
 import { useTheme } from '../../src/hooks/useTheme';
 
 export default function DeparturesScreen() {
@@ -32,6 +33,7 @@ export default function DeparturesScreen() {
     station?.id ?? null,
     destination?.id,
   );
+  const liveTrains = useLiveTrains();
   const stationFieldText = station ? station.name : 'From';
   const destFieldText = destination ? destination.name : 'To (any)';
 
@@ -165,6 +167,7 @@ export default function DeparturesScreen() {
           renderItem={({ item }) => (
             <DepartureCard
               item={item}
+              liveStatus={liveTrains[item.number]}
               onPress={() =>
                 router.push({
                   pathname: '/train/[number]',
