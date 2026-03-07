@@ -2,20 +2,74 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"sort"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/sphericalkat/rush-hour/backend/internal/domain/train"
 )
 
+const departureCacheTTL = 1 * time.Hour
+
 type DeparturesUseCase struct {
 	trains train.Repository
+	redis  *redis.Client
 }
 
-func NewDepartures(trains train.Repository) *DeparturesUseCase {
-	return &DeparturesUseCase{trains: trains}
+func NewDepartures(trains train.Repository, redis *redis.Client) *DeparturesUseCase {
+	return &DeparturesUseCase{trains: trains, redis: redis}
 }
 
-// GetDepartures returns the next trains departing from stationID in the given direction.
-// If destinationID is non-nil, only trains that stop at that station after stationID are returned.
-func (uc *DeparturesUseCase) GetDepartures(ctx context.Context, stationID int64, direction string, fromMinute int, destinationID *int64) ([]train.Departure, error) {
-	return uc.trains.GetDepartures(ctx, stationID, direction, fromMinute, destinationID)
+func departureCacheKey(stationID int64, destinationID *int64) string {
+	if destinationID != nil {
+		return fmt.Sprintf("departures:%d:dest:%d", stationID, *destinationID)
+	}
+	return fmt.Sprintf("departures:%d", stationID)
+}
+
+// GetDepartures returns all trains departing from stationID, ordered so that
+// trains departing at or after fromMinute come first, followed by earlier trains
+// (midnight wrap-around).
+func (uc *DeparturesUseCase) GetDepartures(ctx context.Context, stationID int64, fromMinute int, destinationID *int64) ([]train.Departure, error) {
+	deps, err := uc.getCachedOrFetch(ctx, stationID, destinationID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sort: trains at/after fromMinute first (by departure), then earlier trains
+	sort.SliceStable(deps, func(i, j int) bool {
+		iFuture := deps[i].Departure >= fromMinute
+		jFuture := deps[j].Departure >= fromMinute
+		if iFuture != jFuture {
+			return iFuture
+		}
+		return deps[i].Departure < deps[j].Departure
+	})
+
+	return deps, nil
+}
+
+func (uc *DeparturesUseCase) getCachedOrFetch(ctx context.Context, stationID int64, destinationID *int64) ([]train.Departure, error) {
+	key := departureCacheKey(stationID, destinationID)
+
+	cached, err := uc.redis.Get(ctx, key).Bytes()
+	if err == nil {
+		var deps []train.Departure
+		if json.Unmarshal(cached, &deps) == nil {
+			return deps, nil
+		}
+	}
+
+	deps, err := uc.trains.GetDepartures(ctx, stationID, destinationID)
+	if err != nil {
+		return nil, err
+	}
+
+	if data, err := json.Marshal(deps); err == nil {
+		uc.redis.Set(ctx, key, data, departureCacheTTL)
+	}
+
+	return deps, nil
 }
