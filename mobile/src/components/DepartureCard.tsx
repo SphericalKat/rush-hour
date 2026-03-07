@@ -84,6 +84,7 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
           <Text style={[styles.trainNum, { color: colors.textSecondary }]}>
             {item.number}
             {item.code ? ` · ${item.code}` : ''}
+            {item.platform ? ` · PF ${item.platform}` : ''}
           </Text>
           <View style={styles.badges}>
             <LineChip shortName={item.line} size="sm" />
