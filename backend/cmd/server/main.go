@@ -46,7 +46,7 @@ func main() {
 
 	timetableH := handler.NewTimetable(dbPath, updateInterval)
 
-	r := server.NewRouter(stationRepo, trainRepo, departuresUC, statusUC, reportUC, timetableH, wsHub)
+	r := server.NewRouter(stationRepo, trainRepo, redisClient, departuresUC, statusUC, reportUC, timetableH, wsHub)
 
 	slog.Info("listening", "addr", addr)
 	if err := http.ListenAndServe(addr, r); err != nil {

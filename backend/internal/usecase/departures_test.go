@@ -24,6 +24,10 @@ func (m *mockTrainRepo) GetStops(_ context.Context, _ string) ([]train.Stop, err
 	return nil, nil
 }
 
+func (m *mockTrainRepo) GetStopsWithCoords(_ context.Context, _ string) ([]train.StopWithCoord, error) {
+	return nil, nil
+}
+
 func TestDeparturesReordersByFromMinute(t *testing.T) {
 	mr, _ := miniredis.Run()
 	t.Cleanup(mr.Close)

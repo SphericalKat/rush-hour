@@ -48,7 +48,7 @@ func TestMain(m *testing.M) {
 	reportUC := usecase.NewReport(reportRepo, wsHub)
 	timetableH := handler.NewTimetable(testTimetable, time.Hour)
 
-	r := server.NewRouter(stationRepo, trainRepo, departuresUC, statusUC, reportUC, timetableH, wsHub)
+	r := server.NewRouter(stationRepo, trainRepo, redisClient, departuresUC, statusUC, reportUC, timetableH, wsHub)
 	testServer = httptest.NewServer(r)
 
 	code := m.Run()
