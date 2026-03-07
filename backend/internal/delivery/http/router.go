@@ -8,12 +8,14 @@ import (
 	"github.com/sphericalkat/rush-hour/backend/internal/delivery/http/handler"
 	"github.com/sphericalkat/rush-hour/backend/internal/delivery/http/middleware"
 	"github.com/sphericalkat/rush-hour/backend/internal/domain/station"
+	"github.com/sphericalkat/rush-hour/backend/internal/domain/train"
 	"github.com/sphericalkat/rush-hour/backend/internal/infrastructure/hub"
 	"github.com/sphericalkat/rush-hour/backend/internal/usecase"
 )
 
 func NewRouter(
 	stationRepo station.Repository,
+	trainRepo train.Repository,
 	departuresUC *usecase.DeparturesUseCase,
 	statusUC *usecase.StatusUseCase,
 	reportUC *usecase.ReportUseCase,
@@ -24,6 +26,7 @@ func NewRouter(
 	departuresH := handler.NewDepartures(departuresUC)
 	statusH := handler.NewStatus(statusUC)
 	reportH := handler.NewReport(reportUC)
+	liveH := handler.NewLive(trainRepo)
 	wsH := handler.NewWS(wsHub)
 
 	r := chi.NewRouter()
@@ -35,6 +38,10 @@ func NewRouter(
 		r.Get("/stations", stationH.ListStations)
 		r.Get("/stations/{id}/departures", departuresH.GetDepartures)
 		r.Get("/trains/{number}/status", statusH.GetStatus)
+		r.Get("/trains/{number}/live", liveH.GetLiveTrainInfo)
+		r.Get("/trains/{number}/stops", liveH.GetStops)
+
+		r.Get("/live/trains", liveH.GetAllLiveTrains)
 
 		r.Post("/reports/delay", reportH.SubmitDelay)
 		r.Post("/reports/count", reportH.SubmitCount)

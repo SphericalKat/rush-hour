@@ -14,3 +14,11 @@ type Departure struct {
 	Destination string `db:"destination"`
 	Platform    string `db:"platform"`
 }
+
+type Stop struct {
+	Station      string `db:"station"`
+	Departure    int    `db:"departure"`
+	StopSequence int    `db:"stop_sequence"`
+	Platform     string `db:"platform"`
+	Side         string `db:"side"`
+}
