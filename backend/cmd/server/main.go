@@ -40,7 +40,7 @@ func main() {
 	trainRepo := sqliteinf.NewTrainRepo(db)
 	reportRepo := redisinf.NewReportRepo(redisClient)
 
-	departuresUC := usecase.NewDepartures(trainRepo)
+	departuresUC := usecase.NewDepartures(trainRepo, redisClient)
 	statusUC := usecase.NewStatus(reportRepo)
 	reportUC := usecase.NewReport(reportRepo, wsHub)
 
