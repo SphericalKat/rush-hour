@@ -13,6 +13,8 @@ type Departure struct {
 	Origin      string `db:"origin"`
 	Destination string `db:"destination"`
 	Platform    string `db:"platform"`
+	RunsOn      string `db:"runs_on"`
+	Note        string `db:"note"`
 }
 
 type Stop struct {
