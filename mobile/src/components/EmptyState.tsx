@@ -15,7 +15,7 @@ export function EmptyState({ icon = '🚆', title, subtitle }: Props) {
       <Text style={styles.icon}>{icon}</Text>
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {subtitle ? (
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+        <Text style={[styles.subtitle, { color: colors.textTertiary }]}>
           {subtitle}
         </Text>
       ) : null}
@@ -28,22 +28,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 60,
+    paddingHorizontal: 48,
+    paddingVertical: 48,
   },
   icon: {
-    fontSize: 48,
-    marginBottom: 16,
+    fontSize: 40,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
 });

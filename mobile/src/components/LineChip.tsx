@@ -17,7 +17,7 @@ export function LineChip({ shortName, size = 'md' }: Props) {
     <View
       style={[
         styles.chip,
-        { backgroundColor: color + '20', borderColor: color + '40' },
+        { backgroundColor: color + '1A' },
         small && styles.chipSm,
       ]}
     >
@@ -37,21 +37,19 @@ export function LineChip({ shortName, size = 'md' }: Props) {
 
 const styles = StyleSheet.create({
   chip: {
-    borderRadius: 6,
-    borderWidth: 1,
-    paddingHorizontal: 7,
+    borderRadius: 4,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     alignSelf: 'flex-start',
   },
   chipSm: {
     paddingHorizontal: 5,
     paddingVertical: 1,
-    borderRadius: 4,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   labelSm: {
     fontSize: 10,

@@ -1,51 +1,67 @@
 import { Platform } from 'react-native';
 
-// iOS system colors for a native feel; mirrored for Android.
 export const lightColors = {
-  primary: '#007AFF',
-  primaryMuted: '#E5F1FF',
-  background: '#F2F2F7',
+  primary: '#0D9668',
+  primaryMuted: '#ECFDF5',
+  background: '#F0F5F3',
   surface: '#FFFFFF',
-  surfaceSecondary: '#F2F2F7',
-  border: '#E5E5EA',
-  separator: '#C6C6C8',
-  text: '#1C1C1E',
-  textSecondary: '#6C6C70',
-  textTertiary: '#AEAEB2',
+  surfaceSecondary: '#E8EFEC',
+  border: '#C6D5CE',
+  separator: '#D5E0DA',
+  text: '#1A2E24',
+  textSecondary: '#5A7267',
+  textTertiary: '#8DA39A',
   textOnPrimary: '#FFFFFF',
   // status
-  success: '#34C759',
-  warning: '#FF9500',
-  danger: '#FF3B30',
+  success: '#16A34A',
+  warning: '#F59E0B',
+  danger: '#EF4444',
   // AC badge
-  ac: '#00C7BE',
+  ac: '#0891B2',
+  // train type leading bar
+  trainSlow: '#EAB308',
+  trainFast: '#EF4444',
+  trainAC: '#2563EB',
+  // countdown urgency
+  countdownUrgent: '#EA580C',
+  countdownDue: '#DC2626',
+  // platform
+  platform: '#0D9668',
+  platformMuted: '#D1FAE5',
   // line colors (operator identity)
-  cr: '#0061FF',
-  wr: '#00A86B',
-  harbor: '#8E4EC6',
-  lineDefault: '#636366',
+  cr: '#2563EB',
+  wr: '#0D9668',
+  harbor: '#7C3AED',
+  lineDefault: '#5A7267',
 };
 
 export const darkColors: typeof lightColors = {
-  primary: '#0A84FF',
-  primaryMuted: '#001F3D',
-  background: '#000000',
-  surface: '#1C1C1E',
-  surfaceSecondary: '#2C2C2E',
-  border: '#38383A',
-  separator: '#38383A',
-  text: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textTertiary: '#636366',
-  textOnPrimary: '#FFFFFF',
-  success: '#30D158',
-  warning: '#FF9F0A',
-  danger: '#FF453A',
-  ac: '#64D2FF',
-  cr: '#409CFF',
-  wr: '#30D158',
-  harbor: '#BF5AF2',
-  lineDefault: '#8E8E93',
+  primary: '#34D399',
+  primaryMuted: '#052E1C',
+  background: '#0A0F0D',
+  surface: '#141C18',
+  surfaceSecondary: '#1E2A24',
+  border: '#2D3F36',
+  separator: '#1E2A24',
+  text: '#F0FAF5',
+  textSecondary: '#94B8A7',
+  textTertiary: '#5E8272',
+  textOnPrimary: '#052E1C',
+  success: '#22C55E',
+  warning: '#FBBF24',
+  danger: '#F87171',
+  ac: '#22D3EE',
+  trainSlow: '#FBBF24',
+  trainFast: '#F87171',
+  trainAC: '#60A5FA',
+  countdownUrgent: '#FB923C',
+  countdownDue: '#EF4444',
+  platform: '#34D399',
+  platformMuted: '#052E1C',
+  cr: '#60A5FA',
+  wr: '#34D399',
+  harbor: '#A78BFA',
+  lineDefault: '#94B8A7',
 };
 
 export const spacing = {
@@ -59,9 +75,10 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
+  xs: 4,
+  sm: 6,
+  md: 10,
+  lg: 14,
   xl: 20,
   full: 9999,
 } as const;
@@ -81,20 +98,12 @@ export const type = {
   caption2: { fontSize: 11, fontWeight: '400' as const },
 } as const;
 
-// Per-platform shadow helper
+// Flat design — no shadows by default, but keep the helper for rare use
 export function shadow(
-  elevation: number,
-  color = '#000',
+  _elevation: number,
+  _color = '#000',
 ): Record<string, unknown> {
-  if (Platform.OS === 'android') {
-    return { elevation };
-  }
-  return {
-    shadowColor: color,
-    shadowOffset: { width: 0, height: elevation / 2 },
-    shadowOpacity: 0.06 + elevation * 0.01,
-    shadowRadius: elevation * 1.2,
-  };
+  return {};
 }
 
 // Map a line short_name to its brand color

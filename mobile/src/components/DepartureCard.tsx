@@ -8,7 +8,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { Departure } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
-import { shadow } from '../theme';
 import { formatCountdown, minutesToHHMM, minutesUntil } from '../utils/time';
 import { LineChip } from './LineChip';
 
@@ -20,8 +19,14 @@ interface Props {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['colors']) {
+  if (item.is_ac) return colors.trainAC;
+  if (item.is_fast) return colors.trainFast;
+  return colors.trainSlow;
+}
+
 export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
-  const { colors, radius } = useTheme();
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -34,8 +39,16 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
   const isDelayed = delayMinutes > 0;
 
   let countdownColor = colors.textSecondary;
-  if (isDue) countdownColor = colors.danger;
-  else if (isUrgent) countdownColor = colors.warning;
+  let countdownBg = 'transparent';
+  if (isDue) {
+    countdownColor = '#FFFFFF';
+    countdownBg = colors.countdownDue;
+  } else if (isUrgent) {
+    countdownColor = '#FFFFFF';
+    countdownBg = colors.countdownUrgent;
+  }
+
+  const barColor = trainBarColor(item, colors);
 
   return (
     <AnimatedPressable
@@ -47,16 +60,15 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
       style={[
         animatedStyle,
         styles.card,
-        {
-          backgroundColor: colors.surface,
-          borderRadius: radius.lg,
-          ...shadow(2),
-        },
+        { backgroundColor: colors.surface },
       ]}
     >
-      {/* Top row: time + countdown */}
-      <View style={styles.header}>
-        <View style={styles.timeGroup}>
+      {/* Leading color bar */}
+      <View style={[styles.bar, { backgroundColor: barColor }]} />
+
+      <View style={styles.cardBody}>
+        {/* Top row: time + platform + countdown */}
+        <View style={styles.header}>
           <Text style={[styles.time, { color: colors.text }]}>
             {minutesToHHMM(item.departure)}
           </Text>
@@ -65,45 +77,47 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
               +{delayMinutes}m
             </Text>
           )}
-        </View>
-        <Text style={[styles.countdown, { color: countdownColor }]}>
-          {isDue ? 'Due' : formatCountdown(until)}
-        </Text>
-      </View>
-
-      {/* Middle row: origin → destination */}
-      <Text style={[styles.route, { color: colors.text }]} numberOfLines={1}>
-        {item.origin}
-        <Text style={{ color: colors.textTertiary }}> → </Text>
-        {item.destination}
-      </Text>
-
-      {/* Bottom row: train info + badges */}
-      <View style={styles.info}>
-        <View style={styles.leftInfo}>
-          <Text style={[styles.trainNum, { color: colors.textSecondary }]}>
-            {item.number}
-            {item.code ? ` · ${item.code}` : ''}
-            {item.platform ? ` · PF ${item.platform}` : ''}
-          </Text>
-          <View style={styles.badges}>
-            <LineChip shortName={item.line} size="sm" />
-            <Text style={[styles.lineName, { color: colors.textSecondary }]}>
-              {item.line_name}
+          <View style={{ flex: 1 }} />
+          {item.platform ? (
+            <View style={[styles.platformPill, { backgroundColor: colors.platformMuted }]}>
+              <Text style={[styles.platformLabel, { color: colors.platform }]}>
+                PF {item.platform}
+              </Text>
+            </View>
+          ) : null}
+          <View style={[styles.countdownPill, { backgroundColor: countdownBg }]}>
+            <Text style={[styles.countdown, { color: countdownColor }]}>
+              {isDue ? 'Due' : formatCountdown(until)}
             </Text>
-            {item.is_fast && (
-              <View style={[styles.badge, { backgroundColor: colors.primary + '20' }]}>
-                <Text style={[styles.badgeLabel, { color: colors.primary }]}>Fast</Text>
-              </View>
-            )}
-            {item.is_ac && (
-              <View style={[styles.badge, { backgroundColor: colors.ac + '20' }]}>
-                <Text style={[styles.badgeLabel, { color: colors.ac }]}>AC</Text>
-              </View>
-            )}
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+
+        {/* Route */}
+        <Text style={[styles.route, { color: colors.textSecondary }]} numberOfLines={1}>
+          {item.origin}
+          <Text style={{ color: colors.textTertiary }}>{' \u2192 '}</Text>
+          {item.destination}
+        </Text>
+
+        {/* Bottom row: meta + badges */}
+        <View style={styles.meta}>
+          <LineChip shortName={item.line} size="sm" />
+          <Text style={[styles.trainNum, { color: colors.textTertiary }]}>
+            {item.number}
+          </Text>
+          {item.is_fast && (
+            <View style={[styles.badge, { backgroundColor: colors.trainFast + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: colors.trainFast }]}>Fast</Text>
+            </View>
+          )}
+          {item.is_ac && (
+            <View style={[styles.badge, { backgroundColor: colors.trainAC + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: colors.trainAC }]}>AC</Text>
+            </View>
+          )}
+          <View style={{ flex: 1 }} />
+          <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+        </View>
       </View>
     </AnimatedPressable>
   );
@@ -111,61 +125,69 @@ export function DepartureCard({ item, onPress, delayMinutes = 0 }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 16,
-    marginVertical: 5,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    marginHorizontal: 12,
+    marginVertical: 3,
+    flexDirection: 'row',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  bar: {
+    width: 5,
+  },
+  cardBody: {
+    flex: 1,
+    paddingLeft: 12,
+    paddingRight: 12,
+    paddingVertical: 10,
+    gap: 3,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 4,
-  },
-  timeGroup: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: 6,
   },
   time: {
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: '700',
-    letterSpacing: -0.5,
     fontVariant: ['tabular-nums'],
+    letterSpacing: -0.3,
   },
   delay: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  platformPill: {
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  platformLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  countdownPill: {
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   countdown: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   route: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  info: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  leftInfo: {
-    gap: 6,
-    flex: 1,
-  },
-  trainNum: {
     fontSize: 13,
     fontWeight: '500',
   },
-  badges: {
+  meta: {
     flexDirection: 'row',
-    gap: 6,
     alignItems: 'center',
+    gap: 5,
+    marginTop: 1,
   },
-  lineName: {
-    fontSize: 12,
+  trainNum: {
+    fontSize: 11,
     fontWeight: '500',
   },
   badge: {
@@ -174,7 +196,7 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   badgeLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
