@@ -118,6 +118,7 @@ class _ParsedTrain:
     dest: str
     direction: str  # "up" or "down"
     is_fast: bool
+    is_ac: bool
     stops: list[_Stop] = field(default_factory=list)
 
 
@@ -237,6 +238,7 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
         number = train_numbers[train_idx]
         direction = "up" if meta.direction == 1 else "down"
         is_fast = meta.name.startswith("F") or meta.name.startswith("SF")
+        is_ac = "AC" in meta.extra
 
         # Sort stops by departure time, handling midnight wraparound
         stops.sort(key=lambda s: s.departure)
@@ -259,6 +261,7 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
             dest=meta.dest,
             direction=direction,
             is_fast=is_fast,
+            is_ac=is_ac,
             stops=fixed,
         ))
 
@@ -354,7 +357,7 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
                 cur = conn.execute(
                     "INSERT INTO trains (line_id, number, code, is_ac, is_fast, direction, origin, destination)"
                     " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (line_id, t.number, "", 0, int(t.is_fast), t.direction, t.origin, t.dest),
+                    (line_id, t.number, "", int(t.is_ac), int(t.is_fast), t.direction, t.origin, t.dest),
                 )
                 train_db_id = cur.lastrowid
                 for seq, s in enumerate(t.stops):
