@@ -55,11 +55,6 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	direction := r.URL.Query().Get("direction")
-	if direction == "" {
-		direction = "down"
-	}
-
 	var destinationID *int64
 	if s := r.URL.Query().Get("destination"); s != "" {
 		parsed, err := strconv.ParseInt(s, 10, 64)
@@ -74,7 +69,7 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 	now := time.Now().In(ist)
 	fromMinute := now.Hour()*60 + now.Minute()
 
-	deps, err := h.uc.GetDepartures(r.Context(), id, direction, fromMinute, destinationID)
+	deps, err := h.uc.GetDepartures(r.Context(), id, fromMinute, destinationID)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return

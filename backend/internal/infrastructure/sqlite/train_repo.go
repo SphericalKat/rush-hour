@@ -15,7 +15,6 @@ func NewTrainRepo(db *sqlx.DB) train.Repository {
 	return &trainRepo{db: db}
 }
 
-// departuresBase returns the next trains from a given minute, wrapping around midnight.
 const departuresBase = `
 SELECT t.number, COALESCE(t.code, '') AS code, t.is_ac, t.is_fast, t.direction,
        l.short_name AS line, l.name AS line_name, s.departure, st.name AS station,
@@ -25,8 +24,7 @@ FROM stops s
 JOIN trains t    ON s.train_id   = t.id
 JOIN stations st ON s.station_id = st.id
 JOIN lines l     ON t.line_id    = l.id
-WHERE s.station_id = ?
-  AND t.direction  = ?`
+WHERE s.station_id = ?`
 
 const destinationFilter = `
   AND EXISTS (
@@ -37,12 +35,11 @@ const destinationFilter = `
   )`
 
 const departuresOrder = `
-ORDER BY CASE WHEN s.departure >= ? THEN 0 ELSE 1 END, s.departure
-LIMIT 50`
+ORDER BY s.departure`
 
-func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, direction string, fromMinute int, destinationID *int64) ([]train.Departure, error) {
+func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, destinationID *int64) ([]train.Departure, error) {
 	query := departuresBase
-	args := []any{stationID, direction}
+	args := []any{stationID}
 
 	if destinationID != nil {
 		query += destinationFilter
@@ -50,7 +47,6 @@ func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, directio
 	}
 
 	query += departuresOrder
-	args = append(args, fromMinute)
 
 	rows, err := r.db.QueryxContext(ctx, query, args...)
 	if err != nil {

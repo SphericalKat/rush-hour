@@ -40,6 +40,10 @@ func seedTrainDB(t *testing.T) *sqlx.DB {
 		-- Midnight-crossing down train: CSMT 23:40, Dadar 00:10 (= 1450), Thane 00:30 (= 1470)
 		INSERT INTO trains VALUES (2, 1, '90003', 'TNA', 0, 0, 'down', 'CSMT', 'Thane');
 		INSERT INTO stops (id, train_id, station_id, departure, stop_sequence) VALUES (4, 2, 1, 1420, 0), (5, 2, 2, 1450, 1), (6, 2, 3, 1470, 2);
+
+		-- Up train: Thane 05:10, Dadar 05:40, CSMT 06:10
+		INSERT INTO trains VALUES (3, 1, '90002', 'CSMT', 0, 0, 'up', 'Thane', 'CSMT');
+		INSERT INTO stops (id, train_id, station_id, departure, stop_sequence) VALUES (7, 3, 3, 310, 0), (8, 3, 2, 340, 1), (9, 3, 1, 370, 2);
 	`)
 	require.NoError(t, err)
 
@@ -50,53 +54,38 @@ func TestGetDepartures_FromCSMT(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	// From minute 280 (04:40), next trains from CSMT should be 90001 at 300, then 90003 at 1420
-	deps, err := repo.GetDepartures(context.Background(), 1, "down", 280, nil)
+	// All departures from CSMT (both directions, no limit)
+	deps, err := repo.GetDepartures(context.Background(), 1, nil)
 	require.NoError(t, err)
-	require.Len(t, deps, 2)
-	require.Equal(t, "90001", deps[0].Number)
-	require.Equal(t, 300, deps[0].Departure)
-	require.Equal(t, "90003", deps[1].Number)
+	require.Len(t, deps, 3) // 90001 (down), 90003 (down), 90002 (up)
 }
 
-func TestGetDepartures_WrapsAroundMidnight(t *testing.T) {
+func TestGetDepartures_AllDirections(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	// From minute 1430 (23:50), next from Dadar should be 90003 at 1450, then 90001 at 330 (wraps)
-	deps, err := repo.GetDepartures(context.Background(), 2, "down", 1430, nil)
+	// From Dadar — should return all 3 trains (both directions)
+	deps, err := repo.GetDepartures(context.Background(), 2, nil)
 	require.NoError(t, err)
-	require.Len(t, deps, 2)
-	require.Equal(t, "90003", deps[0].Number)
-	require.Equal(t, 1450, deps[0].Departure)
-	require.Equal(t, "90001", deps[1].Number)
-	require.Equal(t, 330, deps[1].Departure)
+	require.Len(t, deps, 3)
 }
 
 func TestGetDepartures_DestinationFilter(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	// From CSMT with destination=Thane should return both trains
+	// From CSMT with destination=Thane should return both down trains (up train ends at CSMT)
 	destThane := int64(3)
-	deps, err := repo.GetDepartures(context.Background(), 1, "down", 280, &destThane)
+	deps, err := repo.GetDepartures(context.Background(), 1, &destThane)
 	require.NoError(t, err)
 	require.Len(t, deps, 2)
 	require.Equal(t, "90001", deps[0].Number)
+	require.Equal(t, "90003", deps[1].Number)
 
-	// From Thane with destination=CSMT should return nothing (CSMT comes before Thane)
+	// From Thane with destination=CSMT — only the up train goes Thane→CSMT
 	destCSMT := int64(1)
-	deps, err = repo.GetDepartures(context.Background(), 3, "down", 340, &destCSMT)
+	deps, err = repo.GetDepartures(context.Background(), 3, &destCSMT)
 	require.NoError(t, err)
-	require.Empty(t, deps)
-}
-
-func TestGetDepartures_DirectionFilter(t *testing.T) {
-	db := seedTrainDB(t)
-	repo := sqlite.NewTrainRepo(db)
-
-	// No up trains in fixture
-	deps, err := repo.GetDepartures(context.Background(), 1, "up", 280, nil)
-	require.NoError(t, err)
-	require.Empty(t, deps)
+	require.Len(t, deps, 1)
+	require.Equal(t, "90002", deps[0].Number)
 }
