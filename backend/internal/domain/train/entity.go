@@ -12,4 +12,5 @@ type Departure struct {
 	Station     string `db:"station"`
 	Origin      string `db:"origin"`
 	Destination string `db:"destination"`
+	Platform    string `db:"platform"`
 }

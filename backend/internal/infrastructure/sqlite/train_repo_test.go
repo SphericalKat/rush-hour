@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS lines (id INTEGER PRIMARY KEY, operator_id INTEGER NO
 CREATE TABLE IF NOT EXISTS stations (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, code TEXT, lat REAL, lng REAL);
 CREATE TABLE IF NOT EXISTS line_stations (line_id INTEGER NOT NULL, station_id INTEGER NOT NULL, sequence INTEGER NOT NULL, PRIMARY KEY (line_id, station_id));
 CREATE TABLE IF NOT EXISTS trains (id INTEGER PRIMARY KEY, line_id INTEGER NOT NULL, number TEXT NOT NULL, code TEXT, is_ac INTEGER NOT NULL DEFAULT 0, is_fast INTEGER NOT NULL DEFAULT 0, direction TEXT NOT NULL, origin TEXT, destination TEXT);
-CREATE TABLE IF NOT EXISTS stops (id INTEGER PRIMARY KEY, train_id INTEGER NOT NULL, station_id INTEGER NOT NULL, departure INTEGER NOT NULL, stop_sequence INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS stops (id INTEGER PRIMARY KEY, train_id INTEGER NOT NULL, station_id INTEGER NOT NULL, departure INTEGER NOT NULL, stop_sequence INTEGER NOT NULL, platform TEXT, side TEXT);
 `
 
 func seedTrainDB(t *testing.T) *sqlx.DB {
@@ -35,11 +35,11 @@ func seedTrainDB(t *testing.T) *sqlx.DB {
 
 		-- Regular down train: CSMT 05:00, Dadar 05:30, Thane 06:00
 		INSERT INTO trains VALUES (1, 1, '90001', 'TNA', 0, 0, 'down', 'CSMT', 'Thane');
-		INSERT INTO stops VALUES (1, 1, 1, 300, 0), (2, 1, 2, 330, 1), (3, 1, 3, 360, 2);
+		INSERT INTO stops (id, train_id, station_id, departure, stop_sequence) VALUES (1, 1, 1, 300, 0), (2, 1, 2, 330, 1), (3, 1, 3, 360, 2);
 
 		-- Midnight-crossing down train: CSMT 23:40, Dadar 00:10 (= 1450), Thane 00:30 (= 1470)
 		INSERT INTO trains VALUES (2, 1, '90003', 'TNA', 0, 0, 'down', 'CSMT', 'Thane');
-		INSERT INTO stops VALUES (4, 2, 1, 1420, 0), (5, 2, 2, 1450, 1), (6, 2, 3, 1470, 2);
+		INSERT INTO stops (id, train_id, station_id, departure, stop_sequence) VALUES (4, 2, 1, 1420, 0), (5, 2, 2, 1450, 1), (6, 2, 3, 1470, 2);
 	`)
 	require.NoError(t, err)
 
