@@ -45,6 +45,22 @@ JOIN trains t ON s.train_id = t.id
 WHERE t.number = ?
 ORDER BY s.stop_sequence`
 
+const stopsCoordsQuery = `
+SELECT st.name AS station, st.lat, st.lng, s.stop_sequence
+FROM stops s
+JOIN stations st ON s.station_id = st.id
+JOIN trains t ON s.train_id = t.id
+WHERE t.number = ?
+ORDER BY s.stop_sequence`
+
+func (r *trainRepo) GetStopsWithCoords(ctx context.Context, trainNumber string) ([]train.StopWithCoord, error) {
+	var out []train.StopWithCoord
+	if err := r.db.SelectContext(ctx, &out, stopsCoordsQuery, trainNumber); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (r *trainRepo) GetStops(ctx context.Context, trainNumber string) ([]train.Stop, error) {
 	var out []train.Stop
 	if err := r.db.SelectContext(ctx, &out, stopsQuery, trainNumber); err != nil {

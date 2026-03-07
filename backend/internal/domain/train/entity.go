@@ -22,3 +22,10 @@ type Stop struct {
 	Platform     string `db:"platform"`
 	Side         string `db:"side"`
 }
+
+type StopWithCoord struct {
+	Station string  `db:"station"`
+	Lat     float64 `db:"lat"`
+	Lng     float64 `db:"lng"`
+	Seq     int     `db:"stop_sequence"`
+}
