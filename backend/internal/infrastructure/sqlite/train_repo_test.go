@@ -46,74 +46,47 @@ func seedTrainDB(t *testing.T) *sqlx.DB {
 	return db
 }
 
-func TestGetDepartures_NormalWindow(t *testing.T) {
+func TestGetDepartures_FromCSMT(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	// window 280–340 should include the 05:00 departure (300) but not Dadar (330 < 340 yes, actually 330 is in window)
-	deps, err := repo.GetDepartures(context.Background(), 1, "down", 280, 340, nil)
+	// From minute 280 (04:40), next trains from CSMT should be 90001 at 300, then 90003 at 1420
+	deps, err := repo.GetDepartures(context.Background(), 1, "down", 280, nil)
 	require.NoError(t, err)
-	require.Len(t, deps, 1)
+	require.Len(t, deps, 2)
 	require.Equal(t, "90001", deps[0].Number)
 	require.Equal(t, 300, deps[0].Departure)
-	require.Equal(t, "CSMT", deps[0].Origin)
-	require.Equal(t, "Thane", deps[0].Destination)
+	require.Equal(t, "90003", deps[1].Number)
 }
 
-func TestGetDepartures_EmptyWindow(t *testing.T) {
+func TestGetDepartures_WrapsAroundMidnight(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	deps, err := repo.GetDepartures(context.Background(), 1, "down", 700, 760, nil)
+	// From minute 1430 (23:50), next from Dadar should be 90003 at 1450, then 90001 at 330 (wraps)
+	deps, err := repo.GetDepartures(context.Background(), 2, "down", 1430, nil)
 	require.NoError(t, err)
-	require.Empty(t, deps)
-}
-
-func TestGetDepartures_MidnightWrap(t *testing.T) {
-	db := seedTrainDB(t)
-	repo := sqlite.NewTrainRepo(db)
-
-	// Window 1400–1460 (until=1460 > 1440):
-	//   normal clause catches train 90003's CSMT stop at 1420 (1400 ≤ 1420 < 1460)
-	//   wraparound clause catches stops with departure < (1460-1440)=20 — none in fixture
-	// train 90001's CSMT stop is at 300, which is outside this window
-	deps, err := repo.GetDepartures(context.Background(), 1, "down", 1400, 1460, nil)
-	require.NoError(t, err)
-	require.Len(t, deps, 1)
-	require.Equal(t, "90003", deps[0].Number)
-	require.Equal(t, "CSMT", deps[0].Origin)
-	require.Equal(t, "Thane", deps[0].Destination)
-}
-
-func TestGetDepartures_MidnightWrap_CrossesMidnight(t *testing.T) {
-	db := seedTrainDB(t)
-	repo := sqlite.NewTrainRepo(db)
-
-	// Window 1430–1500 (until=1500 > 1440): should include train 90003's Dadar stop
-	// at 1450 (via normal clause) and would include stops with departure < 60 via wraparound.
-	deps, err := repo.GetDepartures(context.Background(), 2, "down", 1430, 1500, nil)
-	require.NoError(t, err)
-	require.Len(t, deps, 1)
+	require.Len(t, deps, 2)
 	require.Equal(t, "90003", deps[0].Number)
 	require.Equal(t, 1450, deps[0].Departure)
+	require.Equal(t, "90001", deps[1].Number)
+	require.Equal(t, 330, deps[1].Departure)
 }
 
 func TestGetDepartures_DestinationFilter(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	// Train 90001 goes CSMT(1) → Dadar(2) → Thane(3).
-	// Filtering departures from CSMT with destination=Thane(3) should return it.
+	// From CSMT with destination=Thane should return both trains
 	destThane := int64(3)
-	deps, err := repo.GetDepartures(context.Background(), 1, "down", 280, 400, &destThane)
+	deps, err := repo.GetDepartures(context.Background(), 1, "down", 280, &destThane)
 	require.NoError(t, err)
-	require.Len(t, deps, 1)
+	require.Len(t, deps, 2)
 	require.Equal(t, "90001", deps[0].Number)
 
-	// Filtering departures from Thane(3) with destination=CSMT(1) should return nothing
-	// because CSMT comes before Thane in the stop sequence.
+	// From Thane with destination=CSMT should return nothing (CSMT comes before Thane)
 	destCSMT := int64(1)
-	deps, err = repo.GetDepartures(context.Background(), 3, "down", 340, 400, &destCSMT)
+	deps, err = repo.GetDepartures(context.Background(), 3, "down", 340, &destCSMT)
 	require.NoError(t, err)
 	require.Empty(t, deps)
 }
@@ -122,8 +95,8 @@ func TestGetDepartures_DirectionFilter(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	// No up trains in fixture, so "up" direction should return nothing from station 1
-	deps, err := repo.GetDepartures(context.Background(), 1, "up", 280, 400, nil)
+	// No up trains in fixture
+	deps, err := repo.GetDepartures(context.Background(), 1, "up", 280, nil)
 	require.NoError(t, err)
 	require.Empty(t, deps)
 }

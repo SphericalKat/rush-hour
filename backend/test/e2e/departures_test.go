@@ -14,7 +14,7 @@ import (
 func TestDepartures_HappyPath(t *testing.T) {
 	// Station 1 (CSMT), down direction. Two trains depart: 90011 at 300, 90013 at 360.
 	// We query with a fixed window by hitting the endpoint and checking that we get a JSON array.
-	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&window=1440")
+	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -30,9 +30,9 @@ func TestDepartures_HappyPath(t *testing.T) {
 	}
 }
 
-func TestDepartures_EmptyWindow(t *testing.T) {
+func TestDepartures_NonexistentStation(t *testing.T) {
 	// Station 99 doesn't exist — should return empty array, not an error
-	resp, err := http.Get(testServer.URL + "/api/v1/stations/99/departures?direction=down&window=60")
+	resp, err := http.Get(testServer.URL + "/api/v1/stations/99/departures?direction=down")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -52,7 +52,7 @@ func TestDepartures_InvalidStationID(t *testing.T) {
 
 func TestDepartures_DefaultDirection(t *testing.T) {
 	// No direction param → defaults to "down"
-	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures&window=1440")
+	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	// Not a valid URL but the server should 404 not 500
@@ -62,7 +62,7 @@ func TestDepartures_DefaultDirection(t *testing.T) {
 func TestDepartures_DestinationFilter(t *testing.T) {
 	// Station 1 (CSMT), down direction, destination=3 (Thane).
 	// Trains 90011, 90013, 90099, and 90021 all go through CSMT and Thane.
-	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&window=1440&destination=3")
+	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&destination=3")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -76,7 +76,7 @@ func TestDepartures_DestinationFilter(t *testing.T) {
 	}
 
 	// Filter by destination=5 (Borivali) — no CR trains go there, so should be empty.
-	resp2, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&window=1440&destination=5")
+	resp2, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&destination=5")
 	require.NoError(t, err)
 	defer resp2.Body.Close()
 
@@ -88,7 +88,7 @@ func TestDepartures_DestinationFilter(t *testing.T) {
 }
 
 func TestDepartures_ACTrain(t *testing.T) {
-	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down&window=1440")
+	resp, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?direction=down")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusOK, resp.StatusCode)
