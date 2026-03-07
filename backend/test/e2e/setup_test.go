@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 	reportRepo := redisinf.NewReportRepo(redisClient)
 	wsHub := hub.New()
 
-	departuresUC := usecase.NewDepartures(trainRepo)
+	departuresUC := usecase.NewDepartures(trainRepo, redisClient)
 	statusUC := usecase.NewStatus(reportRepo)
 	reportUC := usecase.NewReport(reportRepo, wsHub)
 	timetableH := handler.NewTimetable(testTimetable, time.Hour)
