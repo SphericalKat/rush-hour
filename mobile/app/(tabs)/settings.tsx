@@ -15,7 +15,7 @@ import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchTimetableVersion } from '../../src/api/timetable';
 import type { TimetableVersion } from '../../src/api/types';
-import { useSettings } from '../../src/hooks/useSettings';
+import { useSettings, type ColorMode } from '../../src/hooks/useSettings';
 import { useTheme } from '../../src/hooks/useTheme';
 import { shadow } from '../../src/theme';
 
@@ -76,7 +76,7 @@ function Row({ label, value, onPress, showChevron, destructive, children }: RowP
 
 export default function SettingsScreen() {
   const { colors, radius } = useTheme();
-  const { settings, setDynamicColors } = useSettings();
+  const { settings, setDynamicColors, setColorMode } = useSettings();
   const insets = useSafeAreaInsets();
   const [version, setVersion] = useState<TimetableVersion | null>(null);
   const [checking, setChecking] = useState(false);
@@ -137,14 +137,43 @@ export default function SettingsScreen() {
         APPEARANCE
       </Text>
       {card(
-        <Row label="Dynamic colors">
-          <Switch
-            value={settings.dynamicColors}
-            onValueChange={setDynamicColors}
-            trackColor={{ false: colors.surfaceSecondary, true: colors.primary }}
-            thumbColor={settings.dynamicColors ? colors.textOnPrimary : colors.textTertiary}
-          />
-        </Row>,
+        <>
+          <Row label="Theme">
+            <View style={[styles.segmented, { backgroundColor: colors.surfaceSecondary }]}>
+              {(['auto', 'light', 'dark'] as ColorMode[]).map(mode => {
+                const active = settings.colorMode === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    onPress={() => setColorMode(mode)}
+                    style={[
+                      styles.segmentedItem,
+                      active && { backgroundColor: colors.primary },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentedLabel,
+                        { color: active ? colors.textOnPrimary : colors.textSecondary },
+                      ]}
+                    >
+                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Row>
+          <View style={[styles.divider, { backgroundColor: colors.separator }]} />
+          <Row label="Dynamic colors">
+            <Switch
+              value={settings.dynamicColors}
+              onValueChange={setDynamicColors}
+              trackColor={{ false: colors.surfaceSecondary, true: colors.primary }}
+              thumbColor={settings.dynamicColors ? colors.textOnPrimary : colors.textTertiary}
+            />
+          </Row>
+        </>,
       )}
 
       {/* Timetable section */}
@@ -266,5 +295,19 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     marginLeft: 16,
+  },
+  segmented: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    padding: 2,
+  },
+  segmentedItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  segmentedLabel: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

@@ -4,11 +4,14 @@ import { Platform } from 'react-native';
 
 const KEY = 'rush_hour_settings';
 
+export type ColorMode = 'auto' | 'light' | 'dark';
+
 interface Settings {
   dynamicColors: boolean;
+  colorMode: ColorMode;
 }
 
-const defaults: Settings = { dynamicColors: true };
+const defaults: Settings = { dynamicColors: true, colorMode: 'auto' };
 
 let cache: Settings | null = null;
 
@@ -53,5 +56,10 @@ export function useSettings() {
     await save({ ...current, dynamicColors: enabled });
   };
 
-  return { settings, setDynamicColors };
+  const setColorMode = async (mode: ColorMode) => {
+    const current = await load();
+    await save({ ...current, colorMode: mode });
+  };
+
+  return { settings, setDynamicColors, setColorMode };
 }

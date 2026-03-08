@@ -15,10 +15,14 @@ import { useSettings } from './useSettings';
 const BRAND_GREEN = '#0D9668';
 
 export function useTheme() {
-  const raw = useColorScheme();
-  const scheme: 'light' | 'dark' = raw === 'dark' ? 'dark' : 'light';
+  const systemScheme = useColorScheme();
   const { theme: m3 } = useMaterial3Theme({ fallbackSourceColor: BRAND_GREEN });
   const { settings } = useSettings();
+
+  const scheme: 'light' | 'dark' =
+    settings.colorMode === 'auto'
+      ? (systemScheme === 'dark' ? 'dark' : 'light')
+      : settings.colorMode;
 
   const colors = useMemo(() => {
     // When dynamic colors are disabled, always use the static green palette
