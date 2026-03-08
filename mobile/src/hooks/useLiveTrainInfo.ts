@@ -17,7 +17,7 @@ export function useLiveTrainInfo(trainNumber: string) {
       const data = await fetchLiveTrainInfo(trainNumber);
       setPosition(data);
     } catch {
-      // best-effort
+      // best-effort — keep previous data
     } finally {
       setLoading(false);
       setSecondsUntilRefresh(POLL_INTERVAL / 1000);
@@ -25,7 +25,6 @@ export function useLiveTrainInfo(trainNumber: string) {
   }, [trainNumber]);
 
   useEffect(() => {
-    setLoading(true);
     load();
     intervalRef.current = setInterval(load, POLL_INTERVAL);
     tickRef.current = setInterval(() => {
