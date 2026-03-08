@@ -38,8 +38,9 @@ const fixedDark = {
 const iosLightColors = {
   primary: '#007AFF',           // systemBlue
   primaryMuted: '#E8F0FE',
-  background: '#F2F2F7',       // systemGroupedBackground
+  background: '#E8E8ED',       // systemGroupedBackground (darkened)
   surface: '#FFFFFF',           // secondarySystemGroupedBackground
+  surfaceContainerHighest: '#ECECF0',
   surfaceSecondary: '#E5E5EA', // systemGray5
   border: '#C6C6C8',           // opaqueSeparator
   separator: '#C6C6C8',        // opaqueSeparator
@@ -58,6 +59,7 @@ const iosDarkColors: typeof iosLightColors = {
   primaryMuted: '#1C2A3D',
   background: '#000000',       // systemBackground
   surface: '#1C1C1E',          // secondarySystemBackground
+  surfaceContainerHighest: '#2C2C2E',
   surfaceSecondary: '#2C2C2E', // tertiarySystemBackground
   border: '#38383A',           // opaqueSeparator (dark)
   separator: '#38383A',
@@ -76,8 +78,9 @@ const iosDarkColors: typeof iosLightColors = {
 export const lightColors = {
   primary: '#0D9668',
   primaryMuted: '#ECFDF5',
-  background: '#F0F5F3',
+  background: '#E4ECE8',
   surface: '#FFFFFF',
+  surfaceContainerHighest: '#E8EEEB',
   surfaceSecondary: '#E8EFEC',
   border: '#C6D5CE',
   separator: '#D5E0DA',
@@ -96,6 +99,7 @@ export const darkColors: typeof lightColors = {
   primaryMuted: '#052E1C',
   background: '#0A0F0D',
   surface: '#141C18',
+  surfaceContainerHighest: '#1E2A24',
   surfaceSecondary: '#1E2A24',
   border: '#2D3F36',
   separator: '#1E2A24',
@@ -130,6 +134,7 @@ export function mapM3ToAppColors(
     primaryMuted: m3.primaryContainer,
     background: m3.background,
     surface: m3.surface,
+    surfaceContainerHighest: m3.surfaceContainerHighest ?? m3.surfaceVariant,
     surfaceSecondary: m3.secondaryContainer ?? m3.surfaceVariant,
     border: m3.outlineVariant ?? m3.outline,
     separator: m3.outlineVariant ?? m3.outline,

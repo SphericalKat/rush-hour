@@ -13,8 +13,9 @@ export function fetchTrainStops(trainNumber: string): Promise<TrainStop[]> {
   return request<TrainStop[]>(`/api/v1/trains/${trainNumber}/stops`);
 }
 
-export function fetchTrainRoute(trainNumber: string): Promise<RouteStop[]> {
-  return request<RouteStop[]>(`/api/v1/trains/${trainNumber}/route`);
+export function fetchTrainRoute(trainNumber: string, line?: string): Promise<RouteStop[]> {
+  const params = line ? `?line=${encodeURIComponent(line)}` : '';
+  return request<RouteStop[]>(`/api/v1/trains/${trainNumber}/route${params}`);
 }
 
 export interface PushLocationResponse {
