@@ -2,12 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from './Text';
-import type { LiveTrainPosition, TrainStop } from '../api/types';
+import type { LiveTrainPosition, RouteStop } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
 import { minutesToHHMM } from '../utils/time';
 
 interface Props {
-  stops: TrainStop[];
+  stops: RouteStop[];
   livePosition: LiveTrainPosition | null;
   delayMinutes?: number;
 }
@@ -15,7 +15,7 @@ interface Props {
 type StopState = 'passed' | 'current' | 'approaching' | 'upcoming';
 
 function resolveStopStates(
-  stops: TrainStop[],
+  stops: RouteStop[],
   live: LiveTrainPosition | null,
 ): StopState[] {
   const states: StopState[] = stops.map(() => 'upcoming');
@@ -23,7 +23,8 @@ function resolveStopStates(
 
   const { position } = live;
   const liveStation = position.s?.toUpperCase();
-  const statusType = position.st; // "0"=at, "1"=approaching/left, "2"=between, "3"=departed
+  // m-indicator status codes: "0"=at, "1"=left/crossed, "2"=between, "3"=approaching
+  const statusType = position.st;
 
   // Find the index of the station the live position refers to
   let liveIdx = -1;
@@ -54,14 +55,19 @@ function resolveStopStates(
     for (let i = 0; i <= minIdx; i++) states[i] = 'passed';
     states[maxIdx] = 'approaching';
   } else if (statusType === '0' && liveIdx >= 0) {
+    // At station
     for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
     states[liveIdx] = 'current';
-  } else if ((statusType === '1' || statusType === '3') && liveIdx >= 0) {
-    for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
-    states[liveIdx] = statusType === '1' ? 'approaching' : 'passed';
-    if (statusType === '3' && liveIdx + 1 < stops.length) {
+  } else if (statusType === '1' && liveIdx >= 0) {
+    // Left/crossed — station is passed, next is approaching
+    for (let i = 0; i <= liveIdx; i++) states[i] = 'passed';
+    if (liveIdx + 1 < stops.length) {
       states[liveIdx + 1] = 'approaching';
     }
+  } else if (statusType === '3' && liveIdx >= 0) {
+    // Approaching — everything before is passed, this station is approaching
+    for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
+    states[liveIdx] = 'approaching';
   } else if (liveIdx >= 0) {
     for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
     states[liveIdx] = 'current';
@@ -70,41 +76,19 @@ function resolveStopStates(
   return states;
 }
 
-// Estimate delay by comparing current time to the scheduled departure
-// at the station the train is currently at/approaching.
-function estimateDelay(
-  stops: TrainStop[],
-  states: StopState[],
-): number {
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  for (let i = 0; i < states.length; i++) {
-    if (states[i] === 'current' || states[i] === 'approaching') {
-      const scheduled = stops[i].departure % 1440;
-      let diff = currentMinutes - scheduled;
-      // Handle midnight wrap
-      if (diff < -720) diff += 1440;
-      if (diff > 720) diff -= 1440;
-      return Math.max(0, diff);
-    }
-  }
-  return 0;
-}
-
 export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
   const { colors } = useTheme();
   const states = resolveStopStates(stops, livePosition);
   const hasLive = livePosition != null && 'position' in livePosition;
 
-  // Use provided delay, or estimate from live position
-  const delay = delayMinutes ?? (hasLive ? estimateDelay(stops, states) : 0);
-  const hasDelay = delay > 0;
+  const delay = delayMinutes ?? 0;
+  const hasDelay = delay !== 0;
 
   return (
     <View style={styles.container}>
       {stops.map((stop, i) => {
         const state = states[i];
+        const isStop = stop.is_stop;
         const isFirst = i === 0;
         const isLast = i === stops.length - 1;
 
@@ -128,6 +112,7 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
             : colors.border;
 
         const textColor =
+          !isStop ? colors.textTertiary :
           state === 'passed' ? colors.textTertiary :
           state === 'current' || state === 'approaching' ? colors.text :
           colors.textSecondary;
@@ -135,9 +120,64 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
         const isCurrent = state === 'current';
         const isApproaching = state === 'approaching';
 
-        // Expected time for non-passed stops when delayed
+        // Expected time for non-passed stops when delayed (only actual stops)
         const isUpcoming = state !== 'passed';
-        const expectedMinutes = stop.departure + delay;
+        const expectedMinutes = isStop && stop.departure ? stop.departure + delay : 0;
+
+        // Pass-through stations get a compact row.
+        // Use a single consistent line color through the whole row —
+        // the "through" color is the more progressed of top/bottom.
+        if (!isStop) {
+          const throughColor =
+            state === 'passed' || state === 'current'
+              ? colors.primary
+              : nextState === 'passed' || nextState === 'current'
+                ? colors.primary
+                : state === 'approaching' || nextState === 'approaching'
+                  ? colors.warning + '60'
+                  : colors.border;
+
+          return (
+            <View key={`${stop.station}-${i}`} style={styles.passRow}>
+              {/* Empty time column */}
+              <View style={styles.timeCol} />
+
+              {/* Timeline column: line + circled × */}
+              <View style={styles.dotCol}>
+                <View style={[styles.lineSegment, { backgroundColor: throughColor }]} />
+                <View
+                  style={[
+                    styles.dotPassThrough,
+                    {
+                      borderColor: dotColor,
+                      backgroundColor: dotColor + '18',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.passThroughX, { color: dotColor }]}>
+                    {'×'}
+                  </Text>
+                </View>
+                {!isLast && (
+                  <View style={[styles.lineSegment, { backgroundColor: throughColor }]} />
+                )}
+              </View>
+
+              {/* Station name */}
+              <View style={[styles.infoCol, { paddingVertical: 0 }]}>
+                <Text
+                  style={[styles.passThroughName, { color: textColor }]}
+                  numberOfLines={1}
+                >
+                  {stop.station}
+                </Text>
+              </View>
+
+              {/* Empty expected column */}
+              <View style={styles.expectedCol} />
+            </View>
+          );
+        }
 
         return (
           <View key={`${stop.station}-${i}`} style={styles.row}>
@@ -153,7 +193,7 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
                   },
                 ]}
               >
-                {minutesToHHMM(stop.departure)}
+                {stop.departure != null ? minutesToHHMM(stop.departure) : ''}
               </Text>
             </View>
 
@@ -237,25 +277,27 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
               )}
             </View>
 
-            {/* Expected time column — always shown */}
+            {/* Expected time column — only for actual stops */}
             <View style={styles.expectedCol}>
-              <Text
-                style={[
-                  styles.expectedTime,
-                  {
-                    color: state === 'passed'
-                      ? colors.textTertiary
-                      : hasDelay
-                        ? colors.danger
-                        : isCurrent || isApproaching
-                          ? colors.text
-                          : colors.textSecondary,
-                    fontWeight: isCurrent ? '700' : '400',
-                  },
-                ]}
-              >
-                {minutesToHHMM(hasDelay && isUpcoming ? expectedMinutes : stop.departure)}
-              </Text>
+              {stop.departure != null && (
+                <Text
+                  style={[
+                    styles.expectedTime,
+                    {
+                      color: state === 'passed'
+                        ? colors.textTertiary
+                        : hasDelay
+                          ? colors.danger
+                          : isCurrent || isApproaching
+                            ? colors.text
+                            : colors.textSecondary,
+                      fontWeight: isCurrent ? '700' : '400',
+                    },
+                  ]}
+                >
+                  {minutesToHHMM(hasDelay && isUpcoming ? expectedMinutes : stop.departure)}
+                </Text>
+              )}
             </View>
           </View>
         );
@@ -266,6 +308,7 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
 
 const DOT_SIZE = 14;
 const DOT_OUTER = 22;
+const PASS_DOT = 16;
 const LINE_WIDTH = 3;
 
 const styles = StyleSheet.create({
@@ -277,6 +320,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 44,
+  },
+  passRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 28,
   },
   timeCol: {
     width: 48,
@@ -295,7 +343,6 @@ const styles = StyleSheet.create({
   lineSegment: {
     flex: 1,
     width: LINE_WIDTH,
-    borderRadius: LINE_WIDTH / 2,
   },
   dotSmall: {
     width: DOT_SIZE,
@@ -322,6 +369,23 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  dotPassThrough: {
+    width: PASS_DOT,
+    height: PASS_DOT,
+    borderRadius: PASS_DOT / 2,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  passThroughX: {
+    fontSize: 8,
+    fontWeight: '700',
+    lineHeight: 10,
+    textAlign: 'center',
+  },
+  passThroughName: {
+    fontSize: 11,
   },
   infoCol: {
     flex: 1,
