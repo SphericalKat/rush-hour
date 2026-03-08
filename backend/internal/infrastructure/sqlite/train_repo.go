@@ -54,9 +54,28 @@ JOIN trains t ON s.train_id = t.id
 WHERE t.number = ?
 ORDER BY s.stop_sequence`
 
+// lineStationsCoordsQuery returns every station on the train's line in travel order.
+// line_stations.sequence is indexed in the down direction, so up trains are reversed.
+const lineStationsCoordsQuery = `
+SELECT st.name AS station, st.lat, st.lng, ls.sequence AS stop_sequence
+FROM line_stations ls
+JOIN stations st ON ls.station_id = st.id
+JOIN trains t ON t.line_id = ls.line_id
+WHERE t.number = ?
+  AND st.lat IS NOT NULL AND st.lng IS NOT NULL
+ORDER BY CASE WHEN t.direction = 'up' THEN -ls.sequence ELSE ls.sequence END`
+
 func (r *trainRepo) GetStopsWithCoords(ctx context.Context, trainNumber string) ([]train.StopWithCoord, error) {
 	var out []train.StopWithCoord
 	if err := r.db.SelectContext(ctx, &out, stopsCoordsQuery, trainNumber); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r *trainRepo) GetLineStationsWithCoords(ctx context.Context, trainNumber string) ([]train.StopWithCoord, error) {
+	var out []train.StopWithCoord
+	if err := r.db.SelectContext(ctx, &out, lineStationsCoordsQuery, trainNumber); err != nil {
 		return nil, err
 	}
 	return out, nil

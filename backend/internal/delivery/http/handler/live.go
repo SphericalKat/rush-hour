@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/redis/go-redis/v9"
 	"github.com/sphericalkat/rush-hour/backend/internal/domain/train"
+	"github.com/sphericalkat/rush-hour/backend/internal/infrastructure/routes"
 )
 
 const (
@@ -151,4 +152,65 @@ func (h *LiveHandler) GetStops(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(out)
+}
+
+// GetRoute returns the train's stops interleaved with non-stopping (pass-through)
+// stations between consecutive actual stops. Uses the hardcoded physical station
+// sequences from the routes package (matching m-indicator's bb.a.b method).
+func (h *LiveHandler) GetRoute(w http.ResponseWriter, r *http.Request) {
+	trainNumber := chi.URLParam(r, "number")
+	if trainNumber == "" {
+		http.Error(w, "missing train number", http.StatusBadRequest)
+		return
+	}
+
+	stops, err := h.trainRepo.GetStops(r.Context(), trainNumber)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if len(stops) == 0 {
+		http.Error(w, "unknown train", http.StatusNotFound)
+		return
+	}
+
+	type routeStop struct {
+		Station      string `json:"station"`
+		Departure    int    `json:"departure,omitempty"`
+		StopSequence int    `json:"stop_sequence"`
+		Platform     string `json:"platform,omitempty"`
+		Side         string `json:"side,omitempty"`
+		IsStop       bool   `json:"is_stop"`
+	}
+
+	var route []routeStop
+	seq := 0
+
+	for i, s := range stops {
+		route = append(route, routeStop{
+			Station:      s.Station,
+			Departure:    s.Departure,
+			StopSequence: seq,
+			Platform:     s.Platform,
+			Side:         s.Side,
+			IsStop:       true,
+		})
+		seq++
+
+		// Insert pass-through stations between consecutive stops
+		if i < len(stops)-1 {
+			between := routes.StationsBetween(s.Station, stops[i+1].Station)
+			for _, name := range between {
+				route = append(route, routeStop{
+					Station:      name,
+					StopSequence: seq,
+					IsStop:       false,
+				})
+				seq++
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(route)
 }
