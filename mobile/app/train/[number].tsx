@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -48,7 +49,13 @@ export default function TrainScreen() {
   const [stopsLoading, setStopsLoading] = useState(true);
 
   const fav = isFavorite(number, line ?? '');
+  const heartScale = useRef(new Animated.Value(1)).current;
+
   const handleToggleFav = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(heartScale, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.timing(heartScale, { toValue: 1, duration: 120, useNativeDriver: true }),
+    ]).start();
     const actualStops = stops.filter(s => s.is_stop);
     toggleFavorite({
       number,
@@ -56,7 +63,7 @@ export default function TrainScreen() {
       origin: origin ?? actualStops[0]?.station ?? '',
       destination: destination ?? actualStops[actualStops.length - 1]?.station ?? '',
     });
-  }, [number, line, origin, destination, stops, toggleFavorite]);
+  }, [number, line, origin, destination, stops, toggleFavorite, heartScale]);
 
   const routeTitle = React.useMemo(() => {
     if (origin && destination) return `${origin} - ${destination}`;
@@ -73,15 +80,17 @@ export default function TrainScreen() {
       headerStyle: { backgroundColor: colors.surface },
       headerRight: () => (
         <Pressable onPress={handleToggleFav} hitSlop={8} style={{ marginRight: 12 }}>
-          <Ionicons
-            name={fav ? 'heart' : 'heart-outline'}
-            size={22}
-            color={fav ? colors.danger : colors.textSecondary}
-          />
+          <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+            <Ionicons
+              name={fav ? 'heart' : 'heart-outline'}
+              size={22}
+              color={fav ? colors.danger : colors.textSecondary}
+            />
+          </Animated.View>
         </Pressable>
       ),
     });
-  }, [routeTitle, colors, navigation, fav, handleToggleFav]);
+  }, [routeTitle, colors, navigation, fav, handleToggleFav, heartScale]);
 
   const loadStops = useCallback(async () => {
     try {

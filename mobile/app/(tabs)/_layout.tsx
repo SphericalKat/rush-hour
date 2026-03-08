@@ -33,16 +33,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="lines"
-        options={{
-          title: 'Lines',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
+<Tabs.Screen
         name="favorites"
         options={{
           title: 'Favorites',

@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
@@ -7,16 +6,36 @@ import {
   Alert,
   FlatList,
   Platform,
-  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
-import { LineChip } from '../../src/components/LineChip';
+import type { Departure } from '../../src/api/types';
 import { useFavorites, type FavoriteTrain } from '../../src/hooks/useFavorites';
+import { useLiveTrains } from '../../src/hooks/useLiveTrains';
 import { useTheme } from '../../src/hooks/useTheme';
+
+function favToDeparture(fav: FavoriteTrain): Departure {
+  return {
+    number: fav.number,
+    code: '',
+    is_ac: fav.is_ac ?? false,
+    is_fast: fav.is_fast ?? false,
+    direction: '',
+    line: fav.line,
+    line_name: '',
+    departure: fav.departure ?? -1,
+    station: '',
+    origin: fav.origin,
+    destination: fav.destination,
+    platform: '',
+    runs_on: '',
+    note: '',
+  };
+}
 
 export default function FavoritesScreen() {
   const { colors, scheme } = useTheme();
@@ -24,6 +43,7 @@ export default function FavoritesScreen() {
   const isDark = scheme === 'dark';
   const router = useRouter();
   const { favorites, toggle } = useFavorites();
+  const liveTrains = useLiveTrains();
 
   const showRemoveMenu = React.useCallback((item: FavoriteTrain) => {
     const action = () => toggle(item);
@@ -69,7 +89,7 @@ export default function FavoritesScreen() {
       <FlatList
         data={favorites}
         keyExtractor={f => `${f.number}-${f.line}`}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16, paddingTop: 8 }}
         ListEmptyComponent={
           <EmptyState
             icon="❤️"
@@ -78,7 +98,10 @@ export default function FavoritesScreen() {
           />
         }
         renderItem={({ item }) => (
-          <Pressable
+          <DepartureCard
+            item={favToDeparture(item)}
+            liveStatus={liveTrains[item.number]}
+            hideCountdown
             onPress={() =>
               router.push({
                 pathname: '/train/[number]',
@@ -91,23 +114,7 @@ export default function FavoritesScreen() {
               })
             }
             onLongPress={() => showRemoveMenu(item)}
-            style={[styles.card, { backgroundColor: colors.surface }]}
-          >
-            <View style={styles.cardBody}>
-              <View style={styles.cardRow}>
-                <Text style={[styles.trainNumber, { color: colors.text }]}>
-                  {item.number}
-                </Text>
-                <LineChip shortName={item.line} size="sm" />
-              </View>
-              <Text style={[styles.route, { color: colors.textSecondary }]} numberOfLines={1}>
-                {item.origin}
-                <Text style={{ color: colors.textTertiary }}>{' \u2192 '}</Text>
-                {item.destination}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-          </Pressable>
+          />
         )}
       />
     </View>
@@ -126,32 +133,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.3,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 12,
-    marginVertical: 3,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  cardBody: {
-    flex: 1,
-    gap: 4,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  trainNumber: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  route: {
-    fontSize: 13,
-    fontWeight: '500',
   },
 });
