@@ -1,5 +1,5 @@
 image: ubuntu/noble
-oauth: profile:ro objects:rw
+oauth: meta.sr.ht/PROFILE:RO git.sr.ht/OBJECTS:RW
 packages:
   - openjdk-17-jdk-headless
   - wget
