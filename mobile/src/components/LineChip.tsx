@@ -9,7 +9,7 @@ interface Props {
   size?: 'sm' | 'md';
 }
 
-export function LineChip({ shortName, size = 'md' }: Props) {
+export const LineChip = React.memo(function LineChip({ shortName, size = 'md' }: Props) {
   const { scheme } = useTheme();
   const color = lineColor(shortName, scheme);
   const small = size === 'sm';
@@ -34,7 +34,7 @@ export function LineChip({ shortName, size = 'md' }: Props) {
       </Text>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   chip: {

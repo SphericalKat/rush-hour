@@ -31,7 +31,7 @@ function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['col
   return colors.trainSlow;
 }
 
-export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, liveStatus, hideCountdown }: Props) {
+export const DepartureCard = React.memo(function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, liveStatus, hideCountdown }: Props) {
   const { colors } = useTheme();
 
   const until = minutesUntil(item.departure);
@@ -155,7 +155,12 @@ export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, li
       </View>
     </Pressable>
   );
-}
+}, (prev, next) =>
+  prev.item === next.item &&
+  prev.liveStatus === next.liveStatus &&
+  prev.delayMinutes === next.delayMinutes &&
+  prev.hideCountdown === next.hideCountdown,
+);
 
 const styles = StyleSheet.create({
   card: {

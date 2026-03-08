@@ -17,12 +17,6 @@ import {
   View,
 } from 'react-native';
 import { Text } from './Text';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { fetchStations } from '../api/lines';
 import type { Station } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
@@ -43,26 +37,17 @@ interface StationRowProps {
   colors: ReturnType<typeof useTheme>['colors'];
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-function StationRow({ item, active, onSelect, onHaptic, colors }: StationRowProps) {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
+const StationRow = React.memo(function StationRow({ item, active, onSelect, onHaptic, colors }: StationRowProps) {
   return (
-    <AnimatedPressable
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.row,
-        animatedStyle,
         {
           backgroundColor: active ? colors.primaryMuted : colors.surface,
           borderColor: active ? colors.primary : colors.border,
+          opacity: pressed ? 0.7 : 1,
         },
       ]}
-      onPressIn={() => { scale.value = withTiming(0.985, { duration: 150, easing: Easing.out(Easing.quad) }); }}
-      onPressOut={() => { scale.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) }); }}
       onPress={() => {
         onHaptic();
         onSelect(item);
@@ -104,9 +89,9 @@ function StationRow({ item, active, onSelect, onHaptic, colors }: StationRowProp
           </View>
         ) : null}
       </View>
-    </AnimatedPressable>
+    </Pressable>
   );
-}
+});
 
 export function StationPicker({ visible, selected, onSelect, onClose, title = 'Select Station' }: Props) {
   const { colors } = useTheme();
@@ -270,6 +255,10 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
           contentContainerStyle={styles.listContent}
           keyboardShouldPersistTaps="handled"
           renderItem={renderItem}
+          removeClippedSubviews
+          maxToRenderPerBatch={20}
+          windowSize={9}
+          initialNumToRender={15}
           ListEmptyComponent={
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               No stations match your search
