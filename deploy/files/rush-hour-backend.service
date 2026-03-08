@@ -1,0 +1,19 @@
+[Unit]
+Description=Rush Hour Backend
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+ExecStart=/opt/rush-hour/server
+WorkingDirectory=/opt/rush-hour
+Restart=always
+RestartSec=5
+User=rush-hour
+Group=rush-hour
+Environment=ADDR=:8080
+Environment=TIMETABLE_DB_PATH=/opt/rush-hour/data/timetable.db
+Environment=REDIS_URL=127.0.0.1:6379
+Environment=TIMETABLE_UPDATE_INTERVAL=1h
+
+[Install]
+WantedBy=multi-user.target
