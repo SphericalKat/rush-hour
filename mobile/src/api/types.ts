@@ -62,7 +62,7 @@ export interface TrainStop {
   departure: number;  // minutes from midnight
   stop_sequence: number;
   platform: string;
-  side: string;       // "L" or "R" — which side doors open
+  side: string;       // "L" or "R", which side doors open
 }
 
 export interface RouteStop {

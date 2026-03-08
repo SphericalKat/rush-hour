@@ -7,11 +7,21 @@ import (
 )
 
 // PositionResult describes where a GPS point falls on a train's route.
-// Status codes match m-indicator's convention:
 //
-//	"0" = at station, "1" = left/crossed, "2" = between, "3" = approaching
+// Station (the "s" field in the API response) always refers to the last
+// station the train was at or passed, i.e. the "from" end of the segment
+// the GPS point projects onto. The frontend uses this invariant to render
+// the timeline: when st is "0", the train is at Station; otherwise, Station
+// is passed and the next station in the route is approaching.
+//
+// Status codes:
+//
+//	"0" = at station
+//	"1" = just left/crossed station (within ~700m)
+//	"2" = between two stations
+//	"3" = approaching the next station (within ~1km)
 type PositionResult struct {
-	Station  string // nearest or current station name
+	Station  string // last station at or passed (the "s" field)
 	Status   string // "0"=at, "1"=left, "2"=between, "3"=approaching
 	Msg      string // human-readable, e.g. "At DADAR", "Between DADAR - THANE"
 	PrevStn  string // previous station (for "between" / "left")
@@ -84,7 +94,7 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 			}
 		}
 
-		// Just left the previous station — st "1" in m-indicator
+		// Just left the previous station (st "1")
 		if distToFrom <= leftThresh {
 			return &PositionResult{
 				Station:  fromStn.Station,
@@ -96,7 +106,7 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 			}
 		}
 
-		// Approaching the next station — st "3" in m-indicator
+		// Approaching the next station (st "3")
 		if distToTo <= approachThresh {
 			return &PositionResult{
 				Station:  toStn.Station,
@@ -108,7 +118,7 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 			}
 		}
 
-		// Between stations — st "2"
+		// Between stations (st "2")
 		return &PositionResult{
 			Station:  fromStn.Station,
 			Status:   "2",

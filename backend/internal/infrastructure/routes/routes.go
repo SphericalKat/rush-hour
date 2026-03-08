@@ -1,6 +1,6 @@
 // Package routes provides the physical station ordering for Mumbai suburban
 // lines, matching the hardcoded sequences in the m-indicator app (bb.a).
-// These are stable — the physical track layout doesn't change.
+// These are stable since the physical track layout doesn't change.
 package routes
 
 // Each slice is one contiguous segment of track in the down direction.
@@ -41,13 +41,13 @@ func StationsBetween(from, to string) []string {
 		for i, name := range seg {
 			if name == from {
 				if toIdx >= 0 {
-					// to was found first — stations are in reverse order
+					// to was found first, stations are in reverse order
 					return reversed(seg[toIdx+1 : i])
 				}
 				fromIdx = i
 			} else if name == to {
 				if fromIdx >= 0 {
-					// from was found first — stations are in forward order
+					// from was found first, stations are in forward order
 					return cloneSlice(seg[fromIdx+1 : i])
 				}
 				toIdx = i

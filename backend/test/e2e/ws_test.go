@@ -68,7 +68,7 @@ func TestWS_UnsubscribedClientDoesNotReceive(t *testing.T) {
 	conn.SetReadDeadline(time.Now().Add(300 * time.Millisecond))
 	_, _, err = conn.ReadMessage()
 	// Expect a deadline/timeout error, not a real message
-	require.Error(t, err, "expected timeout — no message should arrive for unsubscribed train")
+	require.Error(t, err, "expected timeout, no message should arrive for unsubscribed train")
 }
 
 func TestWS_InvalidSubscribeMessage(t *testing.T) {
@@ -76,7 +76,7 @@ func TestWS_InvalidSubscribeMessage(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 
-	// Send a non-subscribe message — server should close the connection
+	// Send a non-subscribe message, server should close the connection
 	err = conn.WriteJSON(map[string]string{"type": "ping"})
 	require.NoError(t, err)
 

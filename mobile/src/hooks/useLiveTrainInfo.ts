@@ -17,7 +17,7 @@ export function useLiveTrainInfo(trainNumber: string) {
       const data = await fetchLiveTrainInfo(trainNumber);
       setPosition(data);
     } catch {
-      // best-effort — keep previous data
+      // best-effort, keep previous data
     } finally {
       setLoading(false);
       setSecondsUntilRefresh(POLL_INTERVAL / 1000);
