@@ -1,0 +1,59 @@
+image: ubuntu/noble
+oauth: profile:ro objects:rw
+packages:
+  - openjdk-17-jdk-headless
+  - wget
+  - unzip
+  - hut
+sources:
+  - https://git.sr.ht/~sphericalkat/rush-hour
+secrets:
+  - a04c9ee9-74d0-487e-a903-a7a937346fc9 # release keystore
+  - 0170c277-58d2-4d66-9f76-195556165a0e # signing credentials (~/.buildenv)
+environment:
+  ANDROID_HOME: /home/build/android-sdk
+  ANDROID_SDK_ROOT: /home/build/android-sdk
+  RUSH_HOUR_STORE_FILE: /home/build/.android/release.keystore
+submitter:
+  git.sr.ht:
+    allow-refs:
+      - refs/tags/*
+artifacts:
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-arm64-v8a-release.apk
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-x86-release.apk
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-x86_64-release.apk
+  - rush-hour/mobile/android/app/build/outputs/bundle/release/app-release.aab
+tasks:
+  - setup_sdk: |
+      # install android command-line tools
+      mkdir -p $ANDROID_HOME/cmdline-tools
+      wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip
+      unzip -q /tmp/cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools
+      mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+      rm /tmp/cmdline-tools.zip
+
+      yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+      $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+        "platform-tools" \
+        "platforms;android-35" \
+        "build-tools;35.0.0" \
+        "ndk;27.1.12297006"
+  - setup_node: |
+      # install node 22 via nodesource
+      curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+      sudo apt-get install -y nodejs
+  - build: |
+      cd rush-hour/mobile
+      npm ci
+      cd android
+      ./gradlew assembleRelease bundleRelease
+  - upload: |
+      cd rush-hour/mobile/android/app/build/outputs
+      tag=$(echo "$GIT_REF" | sed 's|refs/tags/||')
+
+      for apk in apk/release/app-*-release.apk; do
+        hut git artifact upload ~sphericalkat/rush-hour "$tag" "$apk"
+      done
+
+      hut git artifact upload ~sphericalkat/rush-hour "$tag" bundle/release/app-release.aab
