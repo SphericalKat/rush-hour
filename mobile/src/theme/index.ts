@@ -1,5 +1,78 @@
 import { Platform } from 'react-native';
 
+// Semantic / fixed colors that don't change with system theme.
+// These are intentional brand/status colors, not structural palette.
+const fixedLight = {
+  success: '#16A34A',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  ac: '#0891B2',
+  trainSlow: '#EAB308',
+  trainFast: '#EF4444',
+  trainAC: '#2563EB',
+  countdownUrgent: '#EA580C',
+  countdownDue: '#DC2626',
+  cr: '#2563EB',
+  wr: '#0D9668',
+  harbor: '#7C3AED',
+};
+
+const fixedDark = {
+  success: '#22C55E',
+  warning: '#FBBF24',
+  danger: '#F87171',
+  ac: '#22D3EE',
+  trainSlow: '#FBBF24',
+  trainFast: '#F87171',
+  trainAC: '#60A5FA',
+  countdownUrgent: '#FB923C',
+  countdownDue: '#EF4444',
+  cr: '#60A5FA',
+  wr: '#34D399',
+  harbor: '#A78BFA',
+};
+
+// Apple's UIKit semantic color hex values.
+// These make the app feel native on iOS: proper system grays, backgrounds,
+// and text colors that match the rest of the OS.
+const iosLightColors = {
+  primary: '#007AFF',           // systemBlue
+  primaryMuted: '#E8F0FE',
+  background: '#F2F2F7',       // systemGroupedBackground
+  surface: '#FFFFFF',           // secondarySystemGroupedBackground
+  surfaceSecondary: '#E5E5EA', // systemGray5
+  border: '#C6C6C8',           // opaqueSeparator
+  separator: '#C6C6C8',        // opaqueSeparator
+  text: '#000000',              // label
+  textSecondary: '#3C3C43',    // secondaryLabel (opaque)
+  textTertiary: '#8E8E93',     // systemGray
+  textOnPrimary: '#FFFFFF',
+  platform: '#007AFF',
+  platformMuted: '#E8F0FE',
+  lineDefault: '#8E8E93',
+  ...fixedLight,
+};
+
+const iosDarkColors: typeof iosLightColors = {
+  primary: '#0A84FF',           // systemBlue (dark)
+  primaryMuted: '#1C2A3D',
+  background: '#000000',       // systemBackground
+  surface: '#1C1C1E',          // secondarySystemBackground
+  surfaceSecondary: '#2C2C2E', // tertiarySystemBackground
+  border: '#38383A',           // opaqueSeparator (dark)
+  separator: '#38383A',
+  text: '#FFFFFF',              // label (dark)
+  textSecondary: '#EBEBF5',    // secondaryLabel (dark, opaque)
+  textTertiary: '#636366',     // systemGray2 (dark)
+  textOnPrimary: '#000000',
+  platform: '#0A84FF',
+  platformMuted: '#1C2A3D',
+  lineDefault: '#636366',
+  ...fixedDark,
+};
+
+// Android / fallback palette. Our brand green Material palette.
+// On Android 12+, this is overridden by Material You dynamic colors via useTheme.
 export const lightColors = {
   primary: '#0D9668',
   primaryMuted: '#ECFDF5',
@@ -12,27 +85,10 @@ export const lightColors = {
   textSecondary: '#5A7267',
   textTertiary: '#8DA39A',
   textOnPrimary: '#FFFFFF',
-  // status
-  success: '#16A34A',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  // AC badge
-  ac: '#0891B2',
-  // train type leading bar
-  trainSlow: '#EAB308',
-  trainFast: '#EF4444',
-  trainAC: '#2563EB',
-  // countdown urgency
-  countdownUrgent: '#EA580C',
-  countdownDue: '#DC2626',
-  // platform
   platform: '#0D9668',
   platformMuted: '#D1FAE5',
-  // line colors (operator identity)
-  cr: '#2563EB',
-  wr: '#0D9668',
-  harbor: '#7C3AED',
   lineDefault: '#5A7267',
+  ...fixedLight,
 };
 
 export const darkColors: typeof lightColors = {
@@ -46,23 +102,47 @@ export const darkColors: typeof lightColors = {
   text: '#F0FAF5',
   textSecondary: '#94B8A7',
   textTertiary: '#5E8272',
-  textOnPrimary: '#052E1C',
-  success: '#22C55E',
-  warning: '#FBBF24',
-  danger: '#F87171',
-  ac: '#22D3EE',
-  trainSlow: '#FBBF24',
-  trainFast: '#F87171',
-  trainAC: '#60A5FA',
-  countdownUrgent: '#FB923C',
-  countdownDue: '#EF4444',
+  textOnPrimary: '#000000',
   platform: '#34D399',
   platformMuted: '#052E1C',
-  cr: '#60A5FA',
-  wr: '#34D399',
-  harbor: '#A78BFA',
   lineDefault: '#94B8A7',
+  ...fixedDark,
 };
+
+export type AppColors = typeof lightColors;
+
+// Return the platform-appropriate static palette.
+export function getStaticColors(scheme: 'light' | 'dark'): AppColors {
+  if (Platform.OS === 'ios') {
+    return scheme === 'dark' ? iosDarkColors : iosLightColors;
+  }
+  return scheme === 'dark' ? darkColors : lightColors;
+}
+
+// Map Material 3 color scheme tokens to our app color tokens (Android only).
+export function mapM3ToAppColors(
+  m3: Record<string, any>,
+  scheme: 'light' | 'dark',
+): AppColors {
+  const fixed = scheme === 'dark' ? fixedDark : fixedLight;
+  return {
+    primary: m3.primary,
+    primaryMuted: m3.primaryContainer,
+    background: m3.background,
+    surface: m3.surface,
+    surfaceSecondary: m3.secondaryContainer ?? m3.surfaceVariant,
+    border: m3.outlineVariant ?? m3.outline,
+    separator: m3.outlineVariant ?? m3.outline,
+    text: m3.onBackground,
+    textSecondary: m3.onSurfaceVariant,
+    textTertiary: m3.outline,
+    textOnPrimary: m3.onPrimary,
+    platform: m3.primary,
+    platformMuted: m3.primaryContainer,
+    lineDefault: m3.onSurfaceVariant,
+    ...fixed,
+  };
+}
 
 export const spacing = {
   xs: 4,
@@ -98,7 +178,7 @@ export const type = {
   caption2: { fontSize: 11, fontWeight: '400' as const },
 } as const;
 
-// Flat design — no shadows by default, but keep the helper for rare use
+// No shadows by default, but keeping the helper around for rare use
 export function shadow(
   _elevation: number,
   _color = '#000',
@@ -111,11 +191,11 @@ export function lineColor(
   shortName: string | null | undefined,
   scheme: 'light' | 'dark',
 ): string {
-  const c = scheme === 'dark' ? darkColors : lightColors;
-  if (!shortName) return c.lineDefault;
+  const fixed = scheme === 'dark' ? fixedDark : fixedLight;
+  if (!shortName) return scheme === 'dark' ? darkColors.lineDefault : lightColors.lineDefault;
   const key = shortName.toUpperCase();
-  if (key.startsWith('CR-HL') || key.includes('HARBOR')) return c.harbor;
-  if (key.startsWith('WR')) return c.wr;
-  if (key.startsWith('CR')) return c.cr;
-  return c.lineDefault;
+  if (key.startsWith('CR-HL') || key.includes('HARBOR')) return fixed.harbor;
+  if (key.startsWith('WR')) return fixed.wr;
+  if (key.startsWith('CR')) return fixed.cr;
+  return scheme === 'dark' ? darkColors.lineDefault : lightColors.lineDefault;
 }
