@@ -2,12 +2,6 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import type { Departure } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
 import { formatCountdown, minutesToHHMM, minutesUntil } from '../utils/time';
@@ -16,11 +10,10 @@ import { LineChip } from './LineChip';
 interface Props {
   item: Departure;
   onPress: () => void;
+  onLongPress?: () => void;
   delayMinutes?: number;
   liveStatus?: string;
 }
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const _RUNS_ON_LABELS: Record<string, string> = {
   not_sunday: 'No Sun',
@@ -37,13 +30,8 @@ function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['col
   return colors.trainSlow;
 }
 
-export function DepartureCard({ item, onPress, delayMinutes = 0, liveStatus }: Props) {
+export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, liveStatus }: Props) {
   const { colors } = useTheme();
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
 
   const until = minutesUntil(item.departure);
   const isUrgent = until >= 0 && until <= 3;
@@ -63,14 +51,12 @@ export function DepartureCard({ item, onPress, delayMinutes = 0, liveStatus }: P
   const barColor = trainBarColor(item, colors);
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={onPress}
-      onPressIn={() => { scale.value = withTiming(0.97, { duration: 150, easing: Easing.out(Easing.quad) }); }}
-      onPressOut={() => { scale.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) }); }}
+      onLongPress={onLongPress}
       accessibilityRole="button"
       accessibilityLabel={`${item.number} to ${item.destination}, departs at ${minutesToHHMM(item.departure)}`}
       style={[
-        animatedStyle,
         styles.card,
         { backgroundColor: colors.surface },
       ]}
@@ -155,7 +141,7 @@ export function DepartureCard({ item, onPress, delayMinutes = 0, liveStatus }: P
           <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
         </View>
       </View>
-    </AnimatedPressable>
+    </Pressable>
   );
 }
 

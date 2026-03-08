@@ -3,8 +3,11 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
+  ActionSheetIOS,
   ActivityIndicator,
+  Alert,
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -12,11 +15,12 @@ import {
 } from 'react-native';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Station } from '../../src/api/types';
+import type { Departure, Station } from '../../src/api/types';
 import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { StationPicker } from '../../src/components/StationPicker';
 import { useDepartures } from '../../src/hooks/useDepartures';
+import { useFavorites } from '../../src/hooks/useFavorites';
 import { useLiveTrains } from '../../src/hooks/useLiveTrains';
 import { useTheme } from '../../src/hooks/useTheme';
 
@@ -32,17 +36,76 @@ export default function DeparturesScreen() {
   const [destPickerOpen, setDestPickerOpen] = useState(false);
   const [filterFast, setFilterFast] = useState(false);
   const [filterAC, setFilterAC] = useState(false);
+  const { isFavorite, toggle: toggleFavorite } = useFavorites();
+
+  const showFavoriteMenu = React.useCallback((item: Departure) => {
+    const fav = isFavorite(item.number, item.line);
+    const label = fav ? 'Remove from Favorites' : 'Add to Favorites';
+
+    const action = () => toggleFavorite({
+      number: item.number,
+      line: item.line,
+      origin: item.origin,
+      destination: item.destination,
+    });
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', label],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: fav ? 1 : undefined,
+        },
+        idx => { if (idx === 1) action(); },
+      );
+    } else {
+      Alert.alert(
+        `${item.number} ${item.origin} \u2192 ${item.destination}`,
+        undefined,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: label, style: fav ? 'destructive' : 'default', onPress: action },
+        ],
+      );
+    }
+  }, [isFavorite, toggleFavorite]);
 
   const { data, loading, error, refresh } = useDepartures(
     station?.id ?? null,
     destination?.id,
   );
+
   const liveTrains = useLiveTrains();
   const filteredData = data.filter(d => {
     if (filterFast && !d.is_fast) return false;
     if (filterAC && !d.is_ac) return false;
     return true;
   });
+
+  const [pastLimit, setPastLimit] = useState(5);
+  const PAST_PAGE = 10;
+
+  const { visibleData, hiddenPastCount } = React.useMemo(() => {
+    if (filteredData.length === 0) return { visibleData: [], hiddenPastCount: 0 };
+    const now = new Date();
+    const nowMinute = now.getHours() * 60 + now.getMinutes();
+    const splitIdx = filteredData.findIndex(d => d.departure >= nowMinute);
+    if (splitIdx <= 0) return { visibleData: filteredData, hiddenPastCount: 0 };
+
+    const past = filteredData.slice(0, splitIdx);
+    const upcoming = filteredData.slice(splitIdx);
+    const visiblePast = past.slice(-pastLimit);
+
+    return {
+      visibleData: [...visiblePast, ...upcoming],
+      hiddenPastCount: Math.max(0, past.length - pastLimit),
+    };
+  }, [filteredData, pastLimit]);
+
+  // reset when station/filters change
+  React.useEffect(() => {
+    setPastLimit(5);
+  }, [station, destination, filterFast, filterAC]);
 
   const stationFieldText = station ? station.name : 'From';
   const destFieldText = destination ? destination.name : 'To (any)';
@@ -169,7 +232,7 @@ export default function DeparturesScreen() {
         />
       ) : (
         <FlatList
-          data={filteredData}
+          data={visibleData}
           keyExtractor={(d) => `${d.number}-${d.departure}`}
           contentContainerStyle={[
             styles.listContent,
@@ -184,18 +247,31 @@ export default function DeparturesScreen() {
             />
           }
           ListHeaderComponent={
-            <View style={styles.listHeader}>
-              <Text style={[styles.listTitle, { color: colors.textTertiary }]}>
-                Departures
-              </Text>
-              {loading && data.length === 0 ? (
-                <ActivityIndicator color={colors.primary} size="small" />
-              ) : (
-                <Text style={[styles.listMeta, { color: colors.textSecondary }]}>
-                  {`${filteredData.length} train${filteredData.length === 1 ? '' : 's'}`}
+            <>
+              <View style={styles.listHeader}>
+                <Text style={[styles.listTitle, { color: colors.textTertiary }]}>
+                  Departures
+                </Text>
+                {loading && data.length === 0 ? (
+                  <ActivityIndicator color={colors.primary} size="small" />
+                ) : (
+                  <Text style={[styles.listMeta, { color: colors.textSecondary }]}>
+                  {`${visibleData.length} train${visibleData.length === 1 ? '' : 's'}`}
                 </Text>
               )}
             </View>
+              {hiddenPastCount > 0 && (
+                <Pressable
+                  onPress={() => setPastLimit(l => l + PAST_PAGE)}
+                  style={[styles.showEarlier, { backgroundColor: colors.surfaceSecondary }]}
+                >
+                  <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                  <Text style={[styles.showEarlierText, { color: colors.textSecondary }]}>
+                    {`Show ${Math.min(PAST_PAGE, hiddenPastCount)} earlier train${Math.min(PAST_PAGE, hiddenPastCount) === 1 ? '' : 's'}`}
+                  </Text>
+                </Pressable>
+              )}
+            </>
           }
           ListEmptyComponent={
             !loading ? (
@@ -213,9 +289,10 @@ export default function DeparturesScreen() {
               onPress={() =>
                 router.push({
                   pathname: '/train/[number]',
-                  params: { number: item.number, station: station.name, origin: item.origin, destination: item.destination },
+                  params: { number: item.number, station: station.name, origin: item.origin, destination: item.destination, line: item.line },
                 })
               }
+              onLongPress={() => showFavoriteMenu(item)}
             />
           )}
         />
@@ -307,5 +384,19 @@ const styles = StyleSheet.create({
   },
   listMeta: {
     fontSize: 12,
+  },
+  showEarlier: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginHorizontal: 12,
+    marginVertical: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  showEarlierText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

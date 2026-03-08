@@ -18,6 +18,7 @@ import { StationTimeline } from '../../src/components/StationTimeline';
 import { useLiveTrainInfo } from '../../src/hooks/useLiveTrainInfo';
 import { useLocationSharing } from '../../src/hooks/useLocationSharing';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useFavorites } from '../../src/hooks/useFavorites';
 import { useTrainStatus } from '../../src/hooks/useTrainStatus';
 import { shadow } from '../../src/theme';
 
@@ -29,10 +30,11 @@ function formatLiveAge(timestamp: number): string {
 }
 
 export default function TrainScreen() {
-  const { number, origin, destination } = useLocalSearchParams<{
+  const { number, origin, destination, line } = useLocalSearchParams<{
     number: string;
     origin?: string;
     destination?: string;
+    line?: string;
   }>();
   const { colors, radius, scheme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -41,8 +43,20 @@ export default function TrainScreen() {
   const { status, loading } = useTrainStatus(number);
   const { position: livePosition, loading: liveLoading, secondsUntilRefresh } = useLiveTrainInfo(number);
   const { sharing, lastMsg, toggle: toggleSharing } = useLocationSharing(number);
+  const { isFavorite, toggle: toggleFavorite } = useFavorites();
   const [stops, setStops] = useState<RouteStop[]>([]);
   const [stopsLoading, setStopsLoading] = useState(true);
+
+  const fav = isFavorite(number, line ?? '');
+  const handleToggleFav = useCallback(() => {
+    const actualStops = stops.filter(s => s.is_stop);
+    toggleFavorite({
+      number,
+      line: line ?? '',
+      origin: origin ?? actualStops[0]?.station ?? '',
+      destination: destination ?? actualStops[actualStops.length - 1]?.station ?? '',
+    });
+  }, [number, line, origin, destination, stops, toggleFavorite]);
 
   const routeTitle = React.useMemo(() => {
     if (origin && destination) return `${origin} - ${destination}`;
@@ -57,19 +71,28 @@ export default function TrainScreen() {
       headerTitleStyle: { fontWeight: '700', fontSize: 17 },
       headerTintColor: colors.text,
       headerStyle: { backgroundColor: colors.surface },
+      headerRight: () => (
+        <Pressable onPress={handleToggleFav} hitSlop={8} style={{ marginRight: 12 }}>
+          <Ionicons
+            name={fav ? 'heart' : 'heart-outline'}
+            size={22}
+            color={fav ? colors.danger : colors.textSecondary}
+          />
+        </Pressable>
+      ),
     });
-  }, [routeTitle, colors, navigation]);
+  }, [routeTitle, colors, navigation, fav, handleToggleFav]);
 
   const loadStops = useCallback(async () => {
     try {
-      const data = await fetchTrainRoute(number);
+      const data = await fetchTrainRoute(number, line);
       setStops(data ?? []);
     } catch {
       // best-effort
     } finally {
       setStopsLoading(false);
     }
-  }, [number]);
+  }, [number, line]);
 
   useEffect(() => {
     loadStops();
