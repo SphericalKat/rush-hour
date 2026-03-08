@@ -18,9 +18,10 @@ import {
 } from 'react-native';
 import { Text } from './Text';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { fetchStations } from '../api/lines';
 import type { Station } from '../api/types';
@@ -60,8 +61,8 @@ function StationRow({ item, active, onSelect, onHaptic, colors }: StationRowProp
           borderColor: active ? colors.primary : colors.border,
         },
       ]}
-      onPressIn={() => { scale.value = withSpring(0.985, { damping: 22 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 22 }); }}
+      onPressIn={() => { scale.value = withTiming(0.985, { duration: 150, easing: Easing.out(Easing.quad) }); }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) }); }}
       onPress={() => {
         onHaptic();
         onSelect(item);
