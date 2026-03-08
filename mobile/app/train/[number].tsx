@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fetchTrainStops } from '../../src/api/live';
-import type { TrainStop } from '../../src/api/types';
+import { fetchTrainRoute } from '../../src/api/live';
+import type { RouteStop } from '../../src/api/types';
 import { StationTimeline } from '../../src/components/StationTimeline';
 import { useLiveTrainInfo } from '../../src/hooks/useLiveTrainInfo';
 import { useLocationSharing } from '../../src/hooks/useLocationSharing';
@@ -40,12 +40,13 @@ export default function TrainScreen() {
   const { status, loading } = useTrainStatus(number);
   const { position: livePosition, loading: liveLoading, secondsUntilRefresh } = useLiveTrainInfo(number);
   const { sharing, lastMsg, toggle: toggleSharing } = useLocationSharing(number);
-  const [stops, setStops] = useState<TrainStop[]>([]);
+  const [stops, setStops] = useState<RouteStop[]>([]);
   const [stopsLoading, setStopsLoading] = useState(true);
 
   const routeTitle = React.useMemo(() => {
     if (origin && destination) return `${origin} - ${destination}`;
-    if (stops.length >= 2) return `${stops[0].station} - ${stops[stops.length - 1].station}`;
+    const actualStops = stops.filter(s => s.is_stop);
+    if (actualStops.length >= 2) return `${actualStops[0].station} - ${actualStops[actualStops.length - 1].station}`;
     return number;
   }, [origin, destination, stops, number]);
 
@@ -60,7 +61,7 @@ export default function TrainScreen() {
 
   const loadStops = useCallback(async () => {
     try {
-      const data = await fetchTrainStops(number);
+      const data = await fetchTrainRoute(number);
       setStops(data ?? []);
     } catch {
       // best-effort
@@ -75,28 +76,15 @@ export default function TrainScreen() {
 
   const hasLive = livePosition != null && 'position' in livePosition;
 
-  // Estimate delay from live position: compare current time to scheduled
-  // departure at the station the train is at/approaching.
-  const estimatedDelay = React.useMemo(() => {
-    if (!hasLive || stops.length === 0) return 0;
-    const pos = (livePosition as any).position;
-    const liveStation = pos?.s?.toUpperCase();
-    if (!liveStation) return 0;
-    const stop = stops.find(s => s.station.toUpperCase() === liveStation);
-    if (!stop) return 0;
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const scheduled = stop.departure % 1440;
-    let diff = currentMinutes - scheduled;
-    if (diff < -720) diff += 1440;
-    if (diff > 720) diff -= 1440;
-    return Math.max(0, diff);
-  }, [hasLive, livePosition, stops]);
-
-  // Use reported delay if available, otherwise estimated from live position
-  const delayMinutes = (status?.delay_minutes ?? 0) > 0
-    ? status!.delay_minutes
-    : estimatedDelay;
+  // Delay comes directly from the mobond API response (position.d),
+  // same as m-indicator. Fall back to our crowdsourced status reports.
+  const delayMinutes = React.useMemo(() => {
+    if (hasLive) {
+      const d = (livePosition as any).position?.d;
+      if (typeof d === 'number') return d;
+    }
+    return status?.delay_minutes ?? 0;
+  }, [hasLive, livePosition, status]);
 
   function Section({
     title,
@@ -188,8 +176,10 @@ export default function TrainScreen() {
               label="Delay"
               value={
                 delayMinutes > 0
-                  ? `+${delayMinutes} min`
-                  : 'On time'
+                  ? `${delayMinutes} min late`
+                  : delayMinutes < 0
+                    ? `${Math.abs(delayMinutes)} min early`
+                    : 'On time'
               }
               color={delayMinutes > 0 ? colors.danger : colors.success}
             />

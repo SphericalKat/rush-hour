@@ -50,10 +50,10 @@ export type LiveTrainPosition = {
   mv: boolean;      // has moved (accuracy indicator)
   position: {
     msg: string;     // "At DADAR" or "Between DADAR - THANE"
-    st: string;      // status type: 0=at, 1=approaching, 2=between, 3=departed
+    st: string;      // status type: 0=at, 1=left/crossed, 2=between, 3=approaching
     a: boolean;      // is accurate
     s: string;       // station name
-    d: number;       // direction
+    d: number;       // delay in minutes (from mobond API)
   };
 }
 
@@ -63,6 +63,15 @@ export interface TrainStop {
   stop_sequence: number;
   platform: string;
   side: string;       // "L" or "R" — which side doors open
+}
+
+export interface RouteStop {
+  station: string;
+  departure?: number;
+  stop_sequence: number;
+  platform?: string;
+  side?: string;
+  is_stop: boolean;
 }
 
 export type Direction = 'down' | 'up';
