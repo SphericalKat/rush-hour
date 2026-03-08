@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -79,11 +79,11 @@ export default function DeparturesScreen() {
   );
 
   const liveTrains = useLiveTrains();
-  const filteredData = data.filter(d => {
+  const filteredData = useMemo(() => data.filter(d => {
     if (filterFast && !d.is_fast) return false;
     if (filterAC && !d.is_ac) return false;
     return true;
-  });
+  }), [data, filterFast, filterAC]);
 
   const [pastLimit, setPastLimit] = useState(5);
   const PAST_PAGE = 10;
@@ -236,7 +236,7 @@ export default function DeparturesScreen() {
       ) : (
         <FlatList
           data={visibleData}
-          keyExtractor={(d) => `${d.number}-${d.departure}`}
+          keyExtractor={(d) => `${d.number}-${d.line}-${d.departure}`}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: insets.bottom + spacing.base },
@@ -298,6 +298,10 @@ export default function DeparturesScreen() {
               onLongPress={() => showFavoriteMenu(item)}
             />
           )}
+          removeClippedSubviews
+          maxToRenderPerBatch={15}
+          windowSize={7}
+          initialNumToRender={12}
         />
       )}
 
