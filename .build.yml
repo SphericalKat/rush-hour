@@ -9,7 +9,7 @@ sources:
   - https://git.sr.ht/~sphericalkat/rush-hour
 secrets:
   - a04c9ee9-74d0-487e-a903-a7a937346fc9 # release keystore
-  - 6f83ba3f-f25b-47c4-bd12-b5885fcf7b45 # signing credentials (~/.signing-credentials)
+  - a44aa9bf-320b-43b6-97e7-09e394dde602 # signing credentials (~/.gradle/gradle.properties)
 environment:
   ANDROID_HOME: /home/build/android-sdk
   ANDROID_SDK_ROOT: /home/build/android-sdk
@@ -44,9 +44,6 @@ tasks:
       curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
       sudo apt-get install -y nodejs
   - build: |
-      set +x
-      . ~/.signing-credentials
-      set -x
       cd rush-hour/mobile
       npm ci
       cd android
