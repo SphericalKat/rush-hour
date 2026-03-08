@@ -3,9 +3,10 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import type { Departure } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
@@ -64,8 +65,8 @@ export function DepartureCard({ item, onPress, delayMinutes = 0, liveStatus }: P
   return (
     <AnimatedPressable
       onPress={onPress}
-      onPressIn={() => { scale.value = withSpring(0.97, { damping: 20 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 20 }); }}
+      onPressIn={() => { scale.value = withTiming(0.97, { duration: 150, easing: Easing.out(Easing.quad) }); }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) }); }}
       accessibilityRole="button"
       accessibilityLabel={`${item.number} to ${item.destination}, departs at ${minutesToHHMM(item.departure)}`}
       style={[
