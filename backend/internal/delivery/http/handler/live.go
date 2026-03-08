@@ -125,7 +125,8 @@ func (h *LiveHandler) GetStops(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stops, err := h.trainRepo.GetStops(r.Context(), trainNumber)
+	line := r.URL.Query().Get("line")
+	stops, err := h.trainRepo.GetStops(r.Context(), trainNumber, line)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
@@ -164,7 +165,8 @@ func (h *LiveHandler) GetRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stops, err := h.trainRepo.GetStops(r.Context(), trainNumber)
+	line := r.URL.Query().Get("line")
+	stops, err := h.trainRepo.GetStops(r.Context(), trainNumber, line)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return

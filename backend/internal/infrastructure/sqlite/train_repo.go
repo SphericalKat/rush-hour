@@ -43,7 +43,17 @@ SELECT st.name AS station, s.departure, s.stop_sequence, COALESCE(s.platform, ''
 FROM stops s
 JOIN stations st ON s.station_id = st.id
 JOIN trains t ON s.train_id = t.id
+JOIN lines l ON t.line_id = l.id
 WHERE t.number = ?
+ORDER BY s.stop_sequence`
+
+const stopsWithLineQuery = `
+SELECT st.name AS station, s.departure, s.stop_sequence, COALESCE(s.platform, '') AS platform, COALESCE(s.side, '') AS side
+FROM stops s
+JOIN stations st ON s.station_id = st.id
+JOIN trains t ON s.train_id = t.id
+JOIN lines l ON t.line_id = l.id
+WHERE t.number = ? AND l.short_name = ?
 ORDER BY s.stop_sequence`
 
 const stopsCoordsQuery = `
@@ -81,10 +91,16 @@ func (r *trainRepo) GetLineStationsWithCoords(ctx context.Context, trainNumber s
 	return out, nil
 }
 
-func (r *trainRepo) GetStops(ctx context.Context, trainNumber string) ([]train.Stop, error) {
+func (r *trainRepo) GetStops(ctx context.Context, trainNumber string, line string) ([]train.Stop, error) {
 	var out []train.Stop
-	if err := r.db.SelectContext(ctx, &out, stopsQuery, trainNumber); err != nil {
-		return nil, err
+	if line != "" {
+		if err := r.db.SelectContext(ctx, &out, stopsWithLineQuery, trainNumber, line); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := r.db.SelectContext(ctx, &out, stopsQuery, trainNumber); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
