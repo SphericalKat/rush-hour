@@ -9,11 +9,10 @@ sources:
   - https://git.sr.ht/~sphericalkat/rush-hour
 secrets:
   - a04c9ee9-74d0-487e-a903-a7a937346fc9 # release keystore
-  - a44aa9bf-320b-43b6-97e7-09e394dde602 # signing credentials (~/.gradle/gradle.properties)
+  - c2022e9b-b883-42a1-82b4-ba9ba6528a43 # signing credentials (~/.gradle/gradle.properties)
 environment:
   ANDROID_HOME: /home/build/android-sdk
   ANDROID_SDK_ROOT: /home/build/android-sdk
-  RUSH_HOUR_STORE_FILE: /home/build/.android/release.keystore
 submitter:
   git.sr.ht:
     allow-refs:
@@ -53,7 +52,7 @@ tasks:
       tag=$(echo "$GIT_REF" | sed 's|refs/tags/||')
 
       for apk in apk/release/app-*-release.apk; do
-        hut git artifact upload ~sphericalkat/rush-hour "$tag" "$apk"
+        hut git artifact upload -r rush-hour --rev "$tag" "$apk"
       done
 
-      hut git artifact upload ~sphericalkat/rush-hour "$tag" bundle/release/app-release.aab
+      hut git artifact upload -r rush-hour --rev "$tag" bundle/release/app-release.aab
