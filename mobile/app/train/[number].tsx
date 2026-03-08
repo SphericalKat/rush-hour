@@ -6,9 +6,10 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchTrainStops } from '../../src/api/live';
 import type { TrainStop } from '../../src/api/types';
@@ -146,44 +147,32 @@ export default function TrainScreen() {
     >
       {/* Share your location */}
       <Section title="SHARE LOCATION">
-        <View style={styles.shareContainer}>
-          <View style={styles.shareInfo}>
-            <Ionicons
-              name={sharing ? 'navigate' : 'navigate-outline'}
-              size={20}
-              color={sharing ? colors.success : colors.textSecondary}
-            />
-            <View style={styles.shareText}>
-              <Text style={[styles.shareTitle, { color: colors.text }]}>
-                {sharing ? 'Sharing your location' : 'Help other commuters'}
-              </Text>
-              <Text style={[styles.shareSubtitle, { color: colors.textTertiary }]}>
-                {sharing && lastMsg
-                  ? lastMsg
-                  : 'Share your GPS to show this train\'s live position'}
+        <TouchableOpacity activeOpacity={0.7} onPress={toggleSharing}>
+          <View style={styles.shareContainer}>
+            <View style={styles.shareInfo}>
+              <Ionicons
+                name={sharing ? 'navigate' : 'navigate-outline'}
+                size={20}
+                color={sharing ? colors.success : colors.textSecondary}
+              />
+              <View style={styles.shareText}>
+                <Text style={[styles.shareTitle, { color: colors.text }]}>
+                  {sharing ? 'Sharing your location' : 'Help other commuters'}
+                </Text>
+                <Text style={[styles.shareSubtitle, { color: colors.textTertiary }]}>
+                  {sharing && lastMsg
+                    ? lastMsg
+                    : 'Share your GPS to show this train\'s live position'}
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.shareBtn, { backgroundColor: sharing ? colors.danger + '15' : colors.primary }]}>
+              <Text style={[styles.shareBtnText, { color: sharing ? colors.danger : '#fff' }]}>
+                {sharing ? 'Stop' : 'Start'}
               </Text>
             </View>
           </View>
-          <Pressable
-            onPress={toggleSharing}
-            style={({ pressed }) => [
-              styles.shareBtn,
-              {
-                backgroundColor: sharing ? colors.danger + '15' : colors.primary,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.shareBtnText,
-                { color: sharing ? colors.danger : '#fff' },
-              ]}
-            >
-              {sharing ? 'Stop' : 'Start'}
-            </Text>
-          </Pressable>
-        </View>
+        </TouchableOpacity>
       </Section>
 
       {/* Status */}
