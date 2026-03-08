@@ -7,21 +7,24 @@ import (
 )
 
 // PositionResult describes where a GPS point falls on a train's route.
+// Status codes match m-indicator's convention:
+//
+//	"0" = at station, "1" = left/crossed, "2" = between, "3" = approaching
 type PositionResult struct {
 	Station  string // nearest or current station name
-	Status   string // "0"=at, "1"=approaching, "2"=between, "3"=departed
+	Status   string // "0"=at, "1"=left, "2"=between, "3"=approaching
 	Msg      string // human-readable, e.g. "At DADAR", "Between DADAR - THANE"
-	PrevStn  string // previous station (for "between")
-	NextStn  string // next station (for "between")
+	PrevStn  string // previous station (for "between" / "left")
+	NextStn  string // next station (for "between" / "approaching")
 	Accurate bool
 }
 
-// Distance thresholds in degrees (roughly matching m-indicator's values).
+// Distance thresholds in degrees (matching m-indicator's decompiled values).
 // ~0.00225 deg ≈ 250m at Mumbai's latitude.
 const (
-	atStationThresh  = 0.00225
-	approachThresh   = 0.0045
-	departedThresh   = 0.0063
+	atStationThresh = 0.00225
+	leftThresh      = 0.0063 // just left/crossed a station
+	approachThresh  = 0.009  // approaching next station
 )
 
 // ResolvePosition projects a GPS coordinate onto a train's ordered route
@@ -33,15 +36,13 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 
 	// Find nearest segment (between consecutive stops)
 	bestDist := math.MaxFloat64
-	bestIdx := 0 // index of the nearest station
-	bestT := 0.0 // projection parameter on segment (0=at stops[i], 1=at stops[i+1])
+	bestIdx := 0
 
 	for i := 0; i < len(stops)-1; i++ {
-		t, d := projectOnSegment(lat, lng, stops[i].Lat, stops[i].Lng, stops[i+1].Lat, stops[i+1].Lng)
+		_, d := projectOnSegment(lat, lng, stops[i].Lat, stops[i].Lng, stops[i+1].Lat, stops[i+1].Lng)
 		if d < bestDist {
 			bestDist = d
 			bestIdx = i
-			bestT = t
 		}
 	}
 
@@ -50,7 +51,6 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 	if lastDist < bestDist {
 		bestDist = lastDist
 		bestIdx = len(stops) - 1
-		bestT = 1.0
 	}
 
 	// Determine which station the point is closest to
@@ -84,11 +84,23 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 			}
 		}
 
-		// Near the next station — approaching
-		if distToTo <= approachThresh && bestT > 0.5 {
+		// Just left the previous station — st "1" in m-indicator
+		if distToFrom <= leftThresh {
+			return &PositionResult{
+				Station:  fromStn.Station,
+				Status:   "1",
+				Msg:      "Left " + fromStn.Station,
+				PrevStn:  fromStn.Station,
+				NextStn:  toStn.Station,
+				Accurate: true,
+			}
+		}
+
+		// Approaching the next station — st "3" in m-indicator
+		if distToTo <= approachThresh {
 			return &PositionResult{
 				Station:  toStn.Station,
-				Status:   "1",
+				Status:   "3",
 				Msg:      "Approaching " + toStn.Station,
 				NextStn:  toStn.Station,
 				PrevStn:  fromStn.Station,
@@ -96,19 +108,7 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 			}
 		}
 
-		// Just left the previous station
-		if distToFrom <= departedThresh && bestT < 0.3 {
-			return &PositionResult{
-				Station:  fromStn.Station,
-				Status:   "3",
-				Msg:      "Departed " + fromStn.Station,
-				PrevStn:  fromStn.Station,
-				NextStn:  toStn.Station,
-				Accurate: true,
-			}
-		}
-
-		// Between stations
+		// Between stations — st "2"
 		return &PositionResult{
 			Station:  fromStn.Station,
 			Status:   "2",
@@ -120,7 +120,7 @@ func ResolvePosition(lat, lng float64, stops []train.StopWithCoord) *PositionRes
 	}
 
 	// Beyond last station or no next station
-	if distToFrom <= departedThresh {
+	if distToFrom <= leftThresh {
 		return &PositionResult{
 			Station:  fromStn.Station,
 			Status:   "0",

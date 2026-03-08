@@ -68,14 +68,15 @@ func (h *LocationHandler) PushLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve GPS to station position
-	stops, err := h.trainRepo.GetStopsWithCoords(r.Context(), trainNumber)
-	if err != nil || len(stops) == 0 {
+	// Use full line stations for accurate segment projection so fast trains
+	// get a position even between stations they don't stop at.
+	lineStops, err := h.trainRepo.GetLineStationsWithCoords(r.Context(), trainNumber)
+	if err != nil || len(lineStops) == 0 {
 		http.Error(w, "unknown train", http.StatusNotFound)
 		return
 	}
 
-	pos := usecase.ResolvePosition(req.Lat, req.Lng, stops)
+	pos := usecase.ResolvePosition(req.Lat, req.Lng, lineStops)
 	if pos == nil {
 		http.Error(w, "could not resolve position", http.StatusUnprocessableEntity)
 		return
