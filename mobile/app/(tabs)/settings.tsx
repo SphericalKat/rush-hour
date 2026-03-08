@@ -8,9 +8,9 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchTimetableVersion } from '../../src/api/timetable';
 import type { TimetableVersion } from '../../src/api/types';

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import type { LiveTrainPosition, TrainStop } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
 import { minutesToHHMM } from '../utils/time';
