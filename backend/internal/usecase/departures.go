@@ -29,22 +29,14 @@ func departureCacheKey(stationID int64, destinationID *int64) string {
 	return fmt.Sprintf("departures:%d", stationID)
 }
 
-// GetDepartures returns all trains departing from stationID, ordered so that
-// trains departing at or after fromMinute come first, followed by earlier trains
-// (midnight wrap-around).
-func (uc *DeparturesUseCase) GetDepartures(ctx context.Context, stationID int64, fromMinute int, destinationID *int64) ([]train.Departure, error) {
+// GetDepartures returns all trains departing from stationID in chronological order.
+func (uc *DeparturesUseCase) GetDepartures(ctx context.Context, stationID int64, destinationID *int64) ([]train.Departure, error) {
 	deps, err := uc.getCachedOrFetch(ctx, stationID, destinationID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Sort: trains at/after fromMinute first (by departure), then earlier trains
 	sort.SliceStable(deps, func(i, j int) bool {
-		iFuture := deps[i].Departure >= fromMinute
-		jFuture := deps[j].Departure >= fromMinute
-		if iFuture != jFuture {
-			return iFuture
-		}
 		return deps[i].Departure < deps[j].Departure
 	})
 

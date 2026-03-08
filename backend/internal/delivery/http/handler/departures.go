@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/sphericalkat/rush-hour/backend/internal/delivery/http/dto"
@@ -65,11 +64,7 @@ func (h *DeparturesHandler) GetDepartures(w http.ResponseWriter, r *http.Request
 		destinationID = &parsed
 	}
 
-	ist, _ := time.LoadLocation("Asia/Kolkata")
-	now := time.Now().In(ist)
-	fromMinute := now.Hour()*60 + now.Minute()
-
-	deps, err := h.uc.GetDepartures(r.Context(), id, fromMinute, destinationID)
+	deps, err := h.uc.GetDepartures(r.Context(), id, destinationID)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
