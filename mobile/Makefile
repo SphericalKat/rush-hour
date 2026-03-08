@@ -60,9 +60,13 @@ tag: changelog
 
 upload: build tag
 	@for apk in $(APK_DIR)/app-*-release.apk; do \
-		hut git artifact upload -r rush-hour --rev $(NEXT_TAG) "$$apk"; \
+		base=$$(basename "$$apk" .apk); \
+		dest="$(APK_DIR)/$${base}-$(NEXT_TAG).apk"; \
+		mv "$$apk" "$$dest"; \
+		hut git artifact upload -r rush-hour --rev $(NEXT_TAG) "$$dest"; \
 	done
-	hut git artifact upload -r rush-hour --rev $(NEXT_TAG) $(AAB_DIR)/app-release.aab
+	mv $(AAB_DIR)/app-release.aab $(AAB_DIR)/app-release-$(NEXT_TAG).aab
+	hut git artifact upload -r rush-hour --rev $(NEXT_TAG) $(AAB_DIR)/app-release-$(NEXT_TAG).aab
 
 release: upload
 	@echo "released $(NEXT_TAG)"

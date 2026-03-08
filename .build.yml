@@ -18,11 +18,11 @@ submitter:
     allow-refs:
       - refs/tags/*
 artifacts:
-  - rush-hour/mobile/android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk
-  - rush-hour/mobile/android/app/build/outputs/apk/release/app-arm64-v8a-release.apk
-  - rush-hour/mobile/android/app/build/outputs/apk/release/app-x86-release.apk
-  - rush-hour/mobile/android/app/build/outputs/apk/release/app-x86_64-release.apk
-  - rush-hour/mobile/android/app/build/outputs/bundle/release/app-release.aab
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-armeabi-v7a-release-v*.apk
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-arm64-v8a-release-v*.apk
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-x86-release-v*.apk
+  - rush-hour/mobile/android/app/build/outputs/apk/release/app-x86_64-release-v*.apk
+  - rush-hour/mobile/android/app/build/outputs/bundle/release/app-release-v*.aab
 tasks:
   - setup_sdk: |
       # install android command-line tools
@@ -52,7 +52,11 @@ tasks:
       tag=$(echo "$GIT_REF" | sed 's|refs/tags/||')
 
       for apk in apk/release/app-*-release.apk; do
-        hut git artifact upload -r rush-hour --rev "$tag" "$apk"
+        base=$(basename "$apk" .apk)
+        dest="apk/release/${base}-${tag}.apk"
+        mv "$apk" "$dest"
+        hut git artifact upload -r rush-hour --rev "$tag" "$dest"
       done
 
-      hut git artifact upload -r rush-hour --rev "$tag" bundle/release/app-release.aab
+      mv bundle/release/app-release.aab "bundle/release/app-release-${tag}.aab"
+      hut git artifact upload -r rush-hour --rev "$tag" "bundle/release/app-release-${tag}.aab"
