@@ -12,11 +12,11 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   type TextInput,
   Vibration,
   View,
 } from 'react-native';
+import { Text } from './Text';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,

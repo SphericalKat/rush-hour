@@ -1,5 +1,6 @@
 import React from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import type { Direction } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
 

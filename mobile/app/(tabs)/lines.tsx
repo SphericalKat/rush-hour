@@ -4,9 +4,9 @@ import {
   FlatList,
   Platform,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchLines } from '../../src/api/lines';
 import type { Line } from '../../src/api/types';

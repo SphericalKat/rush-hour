@@ -7,9 +7,9 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Station } from '../../src/api/types';
 import { DepartureCard } from '../../src/components/DepartureCard';
