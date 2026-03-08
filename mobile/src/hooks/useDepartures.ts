@@ -21,7 +21,7 @@ export function useDepartures(
 
   const load = useCallback(async () => {
     if (!stationId) return;
-    setState((s) => ({ ...s, loading: true, error: null }));
+    setState((s) => ({ ...s, loading: s.data.length === 0, error: null }));
     try {
       const data = await fetchDepartures(stationId, destinationId ?? undefined);
       setState({ data: data ?? [], loading: false, error: null });
