@@ -10,7 +10,7 @@ const TASK_NAME = 'rush-hour-location-sharing';
 const STORE_TRAIN = 'rush_hour_sharing_train';
 const STORE_DEVICE = 'rush_hour_device_id';
 
-// Background task — defined at module level as required by expo-task-manager.
+// Background task, defined at module level as required by expo-task-manager.
 TaskManager.defineTask(TASK_NAME, async ({ data, error }) => {
   if (error) {
     console.warn('[LocationTask] error:', error.message);
@@ -34,7 +34,7 @@ TaskManager.defineTask(TASK_NAME, async ({ data, error }) => {
       'update',
     );
   } catch {
-    // network error — will retry on next location update
+    // network error, will retry on next location update
   }
 });
 
@@ -92,7 +92,7 @@ export function useLocationSharing(trainNumber: string) {
     })();
   }, [trainNumber]);
 
-  // Foreground polling — only for the train we're actually sharing
+  // Foreground polling, only runs for the train we're sharing
   useEffect(() => {
     if (!state.sharing || state.sharingTrain !== trainNumber || !deviceId) return;
 

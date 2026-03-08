@@ -67,7 +67,7 @@ func TestHLLDedup(t *testing.T) {
 	ctx := context.Background()
 
 	require.NoError(t, repo.AddReporter(ctx, "90001", "device-A"))
-	require.NoError(t, repo.AddReporter(ctx, "90001", "device-A")) // duplicate — not counted again
+	require.NoError(t, repo.AddReporter(ctx, "90001", "device-A")) // duplicate, not counted again
 	require.NoError(t, repo.AddReporter(ctx, "90001", "device-B"))
 
 	count, err := repo.CountReporters(ctx, "90001")

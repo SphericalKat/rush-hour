@@ -64,7 +64,7 @@ func TestGetDepartures_AllDirections(t *testing.T) {
 	db := seedTrainDB(t)
 	repo := sqlite.NewTrainRepo(db)
 
-	// From Dadar — should return all 3 trains (both directions)
+	// From Dadar, should return all 3 trains (both directions)
 	deps, err := repo.GetDepartures(context.Background(), 2, nil)
 	require.NoError(t, err)
 	require.Len(t, deps, 3)
@@ -82,7 +82,7 @@ func TestGetDepartures_DestinationFilter(t *testing.T) {
 	require.Equal(t, "90001", deps[0].Number)
 	require.Equal(t, "90003", deps[1].Number)
 
-	// From Thane with destination=CSMT — only the up train goes Thane→CSMT
+	// From Thane with destination=CSMT, only the up train goes Thane→CSMT
 	destCSMT := int64(1)
 	deps, err = repo.GetDepartures(context.Background(), 3, &destCSMT)
 	require.NoError(t, err)

@@ -14,6 +14,23 @@ interface Props {
 
 type StopState = 'passed' | 'current' | 'approaching' | 'upcoming';
 
+// Resolves each station in the route to a visual state based on live position data.
+//
+// The live position API returns two fields that drive the timeline:
+//   - position.s:  the reference station name
+//   - position.st: status code, "0" = at station, anything else = in transit
+//
+// When st is "0", the train is stopped at station s. Every station before s
+// in the route is marked "passed", and s itself is marked "current".
+//
+// When st is NOT "0" (left, between, approaching), the train has already
+// passed station s and is somewhere between s and the next station. In this
+// case s and everything before it is "passed", and the station immediately
+// after s is marked "approaching".
+//
+// The key insight: position.s always refers to the LAST station the train
+// was at or passed, never the one it's heading toward. The backend sets s
+// to the "from" station of the segment the GPS point projects onto.
 function resolveStopStates(
   stops: RouteStop[],
   live: LiveTrainPosition | null,
@@ -23,8 +40,7 @@ function resolveStopStates(
 
   const { position } = live;
   const liveStation = position.s?.toUpperCase();
-  // m-indicator status codes: "0"=at, "1"=left/crossed, "2"=between, "3"=approaching
-  const statusType = position.st;
+  if (!liveStation) return states;
 
   // Find the index of the station the live position refers to
   let liveIdx = -1;
@@ -34,43 +50,19 @@ function resolveStopStates(
       break;
     }
   }
+  if (liveIdx < 0) return states;
 
-  // If the live message contains "Between X - Y", find the two stations
-  const betweenMatch = position.msg?.match(/Between\s+(.+?)\s*-\s*(.+)/i);
-  let betweenFromIdx = -1;
-  let betweenToIdx = -1;
-  if (betweenMatch) {
-    const from = betweenMatch[1].trim().toUpperCase();
-    const to = betweenMatch[2].trim().toUpperCase();
-    for (let i = 0; i < stops.length; i++) {
-      const name = stops[i].station.toUpperCase();
-      if (name === from) betweenFromIdx = i;
-      if (name === to) betweenToIdx = i;
-    }
-  }
-
-  if (statusType === '2' && betweenFromIdx >= 0 && betweenToIdx >= 0) {
-    const minIdx = Math.min(betweenFromIdx, betweenToIdx);
-    const maxIdx = Math.max(betweenFromIdx, betweenToIdx);
-    for (let i = 0; i <= minIdx; i++) states[i] = 'passed';
-    states[maxIdx] = 'approaching';
-  } else if (statusType === '0' && liveIdx >= 0) {
-    // At station
+  if (position.st === '0') {
+    // Train is at this station
     for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
     states[liveIdx] = 'current';
-  } else if (statusType === '1' && liveIdx >= 0) {
-    // Left/crossed — station is passed, next is approaching
+  } else {
+    // Train has passed station s. Mark it and everything before as passed,
+    // and mark the next station as approaching
     for (let i = 0; i <= liveIdx; i++) states[i] = 'passed';
     if (liveIdx + 1 < stops.length) {
       states[liveIdx + 1] = 'approaching';
     }
-  } else if (statusType === '3' && liveIdx >= 0) {
-    // Approaching — everything before is passed, this station is approaching
-    for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
-    states[liveIdx] = 'approaching';
-  } else if (liveIdx >= 0) {
-    for (let i = 0; i < liveIdx; i++) states[i] = 'passed';
-    states[liveIdx] = 'current';
   }
 
   return states;
@@ -93,23 +85,27 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
         const isLast = i === stops.length - 1;
 
         const dotColor =
-          state === 'current' ? colors.success :
+          state === 'current' ? colors.primary :
           state === 'approaching' ? colors.warning :
           state === 'passed' ? colors.primary :
           colors.border;
 
+        // lineColor = segment ABOVE this dot (coming from the previous station)
         const lineColor =
           state === 'passed' || state === 'current'
             ? colors.primary
-            : colors.border;
+            : state === 'approaching'
+              ? colors.warning + '60'
+              : colors.border;
 
+        // nextLineColor = segment BELOW this dot (going to the next station)
         const nextState = i < stops.length - 1 ? states[i + 1] : null;
         const nextLineColor =
-          nextState === 'passed' || nextState === 'current' || state === 'current'
+          nextState === 'passed' || nextState === 'current'
             ? colors.primary
-            : state === 'approaching' || nextState === 'approaching'
-            ? colors.warning + '60'
-            : colors.border;
+            : nextState === 'approaching'
+              ? colors.warning + '60'
+              : colors.border;
 
         const textColor =
           !isStop ? colors.textTertiary :
@@ -133,7 +129,7 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
               ? colors.primary
               : nextState === 'passed' || nextState === 'current'
                 ? colors.primary
-                : state === 'approaching' || nextState === 'approaching'
+                : state === 'approaching'
                   ? colors.warning + '60'
                   : colors.border;
 
@@ -277,7 +273,7 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
               )}
             </View>
 
-            {/* Expected time column — only for actual stops */}
+            {/* Expected time column (actual stops only) */}
             <View style={styles.expectedCol}>
               {stop.departure != null && (
                 <Text

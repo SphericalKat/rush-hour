@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -33,7 +34,7 @@ export default function TrainScreen() {
     origin?: string;
     destination?: string;
   }>();
-  const { colors, radius } = useTheme();
+  const { colors, radius, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
@@ -123,6 +124,8 @@ export default function TrainScreen() {
   }
 
   return (
+    <>
+    <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={[
@@ -155,7 +158,7 @@ export default function TrainScreen() {
               </View>
             </View>
             <View style={[styles.shareBtn, { backgroundColor: sharing ? colors.danger + '15' : colors.primary }]}>
-              <Text style={[styles.shareBtnText, { color: sharing ? colors.danger : '#fff' }]}>
+              <Text style={[styles.shareBtnText, { color: sharing ? colors.danger : colors.textOnPrimary }]}>
                 {sharing ? 'Stop' : 'Start'}
               </Text>
             </View>
@@ -270,6 +273,7 @@ export default function TrainScreen() {
         </Text>
       </View>
     </ScrollView>
+    </>
   );
 }
 

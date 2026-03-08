@@ -38,7 +38,7 @@ func NewLive(trainRepo train.Repository, rc *redis.Client) *LiveHandler {
 
 // postMobond sends a POST to a mobond endpoint with form-encoded body and
 // the same User-Agent that the m-indicator app uses. Go's default transport
-// handles Accept-Encoding/gzip transparently — we must NOT set it explicitly
+// handles Accept-Encoding/gzip transparently so we must NOT set it explicitly
 // or Go won't auto-decompress the response.
 func (h *LiveHandler) postMobond(url string, form string) (*http.Response, error) {
 	req, err := http.NewRequest("POST", url, strings.NewReader(form))
@@ -110,7 +110,7 @@ func (h *LiveHandler) mergePositions(mobond, ours map[string]any) any {
 		return ours
 	}
 
-	// Both available — use m-indicator position (larger crowd) but add our people count
+	// Both available: use upstream position (larger crowd) but add our people count
 	mobondPC, _ := mobond["pc"].(float64)
 	oursPC, _ := ours["pc"].(float64)
 	mobond["pc"] = int(mobondPC) + int(oursPC)

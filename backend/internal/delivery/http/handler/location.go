@@ -59,7 +59,7 @@ func (h *LocationHandler) PushLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Handle stop action — remove this device's share
+	// Handle stop action: remove this device's share
 	if req.Action == "stop" {
 		h.redis.SRem(r.Context(), locationSharersKey(trainNumber), req.DeviceID)
 		h.redis.Del(r.Context(), locationDeviceKey(trainNumber, req.DeviceID))

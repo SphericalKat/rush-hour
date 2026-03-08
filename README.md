@@ -12,8 +12,8 @@ A transit app for Mumbai's suburban rail network (Central Railway). Lets commute
 ## Structure
 
 ```
-parser/     Python library — parses CR timetable PDFs into structured data (SQLite)
-backend/    Go API server — serves timetable data, handles live reports via WebSocket
+parser/     Python library that parses CR timetable PDFs into structured data (SQLite)
+backend/    Go API server, serves timetable data and handles live reports via WebSocket
 mobile/     React Native (Expo) app
 ```
 

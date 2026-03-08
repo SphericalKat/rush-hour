@@ -56,7 +56,7 @@ func TestDepartures_DestinationFilter(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&deps))
 	require.NotEmpty(t, deps)
 
-	// Filter by destination=5 (Borivali) — no CR trains go there, so should be empty.
+	// Filter by destination=5 (Borivali). No CR trains go there, so should be empty.
 	resp2, err := http.Get(testServer.URL + "/api/v1/stations/1/departures?destination=5")
 	require.NoError(t, err)
 	defer resp2.Body.Close()

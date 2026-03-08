@@ -13,7 +13,7 @@ export function useLiveTrains() {
       const data = await fetchAllLiveTrains();
       setLiveTrains(data);
     } catch {
-      // silently fail — live tracking is best-effort
+      // silently fail, live tracking is best-effort
     }
   }, []);
 

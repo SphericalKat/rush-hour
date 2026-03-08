@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -20,8 +21,9 @@ import { useLiveTrains } from '../../src/hooks/useLiveTrains';
 import { useTheme } from '../../src/hooks/useTheme';
 
 export default function DeparturesScreen() {
-  const { colors, spacing } = useTheme();
+  const { colors, spacing, scheme } = useTheme();
   const insets = useSafeAreaInsets();
+  const isDark = scheme === 'dark';
   const router = useRouter();
 
   const [station, setStation] = useState<Station | null>(null);
@@ -47,17 +49,18 @@ export default function DeparturesScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style="light" />
       {/* Header */}
       <View
         style={[
           styles.headerBlock,
           {
-            backgroundColor: colors.primary,
+            backgroundColor: isDark ? colors.surface : colors.primary,
             paddingTop: insets.top + 8,
           },
         ]}
       >
-        <Text style={styles.navTitle}>Rush Hour</Text>
+        <Text style={[styles.navTitle, { color: isDark ? colors.text : '#FFFFFF' }]}>Rush Hour</Text>
 
         <View style={styles.stationRow}>
           <Pressable
@@ -65,8 +68,8 @@ export default function DeparturesScreen() {
             style={[
               styles.stationChip,
               station
-                ? { backgroundColor: 'rgba(255,255,255,0.95)' }
-                : { backgroundColor: 'rgba(255,255,255,0.2)' },
+                ? { backgroundColor: isDark ? colors.surfaceSecondary : 'rgba(255,255,255,0.95)' }
+                : { backgroundColor: isDark ? colors.surfaceSecondary + '80' : 'rgba(255,255,255,0.2)' },
             ]}
             accessibilityRole="button"
             accessibilityLabel={station ? `Change station, current ${station.name}` : 'Select station'}
@@ -74,7 +77,7 @@ export default function DeparturesScreen() {
             <Text
               style={[
                 styles.stationLabel,
-                { color: station ? colors.primary : 'rgba(255,255,255,0.8)' },
+                { color: station ? colors.primary : (isDark ? colors.textTertiary : 'rgba(255,255,255,0.8)') },
               ]}
               numberOfLines={1}
             >
@@ -82,15 +85,15 @@ export default function DeparturesScreen() {
             </Text>
           </Pressable>
 
-          <Ionicons name="arrow-forward" size={14} color="rgba(255,255,255,0.5)" />
+          <Ionicons name="arrow-forward" size={14} color={isDark ? colors.textTertiary : 'rgba(255,255,255,0.5)'} />
 
           <Pressable
             onPress={() => setDestPickerOpen(true)}
             style={[
               styles.stationChip,
               destination
-                ? { backgroundColor: 'rgba(255,255,255,0.95)' }
-                : { backgroundColor: 'rgba(255,255,255,0.2)' },
+                ? { backgroundColor: isDark ? colors.surfaceSecondary : 'rgba(255,255,255,0.95)' }
+                : { backgroundColor: isDark ? colors.surfaceSecondary + '80' : 'rgba(255,255,255,0.2)' },
             ]}
             accessibilityRole="button"
             accessibilityLabel={destination ? `Change destination, current ${destination.name}` : 'Select destination'}
@@ -98,7 +101,7 @@ export default function DeparturesScreen() {
             <Text
               style={[
                 styles.stationLabel,
-                { color: destination ? colors.primary : 'rgba(255,255,255,0.8)' },
+                { color: destination ? colors.primary : (isDark ? colors.textTertiary : 'rgba(255,255,255,0.8)') },
               ]}
               numberOfLines={1}
             >
@@ -109,12 +112,12 @@ export default function DeparturesScreen() {
           {destination ? (
             <Pressable
               onPress={() => setDestination(null)}
-              style={styles.clearDest}
+              style={[styles.clearDest, { backgroundColor: isDark ? colors.surfaceSecondary : 'rgba(255,255,255,0.2)' }]}
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="Clear destination filter"
             >
-              <Ionicons name="close" size={14} color="rgba(255,255,255,0.8)" />
+              <Ionicons name="close" size={14} color={isDark ? colors.textSecondary : 'rgba(255,255,255,0.8)'} />
             </Pressable>
           ) : null}
         </View>
@@ -126,11 +129,11 @@ export default function DeparturesScreen() {
               style={[
                 styles.filterChip,
                 filterFast
-                  ? { backgroundColor: 'rgba(255,255,255,0.95)' }
-                  : { backgroundColor: 'rgba(255,255,255,0.15)' },
+                  ? { backgroundColor: isDark ? colors.primaryMuted : 'rgba(255,255,255,0.95)' }
+                  : { backgroundColor: isDark ? colors.surfaceSecondary + '80' : 'rgba(255,255,255,0.15)' },
               ]}
             >
-              <Text style={[styles.filterLabel, { color: filterFast ? colors.primary : 'rgba(255,255,255,0.8)' }]}>
+              <Text style={[styles.filterLabel, { color: filterFast ? colors.primary : (isDark ? colors.textTertiary : 'rgba(255,255,255,0.8)') }]}>
                 Fast
               </Text>
             </Pressable>
@@ -139,11 +142,11 @@ export default function DeparturesScreen() {
               style={[
                 styles.filterChip,
                 filterAC
-                  ? { backgroundColor: 'rgba(255,255,255,0.95)' }
-                  : { backgroundColor: 'rgba(255,255,255,0.15)' },
+                  ? { backgroundColor: isDark ? colors.primaryMuted : 'rgba(255,255,255,0.95)' }
+                  : { backgroundColor: isDark ? colors.surfaceSecondary + '80' : 'rgba(255,255,255,0.15)' },
               ]}
             >
-              <Text style={[styles.filterLabel, { color: filterAC ? colors.primary : 'rgba(255,255,255,0.8)' }]}>
+              <Text style={[styles.filterLabel, { color: filterAC ? colors.primary : (isDark ? colors.textTertiary : 'rgba(255,255,255,0.8)') }]}>
                 AC
               </Text>
             </Pressable>
@@ -248,7 +251,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.3,
     marginBottom: 10,
-    color: '#FFFFFF',
   },
   stationRow: {
     flexDirection: 'row',
@@ -285,7 +287,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   listContent: {
     paddingTop: 8,
