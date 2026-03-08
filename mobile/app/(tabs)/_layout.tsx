@@ -43,6 +43,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="favorites"
+        options={{
+          title: 'Favorites',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
