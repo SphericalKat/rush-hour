@@ -43,6 +43,7 @@ func NewRouter(
 		r.Get("/trains/{number}/status", statusH.GetStatus)
 		r.Get("/trains/{number}/live", liveH.GetLiveTrainInfo)
 		r.Get("/trains/{number}/stops", liveH.GetStops)
+		r.Get("/trains/{number}/route", liveH.GetRoute)
 		r.Post("/trains/{number}/location", locationH.PushLocation)
 
 		r.Get("/live/trains", liveH.GetAllLiveTrains)
