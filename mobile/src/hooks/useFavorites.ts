@@ -9,6 +9,9 @@ export interface FavoriteTrain {
   line: string;
   origin: string;
   destination: string;
+  is_fast?: boolean;
+  is_ac?: boolean;
+  departure?: number; // minutes from midnight
 }
 
 let memoryCache: FavoriteTrain[] | null = null;

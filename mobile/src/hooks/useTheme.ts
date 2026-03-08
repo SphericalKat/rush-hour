@@ -9,6 +9,7 @@ import {
   spacing,
   type,
 } from '../theme';
+import { useSettings } from './useSettings';
 
 // Brand green as fallback source color for M3 palette generation.
 const BRAND_GREEN = '#0D9668';
@@ -17,8 +18,14 @@ export function useTheme() {
   const raw = useColorScheme();
   const scheme: 'light' | 'dark' = raw === 'dark' ? 'dark' : 'light';
   const { theme: m3 } = useMaterial3Theme({ fallbackSourceColor: BRAND_GREEN });
+  const { settings } = useSettings();
 
   const colors = useMemo(() => {
+    // When dynamic colors are disabled, always use the static green palette
+    if (!settings.dynamicColors) {
+      return getStaticColors(scheme);
+    }
+
     // iOS: use Apple's semantic color values
     if (Platform.OS === 'ios') {
       return getStaticColors(scheme);
@@ -33,7 +40,7 @@ export function useTheme() {
       }
     }
     return getStaticColors(scheme);
-  }, [m3, scheme]);
+  }, [m3, scheme, settings.dynamicColors]);
 
   return {
     colors,

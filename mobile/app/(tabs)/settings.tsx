@@ -8,12 +8,14 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   View,
 } from 'react-native';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchTimetableVersion } from '../../src/api/timetable';
 import type { TimetableVersion } from '../../src/api/types';
+import { useSettings } from '../../src/hooks/useSettings';
 import { useTheme } from '../../src/hooks/useTheme';
 import { shadow } from '../../src/theme';
 
@@ -74,6 +76,7 @@ function Row({ label, value, onPress, showChevron, destructive, children }: RowP
 
 export default function SettingsScreen() {
   const { colors, radius } = useTheme();
+  const { settings, setDynamicColors } = useSettings();
   const insets = useSafeAreaInsets();
   const [version, setVersion] = useState<TimetableVersion | null>(null);
   const [checking, setChecking] = useState(false);
@@ -128,6 +131,21 @@ export default function SettingsScreen() {
       >
         <Text style={[styles.navTitle, { color: colors.text }]}>Settings</Text>
       </View>
+
+      {/* Appearance section */}
+      <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
+        APPEARANCE
+      </Text>
+      {card(
+        <Row label="Dynamic colors">
+          <Switch
+            value={settings.dynamicColors}
+            onValueChange={setDynamicColors}
+            trackColor={{ false: colors.surfaceSecondary, true: colors.primary }}
+            thumbColor={settings.dynamicColors ? colors.textOnPrimary : colors.textTertiary}
+          />
+        </Row>,
+      )}
 
       {/* Timetable section */}
       <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>

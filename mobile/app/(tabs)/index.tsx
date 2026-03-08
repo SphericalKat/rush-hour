@@ -47,6 +47,9 @@ export default function DeparturesScreen() {
       line: item.line,
       origin: item.origin,
       destination: item.destination,
+      is_fast: item.is_fast,
+      is_ac: item.is_ac,
+      departure: item.departure,
     });
 
     if (Platform.OS === 'ios') {

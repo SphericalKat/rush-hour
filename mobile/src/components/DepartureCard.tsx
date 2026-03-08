@@ -13,6 +13,7 @@ interface Props {
   onLongPress?: () => void;
   delayMinutes?: number;
   liveStatus?: string;
+  hideCountdown?: boolean;
 }
 
 const _RUNS_ON_LABELS: Record<string, string> = {
@@ -30,7 +31,7 @@ function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['col
   return colors.trainSlow;
 }
 
-export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, liveStatus }: Props) {
+export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, liveStatus, hideCountdown }: Props) {
   const { colors } = useTheme();
 
   const until = minutesUntil(item.departure);
@@ -67,12 +68,19 @@ export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, li
       <View style={styles.cardBody}>
         {/* Top row: time + platform + countdown */}
         <View style={styles.header}>
-          <Text style={[styles.time, { color: colors.text }]}>
-            {minutesToHHMM(item.departure)}
-          </Text>
-          {isDelayed && (
+          {!hideCountdown && (
+            <Text style={[styles.time, { color: colors.text }]}>
+              {minutesToHHMM(item.departure)}
+            </Text>
+          )}
+          {!hideCountdown && isDelayed && (
             <Text style={[styles.delay, { color: colors.danger }]}>
               +{delayMinutes}m
+            </Text>
+          )}
+          {hideCountdown && (
+            <Text style={[styles.time, { color: colors.text }]}>
+              {item.number}
             </Text>
           )}
           <View style={{ flex: 1 }} />
@@ -83,11 +91,13 @@ export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, li
               </Text>
             </View>
           ) : null}
-          <View style={[styles.countdownPill, { backgroundColor: countdownBg }]}>
-            <Text style={[styles.countdown, { color: countdownColor }]}>
-              {isDue ? 'Due' : formatCountdown(until)}
-            </Text>
-          </View>
+          {!hideCountdown && (
+            <View style={[styles.countdownPill, { backgroundColor: countdownBg }]}>
+              <Text style={[styles.countdown, { color: countdownColor }]}>
+                {isDue ? 'Due' : formatCountdown(until)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Route */}
@@ -110,9 +120,11 @@ export function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, li
         {/* Bottom row: meta + badges */}
         <View style={styles.meta}>
           <LineChip shortName={item.line} size="sm" />
-          <Text style={[styles.trainNum, { color: colors.textTertiary }]}>
-            {item.number}
-          </Text>
+          {!hideCountdown && (
+            <Text style={[styles.trainNum, { color: colors.textTertiary }]}>
+              {item.number}
+            </Text>
+          )}
           {item.is_fast && (
             <View style={[styles.badge, { backgroundColor: colors.trainFast + '18' }]}>
               <Text style={[styles.badgeLabel, { color: colors.trainFast }]}>Fast</Text>
