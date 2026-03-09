@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  InteractionManager,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -30,6 +31,44 @@ function formatLiveAge(timestamp: number): string {
   return `${minutes} min ago`;
 }
 
+function Section({
+  title,
+  children,
+  rightLabel,
+  colors,
+  radius,
+}: {
+  title: string;
+  children: React.ReactNode;
+  rightLabel?: React.ReactNode;
+  colors: ReturnType<typeof useTheme>['colors'];
+  radius: ReturnType<typeof useTheme>['radius'];
+}) {
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          {title}
+        </Text>
+        {rightLabel}
+      </View>
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.surface,
+            borderRadius: radius.lg,
+            borderColor: colors.border,
+            ...shadow(1),
+          },
+        ]}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
+
 export default function TrainScreen() {
   const { number, origin, destination, line } = useLocalSearchParams<{
     number: string;
@@ -41,9 +80,18 @@ export default function TrainScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
-  const { status, loading } = useTrainStatus(number);
-  const { position: livePosition, loading: liveLoading, secondsUntilRefresh } = useLiveTrainInfo(number);
-  const { sharing, lastMsg, toggle: toggleSharing } = useLocationSharing(number);
+  // Wait for the navigation animation to finish before firing network
+  // calls, WebSocket connections, and SecureStore reads. This keeps the
+  // slide-in transition smooth.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => setReady(true));
+    return () => task.cancel();
+  }, []);
+
+  const { status, loading } = useTrainStatus(number, ready);
+  const { position: livePosition, loading: liveLoading } = useLiveTrainInfo(number, ready);
+  const { sharing, lastMsg, toggling: sharingToggling, toggle: toggleSharing } = useLocationSharing(number, ready);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
   const [stops, setStops] = useState<RouteStop[]>([]);
   const [stopsLoading, setStopsLoading] = useState(true);
@@ -104,8 +152,8 @@ export default function TrainScreen() {
   }, [number, line]);
 
   useEffect(() => {
-    loadStops();
-  }, [loadStops]);
+    if (ready) loadStops();
+  }, [loadStops, ready]);
 
   const hasLive = livePosition != null && 'position' in livePosition;
 
@@ -118,42 +166,6 @@ export default function TrainScreen() {
     }
     return status?.delay_minutes ?? 0;
   }, [hasLive, livePosition, status]);
-
-  function Section({
-    title,
-    children,
-    rightLabel,
-  }: {
-    title: string;
-    children: React.ReactNode;
-    rightLabel?: React.ReactNode;
-  }) {
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text
-            style={[styles.sectionTitle, { color: colors.textSecondary }]}
-          >
-            {title}
-          </Text>
-          {rightLabel}
-        </View>
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: colors.surface,
-              borderRadius: radius.lg,
-              borderColor: colors.border,
-              ...shadow(1),
-            },
-          ]}
-        >
-          {children}
-        </View>
-      </View>
-    );
-  }
 
   return (
     <>
@@ -169,9 +181,9 @@ export default function TrainScreen() {
       ]}
     >
       {/* Share your location */}
-      <Section title="SHARE LOCATION">
-        <TouchableOpacity activeOpacity={0.7} onPress={toggleSharing}>
-          <View style={styles.shareContainer}>
+      <Section title="SHARE LOCATION" colors={colors} radius={radius}>
+        <TouchableOpacity activeOpacity={0.7} onPress={toggleSharing} disabled={sharingToggling}>
+          <View style={[styles.shareContainer, sharingToggling && { opacity: 0.6 }]}>
             <View style={styles.shareInfo}>
               <Ionicons
                 name={sharing ? 'navigate' : 'navigate-outline'}
@@ -190,16 +202,20 @@ export default function TrainScreen() {
               </View>
             </View>
             <View style={[styles.shareBtn, { backgroundColor: sharing ? colors.danger + '15' : colors.primary }]}>
-              <Text style={[styles.shareBtnText, { color: sharing ? colors.danger : colors.textOnPrimary }]}>
-                {sharing ? 'Stop' : 'Start'}
-              </Text>
+              {sharingToggling ? (
+                <ActivityIndicator size="small" color={sharing ? colors.danger : colors.textOnPrimary} />
+              ) : (
+                <Text style={[styles.shareBtnText, { color: sharing ? colors.danger : colors.textOnPrimary }]}>
+                  {sharing ? 'Stop' : 'Start'}
+                </Text>
+              )}
             </View>
           </View>
         </TouchableOpacity>
       </Section>
 
       {/* Status */}
-      <Section title="STATUS">
+      <Section title="STATUS" colors={colors} radius={radius}>
         {loading ? (
           <ActivityIndicator
             color={colors.primary}
@@ -245,6 +261,8 @@ export default function TrainScreen() {
       {/* Route timeline */}
       <Section
         title="ROUTE"
+        colors={colors}
+        radius={radius}
         rightLabel={
           hasLive ? (
             <View style={styles.liveRow}>
@@ -257,17 +275,11 @@ export default function TrainScreen() {
                   {formatLiveAge((livePosition as any).t)}
                 </Text>
               </View>
-              <Text style={[styles.refreshCountdown, { color: colors.textTertiary }]}>
-                {secondsUntilRefresh}s
-              </Text>
             </View>
           ) : !liveLoading ? (
             <View style={styles.liveRow}>
               <Text style={[styles.noLiveText, { color: colors.textTertiary }]}>
                 No live data
-              </Text>
-              <Text style={[styles.refreshCountdown, { color: colors.textTertiary }]}>
-                {secondsUntilRefresh}s
               </Text>
             </View>
           ) : null
@@ -418,11 +430,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  refreshCountdown: {
-    fontSize: 10,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '500',
   },
   liveBadge: {
     flexDirection: 'row',

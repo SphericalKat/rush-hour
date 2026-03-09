@@ -42,6 +42,7 @@ interface LocationSharingState {
   sharing: boolean;
   sharingTrain: string | null;
   lastMsg: string | null;
+  toggling: boolean;
 }
 
 async function isTaskRunning(): Promise<boolean> {
@@ -72,17 +73,19 @@ async function getActiveTrain(): Promise<string | null> {
   }
 })();
 
-export function useLocationSharing(trainNumber: string) {
+export function useLocationSharing(trainNumber: string, enabled = true) {
   const deviceId = useDeviceId();
   const [state, setState] = useState<LocationSharingState>({
     sharing: false,
     sharingTrain: null,
     lastMsg: null,
+    toggling: false,
   });
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Check if we're already sharing for THIS train
   useEffect(() => {
+    if (!enabled) return;
     (async () => {
       const running = await isTaskRunning();
       const activeTrain = await getActiveTrain();
@@ -90,7 +93,7 @@ export function useLocationSharing(trainNumber: string) {
         setState(s => ({ ...s, sharing: true, sharingTrain: trainNumber }));
       }
     })();
-  }, [trainNumber]);
+  }, [trainNumber, enabled]);
 
   // Foreground polling, only runs for the train we're sharing
   useEffect(() => {
@@ -132,6 +135,8 @@ export function useLocationSharing(trainNumber: string) {
       return;
     }
 
+    setState(s => ({ ...s, toggling: true }));
+
     // If already sharing for a different train, stop that first
     const activeTrain = await getActiveTrain();
     if (activeTrain && activeTrain !== trainNumber && await isTaskRunning()) {
@@ -144,6 +149,7 @@ export function useLocationSharing(trainNumber: string) {
     try {
       const { status: fg } = await Location.requestForegroundPermissionsAsync();
       if (fg !== 'granted') {
+        setState(s => ({ ...s, toggling: false }));
         Alert.alert(
           'Location Required',
           'Location access is needed to share your position with other commuters.',
@@ -154,6 +160,7 @@ export function useLocationSharing(trainNumber: string) {
       if (Platform.OS === 'android') {
         const { status: bg } = await Location.requestBackgroundPermissionsAsync();
         if (bg !== 'granted') {
+          setState(s => ({ ...s, toggling: false }));
           Alert.alert(
             'Background Location Required',
             'Please select "Allow all the time" so tracking works when your phone is in your pocket. Tap Start again after granting.',
@@ -180,15 +187,17 @@ export function useLocationSharing(trainNumber: string) {
         pausesUpdatesAutomatically: false,
       });
 
-      setState({ sharing: true, sharingTrain: trainNumber, lastMsg: null });
+      setState({ sharing: true, sharingTrain: trainNumber, lastMsg: null, toggling: false });
     } catch (e: any) {
       console.error('[LocationSharing] start error:', e);
       SecureStore.deleteItemAsync(STORE_TRAIN).catch(() => {});
+      setState(s => ({ ...s, toggling: false }));
       Alert.alert('Could not start sharing', e?.message ?? String(e));
     }
   }, [trainNumber, deviceId]);
 
   const stopSharing = useCallback(async () => {
+    setState(s => ({ ...s, toggling: true }));
     try {
       if (await isTaskRunning()) {
         await Location.stopLocationUpdatesAsync(TASK_NAME);
@@ -198,7 +207,7 @@ export function useLocationSharing(trainNumber: string) {
     }
 
     SecureStore.deleteItemAsync(STORE_TRAIN).catch(() => {});
-    setState({ sharing: false, sharingTrain: null, lastMsg: null });
+    setState({ sharing: false, sharingTrain: null, lastMsg: null, toggling: false });
 
     if (deviceId) {
       pushLocation(trainNumber, 0, 0, deviceId, 'stop').catch(() => {});
@@ -219,6 +228,7 @@ export function useLocationSharing(trainNumber: string) {
   return {
     sharing: isThisTrain,
     lastMsg: isThisTrain ? state.lastMsg : null,
+    toggling: state.toggling,
     toggle,
   };
 }
