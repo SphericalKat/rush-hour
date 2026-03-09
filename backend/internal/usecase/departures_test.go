@@ -32,6 +32,10 @@ func (m *mockTrainRepo) GetLineStationsWithCoords(_ context.Context, _ string) (
 	return nil, nil
 }
 
+func (m *mockTrainRepo) GetDestination(_ context.Context, _ string, _ string) (string, error) {
+	return "", nil
+}
+
 func TestDeparturesChronologicalOrder(t *testing.T) {
 	mr, _ := miniredis.Run()
 	t.Cleanup(mr.Close)

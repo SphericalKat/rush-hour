@@ -132,6 +132,17 @@ func (h *LiveHandler) GetStops(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Truncate at the declared destination (see GetRoute for rationale).
+	dest, _ := h.trainRepo.GetDestination(r.Context(), trainNumber, line)
+	if dest != "" {
+		for i, s := range stops {
+			if s.Station == dest {
+				stops = stops[:i+1]
+				break
+			}
+		}
+	}
+
 	type stopResp struct {
 		Station      string `json:"station"`
 		Departure    int    `json:"departure"`
@@ -174,6 +185,18 @@ func (h *LiveHandler) GetRoute(w http.ResponseWriter, r *http.Request) {
 	if len(stops) == 0 {
 		http.Error(w, "unknown train", http.StatusNotFound)
 		return
+	}
+
+	// Truncate stops at the declared destination. The m-indicator data
+	// often includes stations past the terminus in the stops table.
+	dest, _ := h.trainRepo.GetDestination(r.Context(), trainNumber, line)
+	if dest != "" {
+		for i, s := range stops {
+			if s.Station == dest {
+				stops = stops[:i+1]
+				break
+			}
+		}
 	}
 
 	type routeStop struct {
