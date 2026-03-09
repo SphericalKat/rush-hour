@@ -86,7 +86,7 @@ export default function DeparturesScreen() {
   }), [data, filterFast, filterAC]);
 
   const [pastLimit, setPastLimit] = useState(5);
-  const PAST_PAGE = 10;
+  const PAST_PAGE = 5;
 
   const { visibleData, hiddenPastCount } = React.useMemo(() => {
     if (filteredData.length === 0) return { visibleData: [], hiddenPastCount: 0 };

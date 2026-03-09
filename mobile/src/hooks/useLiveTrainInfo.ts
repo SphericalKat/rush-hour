@@ -3,14 +3,11 @@ import { fetchLiveTrainInfo } from '../api/live';
 import type { LiveTrainPosition } from '../api/types';
 
 const POLL_INTERVAL = 15_000;
-const TICK_INTERVAL = 1_000;
 
-export function useLiveTrainInfo(trainNumber: string) {
+export function useLiveTrainInfo(trainNumber: string, enabled = true) {
   const [position, setPosition] = useState<LiveTrainPosition | null>(null);
   const [loading, setLoading] = useState(true);
-  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(POLL_INTERVAL / 1000);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastFetchRef = useRef(Date.now());
 
   const load = useCallback(async () => {
     try {
@@ -20,21 +17,16 @@ export function useLiveTrainInfo(trainNumber: string) {
       // best-effort, keep previous data
     } finally {
       setLoading(false);
-      setSecondsUntilRefresh(POLL_INTERVAL / 1000);
+      lastFetchRef.current = Date.now();
     }
   }, [trainNumber]);
 
   useEffect(() => {
+    if (!enabled) return;
     load();
-    intervalRef.current = setInterval(load, POLL_INTERVAL);
-    tickRef.current = setInterval(() => {
-      setSecondsUntilRefresh(s => Math.max(0, s - 1));
-    }, TICK_INTERVAL);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (tickRef.current) clearInterval(tickRef.current);
-    };
-  }, [load]);
+    const id = setInterval(load, POLL_INTERVAL);
+    return () => clearInterval(id);
+  }, [load, enabled]);
 
-  return { position, loading, secondsUntilRefresh };
+  return { position, loading, lastFetchAt: lastFetchRef.current };
 }

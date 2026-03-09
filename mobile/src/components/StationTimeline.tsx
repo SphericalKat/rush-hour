@@ -68,9 +68,12 @@ function resolveStopStates(
   return states;
 }
 
-export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
+export const StationTimeline = React.memo(function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
   const { colors } = useTheme();
-  const states = resolveStopStates(stops, livePosition);
+  const states = React.useMemo(
+    () => resolveStopStates(stops, livePosition),
+    [stops, livePosition],
+  );
   const hasLive = livePosition != null && 'position' in livePosition;
 
   const delay = delayMinutes ?? 0;
@@ -300,7 +303,7 @@ export function StationTimeline({ stops, livePosition, delayMinutes }: Props) {
       })}
     </View>
   );
-}
+});
 
 const DOT_SIZE = 14;
 const DOT_OUTER = 22;

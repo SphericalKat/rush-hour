@@ -10,7 +10,7 @@ interface State {
   liveLevel: CrowdLevel | null;
 }
 
-export function useTrainStatus(trainNumber: string) {
+export function useTrainStatus(trainNumber: string, enabled = true) {
   const [state, setState] = useState<State>({
     status: null,
     loading: true,
@@ -21,6 +21,7 @@ export function useTrainStatus(trainNumber: string) {
 
   // Initial REST fetch
   useEffect(() => {
+    if (!enabled) return;
     setState({ status: null, loading: true, error: null, liveLevel: null });
     fetchTrainStatus(trainNumber)
       .then((status) =>
@@ -33,10 +34,11 @@ export function useTrainStatus(trainNumber: string) {
           error: e instanceof Error ? e.message : 'Failed to load',
         })),
       );
-  }, [trainNumber]);
+  }, [trainNumber, enabled]);
 
   // WebSocket for live updates
   useEffect(() => {
+    if (!enabled) return;
     let ws: WebSocket;
     try {
       ws = new WebSocket(WS_URL);
@@ -71,7 +73,7 @@ export function useTrainStatus(trainNumber: string) {
       wsRef.current = null;
       ws.close();
     };
-  }, [trainNumber]);
+  }, [trainNumber, enabled]);
 
   return state;
 }
