@@ -1,34 +1,45 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
+	"os/signal"
+	"sync"
+	"syscall"
 
-	sqliteinf "github.com/sphericalkat/rush-hour/backend/internal/infrastructure/sqlite"
-
-	redisinf "github.com/sphericalkat/rush-hour/backend/internal/infrastructure/redis"
-
-	"github.com/sphericalkat/rush-hour/backend/internal/delivery/http/handler"
+	"github.com/sphericalkat/rush-hour/backend/internal/config"
 	server "github.com/sphericalkat/rush-hour/backend/internal/delivery/http"
+	"github.com/sphericalkat/rush-hour/backend/internal/delivery/http/handler"
 	"github.com/sphericalkat/rush-hour/backend/internal/infrastructure/hub"
+	redisinf "github.com/sphericalkat/rush-hour/backend/internal/infrastructure/redis"
+	sqliteinf "github.com/sphericalkat/rush-hour/backend/internal/infrastructure/sqlite"
 	"github.com/sphericalkat/rush-hour/backend/internal/usecase"
 )
 
 func main() {
-	addr := getEnv("ADDR", ":8080")
-	dbPath := mustGetEnv("TIMETABLE_DB_PATH")
-	redisAddr := getEnv("REDIS_URL", "localhost:6379")
-	updateInterval := mustParseDuration(getEnv("TIMETABLE_UPDATE_INTERVAL", "1h"))
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("load config", "err", err)
+		os.Exit(1)
+	}
 
-	db, err := sqliteinf.Open(dbPath)
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg sync.WaitGroup
+
+	updateInterval, _ := cfg.UpdateInterval()
+
+	db, err := sqliteinf.Open(cfg.TimetableDBPath)
 	if err != nil {
 		slog.Error("open sqlite", "err", err)
 		os.Exit(1)
 	}
 
-	redisClient, err := redisinf.NewClient(redisAddr)
+	redisClient, err := redisinf.NewClient(cfg.RedisURL)
 	if err != nil {
 		slog.Error("connect redis", "err", err)
 		os.Exit(1)
@@ -44,38 +55,26 @@ func main() {
 	statusUC := usecase.NewStatus(reportRepo)
 	reportUC := usecase.NewReport(reportRepo, wsHub)
 
-	timetableH := handler.NewTimetable(dbPath, updateInterval)
+	timetableH := handler.NewTimetable(cfg.TimetableDBPath, updateInterval)
 
 	r := server.NewRouter(stationRepo, trainRepo, redisClient, departuresUC, statusUC, reportUC, timetableH, wsHub)
 
-	slog.Info("listening", "addr", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
-		slog.Error("server error", "err", err)
-		os.Exit(1)
-	}
-}
+	slog.Info("listening", "addr", cfg.Addr)
+	go func(ctx context.Context) {
+		wg.Add(1)
+		server := &http.Server{Addr: cfg.Addr, Handler: r}
+		if err := server.ListenAndServe(); err != nil {
+			slog.Error("server error", "err", err)
+			os.Exit(1)
+		}
+		<-ctx.Done()
+		slog.Info("shutting down HTTP server")
+		server.Shutdown(ctx)
+		wg.Done()
+	}(ctx)
 
-func getEnv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
-func mustGetEnv(key string) string {
-	v := os.Getenv(key)
-	if v == "" {
-		slog.Error("required env var not set", "key", key)
-		os.Exit(1)
-	}
-	return v
-}
-
-func mustParseDuration(s string) time.Duration {
-	d, err := time.ParseDuration(s)
-	if err != nil {
-		slog.Error("invalid duration", "value", s, "err", err)
-		os.Exit(1)
-	}
-	return d
+	<-sigc
+	slog.Info("shutting down services")
+	cancel()
+	slog.Info("all services shut down. GOOD-BYE!")
 }
