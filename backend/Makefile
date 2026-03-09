@@ -1,4 +1,4 @@
-.PHONY: dev deps stop build deploy
+.PHONY: dev deps stop build deploy sqlc
 
 deps:
 	docker compose up redis -d
@@ -17,3 +17,6 @@ build:
 
 deploy: build
 	ansible-playbook -i ../deploy/inventory.yml ../deploy/playbook.yml
+
+sqlc:
+	sqlc generate

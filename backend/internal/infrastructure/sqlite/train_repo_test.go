@@ -2,9 +2,9 @@ package sqlite_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 
 	"github.com/sphericalkat/rush-hour/backend/internal/infrastructure/sqlite"
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS trains (id INTEGER PRIMARY KEY, line_id INTEGER NOT N
 CREATE TABLE IF NOT EXISTS stops (id INTEGER PRIMARY KEY, train_id INTEGER NOT NULL, station_id INTEGER NOT NULL, departure INTEGER NOT NULL, stop_sequence INTEGER NOT NULL, platform TEXT, side TEXT);
 `
 
-func seedTrainDB(t *testing.T) *sqlx.DB {
+func seedTrainDB(t *testing.T) *sql.DB {
 	t.Helper()
 	db, err := sqlite.Open(":memory:")
 	require.NoError(t, err)
