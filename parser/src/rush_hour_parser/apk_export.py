@@ -290,6 +290,17 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
             fixed.append(_Stop(s.station, t, s.platform, s.side))
             prev = t
 
+        # Truncate at the declared destination. The per-station binary
+        # files often include stops beyond the terminus (yard movements,
+        # etc.) that m-indicator filters out using origin/dest from the
+        # index. Do the same here.
+        origin_idx = next((i for i, s in enumerate(fixed) if s.station == meta.origin), None)
+        dest_idx = next((i for i, s in enumerate(fixed) if s.station == meta.dest), None)
+        if origin_idx is not None and dest_idx is not None and origin_idx < dest_idx:
+            fixed = fixed[origin_idx:dest_idx + 1]
+        elif dest_idx is not None:
+            fixed = fixed[:dest_idx + 1]
+
         result.append(_ParsedTrain(
             number=number,
             origin=meta.origin,

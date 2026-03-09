@@ -7,4 +7,5 @@ type Repository interface {
 	GetStops(ctx context.Context, trainNumber string, line string) ([]Stop, error)
 	GetStopsWithCoords(ctx context.Context, trainNumber string) ([]StopWithCoord, error)
 	GetLineStationsWithCoords(ctx context.Context, trainNumber string) ([]StopWithCoord, error)
+	GetDestination(ctx context.Context, trainNumber string, line string) (string, error)
 }

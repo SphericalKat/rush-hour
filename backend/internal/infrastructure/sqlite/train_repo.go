@@ -56,6 +56,14 @@ JOIN lines l ON t.line_id = l.id
 WHERE t.number = ? AND l.short_name = ?
 ORDER BY s.stop_sequence`
 
+const destinationQuery = `
+SELECT COALESCE(t.destination, '') FROM trains t WHERE t.number = ? LIMIT 1`
+
+const destinationWithLineQuery = `
+SELECT COALESCE(t.destination, '') FROM trains t
+JOIN lines l ON t.line_id = l.id
+WHERE t.number = ? AND l.short_name = ? LIMIT 1`
+
 const stopsCoordsQuery = `
 SELECT st.name AS station, st.lat, st.lng, s.stop_sequence
 FROM stops s
@@ -74,6 +82,20 @@ JOIN trains t ON t.line_id = ls.line_id
 WHERE t.number = ?
   AND st.lat IS NOT NULL AND st.lng IS NOT NULL
 ORDER BY CASE WHEN t.direction = 'up' THEN -ls.sequence ELSE ls.sequence END`
+
+func (r *trainRepo) GetDestination(ctx context.Context, trainNumber string, line string) (string, error) {
+	var dest string
+	if line != "" {
+		if err := r.db.GetContext(ctx, &dest, destinationWithLineQuery, trainNumber, line); err != nil {
+			return "", err
+		}
+	} else {
+		if err := r.db.GetContext(ctx, &dest, destinationQuery, trainNumber); err != nil {
+			return "", err
+		}
+	}
+	return dest, nil
+}
 
 func (r *trainRepo) GetStopsWithCoords(ctx context.Context, trainNumber string) ([]train.StopWithCoord, error) {
 	var out []train.StopWithCoord
