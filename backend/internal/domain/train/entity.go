@@ -1,33 +1,33 @@
 package train
 
 type Departure struct {
-	Number      string `db:"number"`
-	Code        string `db:"code"`
-	IsAC        bool   `db:"is_ac"`
-	IsFast      bool   `db:"is_fast"`
-	Direction   string `db:"direction"`
-	Line        string `db:"line"`
-	LineName    string `db:"line_name"`
-	Departure   int    `db:"departure"`
-	Station     string `db:"station"`
-	Origin      string `db:"origin"`
-	Destination string `db:"destination"`
-	Platform    string `db:"platform"`
-	RunsOn      string `db:"runs_on"`
-	Note        string `db:"note"`
+	Number      string `json:"number"`
+	Code        string `json:"code"`
+	IsAC        bool   `json:"is_ac"`
+	IsFast      bool   `json:"is_fast"`
+	Direction   string `json:"direction"`
+	Line        string `json:"line"`
+	LineName    string `json:"line_name"`
+	Departure   int    `json:"departure"`
+	Station     string `json:"station"`
+	Origin      string `json:"origin"`
+	Destination string `json:"destination"`
+	Platform    string `json:"platform"`
+	RunsOn      string `json:"runs_on"`
+	Note        string `json:"note"`
 }
 
 type Stop struct {
-	Station      string `db:"station"`
-	Departure    int    `db:"departure"`
-	StopSequence int    `db:"stop_sequence"`
-	Platform     string `db:"platform"`
-	Side         string `db:"side"`
+	Station      string `json:"station"`
+	Departure    int    `json:"departure"`
+	StopSequence int    `json:"stop_sequence"`
+	Platform     string `json:"platform"`
+	Side         string `json:"side"`
 }
 
 type StopWithCoord struct {
-	Station string  `db:"station"`
-	Lat     float64 `db:"lat"`
-	Lng     float64 `db:"lng"`
-	Seq     int     `db:"stop_sequence"`
+	Station string  `json:"station"`
+	Lat     float64 `json:"lat"`
+	Lng     float64 `json:"lng"`
+	Seq     int     `json:"stop_sequence"`
 }

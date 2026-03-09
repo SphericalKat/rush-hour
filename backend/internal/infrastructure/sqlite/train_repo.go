@@ -2,155 +2,156 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/sphericalkat/rush-hour/backend/internal/domain/train"
+	"github.com/sphericalkat/rush-hour/backend/internal/infrastructure/sqlite/gen"
 )
 
 type trainRepo struct {
-	db *sqlx.DB
+	q *gen.Queries
 }
 
-func NewTrainRepo(db *sqlx.DB) train.Repository {
-	return &trainRepo{db: db}
+func NewTrainRepo(db *sql.DB) train.Repository {
+	return &trainRepo{q: gen.New(db)}
 }
 
-const departuresBase = `
-SELECT t.number, COALESCE(t.code, '') AS code, t.is_ac, t.is_fast, t.direction,
-       l.short_name AS line, l.name AS line_name, s.departure, st.name AS station,
-       COALESCE(t.origin, '') AS origin, COALESCE(t.destination, '') AS destination,
-       COALESCE(s.platform, '') AS platform,
-       COALESCE(t.runs_on, 'daily') AS runs_on, COALESCE(t.note, '') AS note
-FROM stops s
-JOIN trains t    ON s.train_id   = t.id
-JOIN stations st ON s.station_id = st.id
-JOIN lines l     ON t.line_id    = l.id
-WHERE s.station_id = ?`
-
-const destinationFilter = `
-  AND EXISTS (
-    SELECT 1 FROM stops s2
-    WHERE s2.train_id = t.id
-      AND s2.station_id = ?
-      AND s2.stop_sequence > s.stop_sequence
-  )`
-
-const departuresOrder = `
-ORDER BY s.departure`
-
-const stopsQuery = `
-SELECT st.name AS station, s.departure, s.stop_sequence, COALESCE(s.platform, '') AS platform, COALESCE(s.side, '') AS side
-FROM stops s
-JOIN stations st ON s.station_id = st.id
-JOIN trains t ON s.train_id = t.id
-JOIN lines l ON t.line_id = l.id
-WHERE t.number = ?
-ORDER BY s.stop_sequence`
-
-const stopsWithLineQuery = `
-SELECT st.name AS station, s.departure, s.stop_sequence, COALESCE(s.platform, '') AS platform, COALESCE(s.side, '') AS side
-FROM stops s
-JOIN stations st ON s.station_id = st.id
-JOIN trains t ON s.train_id = t.id
-JOIN lines l ON t.line_id = l.id
-WHERE t.number = ? AND l.short_name = ?
-ORDER BY s.stop_sequence`
-
-const destinationQuery = `
-SELECT COALESCE(t.destination, '') FROM trains t WHERE t.number = ? LIMIT 1`
-
-const destinationWithLineQuery = `
-SELECT COALESCE(t.destination, '') FROM trains t
-JOIN lines l ON t.line_id = l.id
-WHERE t.number = ? AND l.short_name = ? LIMIT 1`
-
-const stopsCoordsQuery = `
-SELECT st.name AS station, st.lat, st.lng, s.stop_sequence
-FROM stops s
-JOIN stations st ON s.station_id = st.id
-JOIN trains t ON s.train_id = t.id
-WHERE t.number = ?
-ORDER BY s.stop_sequence`
-
-// lineStationsCoordsQuery returns every station on the train's line in travel order.
-// line_stations.sequence is indexed in the down direction, so up trains are reversed.
-const lineStationsCoordsQuery = `
-SELECT st.name AS station, st.lat, st.lng, ls.sequence AS stop_sequence
-FROM line_stations ls
-JOIN stations st ON ls.station_id = st.id
-JOIN trains t ON t.line_id = ls.line_id
-WHERE t.number = ?
-  AND st.lat IS NOT NULL AND st.lng IS NOT NULL
-ORDER BY CASE WHEN t.direction = 'up' THEN -ls.sequence ELSE ls.sequence END`
-
-func (r *trainRepo) GetDestination(ctx context.Context, trainNumber string, line string) (string, error) {
-	var dest string
-	if line != "" {
-		if err := r.db.GetContext(ctx, &dest, destinationWithLineQuery, trainNumber, line); err != nil {
-			return "", err
+func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, destinationID *int64) ([]train.Departure, error) {
+	if destinationID != nil {
+		rows, err := r.q.GetDeparturesWithDestination(ctx, gen.GetDeparturesWithDestinationParams{
+			StationID:   stationID,
+			StationID_2: *destinationID,
+		})
+		if err != nil {
+			return nil, err
 		}
-	} else {
-		if err := r.db.GetContext(ctx, &dest, destinationQuery, trainNumber); err != nil {
-			return "", err
+		out := make([]train.Departure, len(rows))
+		for i, row := range rows {
+			out[i] = train.Departure{
+				Number:      row.Number,
+				Code:        row.Code,
+				IsAC:        row.IsAc != 0,
+				IsFast:      row.IsFast != 0,
+				Direction:   row.Direction,
+				Line:        row.Line,
+				LineName:    row.LineName,
+				Departure:   int(row.Departure),
+				Station:     row.Station,
+				Origin:      row.Origin,
+				Destination: row.Destination,
+				Platform:    row.Platform,
+				RunsOn:      row.RunsOn,
+				Note:        row.Note,
+			}
+		}
+		return out, nil
+	}
+
+	rows, err := r.q.GetDepartures(ctx, stationID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]train.Departure, len(rows))
+	for i, row := range rows {
+		out[i] = train.Departure{
+			Number:      row.Number,
+			Code:        row.Code,
+			IsAC:        row.IsAc != 0,
+			IsFast:      row.IsFast != 0,
+			Direction:   row.Direction,
+			Line:        row.Line,
+			LineName:    row.LineName,
+			Departure:   int(row.Departure),
+			Station:     row.Station,
+			Origin:      row.Origin,
+			Destination: row.Destination,
+			Platform:    row.Platform,
+			RunsOn:      row.RunsOn,
+			Note:        row.Note,
 		}
 	}
-	return dest, nil
+	return out, nil
+}
+
+func (r *trainRepo) GetDestination(ctx context.Context, trainNumber string, line string) (string, error) {
+	if line != "" {
+		return r.q.GetDestinationWithLine(ctx, gen.GetDestinationWithLineParams{
+			Number:    trainNumber,
+			ShortName: line,
+		})
+	}
+	return r.q.GetDestination(ctx, trainNumber)
 }
 
 func (r *trainRepo) GetStopsWithCoords(ctx context.Context, trainNumber string) ([]train.StopWithCoord, error) {
-	var out []train.StopWithCoord
-	if err := r.db.SelectContext(ctx, &out, stopsCoordsQuery, trainNumber); err != nil {
+	rows, err := r.q.GetStopsWithCoords(ctx, trainNumber)
+	if err != nil {
 		return nil, err
+	}
+	out := make([]train.StopWithCoord, len(rows))
+	for i, row := range rows {
+		out[i] = train.StopWithCoord{
+			Station: row.Station,
+			Lat:     row.Lat.Float64,
+			Lng:     row.Lng.Float64,
+			Seq:     int(row.StopSequence),
+		}
 	}
 	return out, nil
 }
 
 func (r *trainRepo) GetLineStationsWithCoords(ctx context.Context, trainNumber string) ([]train.StopWithCoord, error) {
-	var out []train.StopWithCoord
-	if err := r.db.SelectContext(ctx, &out, lineStationsCoordsQuery, trainNumber); err != nil {
+	rows, err := r.q.GetLineStationsWithCoords(ctx, trainNumber)
+	if err != nil {
 		return nil, err
+	}
+	out := make([]train.StopWithCoord, len(rows))
+	for i, row := range rows {
+		out[i] = train.StopWithCoord{
+			Station: row.Station,
+			Lat:     row.Lat.Float64,
+			Lng:     row.Lng.Float64,
+			Seq:     int(row.StopSequence),
+		}
 	}
 	return out, nil
 }
 
 func (r *trainRepo) GetStops(ctx context.Context, trainNumber string, line string) ([]train.Stop, error) {
-	var out []train.Stop
 	if line != "" {
-		if err := r.db.SelectContext(ctx, &out, stopsWithLineQuery, trainNumber, line); err != nil {
+		rows, err := r.q.GetStopsWithLine(ctx, gen.GetStopsWithLineParams{
+			Number:    trainNumber,
+			ShortName: line,
+		})
+		if err != nil {
 			return nil, err
 		}
-	} else {
-		if err := r.db.SelectContext(ctx, &out, stopsQuery, trainNumber); err != nil {
-			return nil, err
+		out := make([]train.Stop, len(rows))
+		for i, row := range rows {
+			out[i] = train.Stop{
+				Station:      row.Station,
+				Departure:    int(row.Departure),
+				StopSequence: int(row.StopSequence),
+				Platform:     row.Platform,
+				Side:         row.Side,
+			}
 		}
-	}
-	return out, nil
-}
-
-func (r *trainRepo) GetDepartures(ctx context.Context, stationID int64, destinationID *int64) ([]train.Departure, error) {
-	query := departuresBase
-	args := []any{stationID}
-
-	if destinationID != nil {
-		query += destinationFilter
-		args = append(args, *destinationID)
+		return out, nil
 	}
 
-	query += departuresOrder
-
-	rows, err := r.db.QueryxContext(ctx, query, args...)
+	rows, err := r.q.GetStops(ctx, trainNumber)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var out []train.Departure
-	for rows.Next() {
-		var d train.Departure
-		if err := rows.StructScan(&d); err != nil {
-			return nil, err
+	out := make([]train.Stop, len(rows))
+	for i, row := range rows {
+		out[i] = train.Stop{
+			Station:      row.Station,
+			Departure:    int(row.Departure),
+			StopSequence: int(row.StopSequence),
+			Platform:     row.Platform,
+			Side:         row.Side,
 		}
-		out = append(out, d)
 	}
-	return out, rows.Err()
+	return out, nil
 }

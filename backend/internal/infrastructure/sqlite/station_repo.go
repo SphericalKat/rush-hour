@@ -2,29 +2,49 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/sphericalkat/rush-hour/backend/internal/domain/station"
+	"github.com/sphericalkat/rush-hour/backend/internal/infrastructure/sqlite/gen"
 )
 
 type stationRepo struct {
-	db *sqlx.DB
+	q *gen.Queries
 }
 
-func NewStationRepo(db *sqlx.DB) station.Repository {
-	return &stationRepo{db: db}
+func NewStationRepo(db *sql.DB) station.Repository {
+	return &stationRepo{q: gen.New(db)}
 }
 
 func (r *stationRepo) ListLines(ctx context.Context) ([]station.Line, error) {
-	var lines []station.Line
-	err := r.db.SelectContext(ctx, &lines,
-		`SELECT id, name, short_name, type FROM lines ORDER BY id`)
-	return lines, err
+	rows, err := r.q.ListLines(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]station.Line, len(rows))
+	for i, row := range rows {
+		out[i] = station.Line{
+			ID:        row.ID,
+			Name:      row.Name,
+			ShortName: row.ShortName,
+			Type:      row.Type,
+		}
+	}
+	return out, nil
 }
 
 func (r *stationRepo) ListStations(ctx context.Context) ([]station.Station, error) {
-	var stations []station.Station
-	err := r.db.SelectContext(ctx, &stations,
-		`SELECT id, name, COALESCE(code, '') as code FROM stations ORDER BY name`)
-	return stations, err
+	rows, err := r.q.ListStations(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]station.Station, len(rows))
+	for i, row := range rows {
+		out[i] = station.Station{
+			ID:   row.ID,
+			Name: row.Name,
+			Code: row.Code,
+		}
+	}
+	return out, nil
 }

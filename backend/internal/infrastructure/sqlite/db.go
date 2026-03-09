@@ -1,14 +1,15 @@
 package sqlite
 
 import (
-	"github.com/jmoiron/sqlx"
+	"database/sql"
+
 	_ "modernc.org/sqlite"
 )
 
-// Open opens the sqlite db at path, applying recommended pragmas
-// Pass ":memory:" for an ephemeral in-memory db (WAL will be skipped)
-func Open(path string) (*sqlx.DB, error) {
-	db, err := sqlx.Open("sqlite", path)
+// Open opens the sqlite db at path, applying recommended pragmas.
+// Pass ":memory:" for an ephemeral in-memory db (WAL will be skipped).
+func Open(path string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
 	}

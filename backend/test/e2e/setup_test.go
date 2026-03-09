@@ -1,13 +1,13 @@
 package e2e_test
 
 import (
+	"database/sql"
 	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/jmoiron/sqlx"
 	goredis "github.com/redis/go-redis/v9"
 	_ "modernc.org/sqlite"
 
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS stops (id INTEGER PRIMARY KEY, train_id INTEGER NOT N
 //   - 2 lines (CR Main, WR Main)
 //   - 5 stations
 //   - 6 trains (mix of directions, one crossing midnight)
-func mustSeedDB() *sqlx.DB {
+func mustSeedDB() *sql.DB {
 	db, err := sqliteinf.Open(":memory:")
 	if err != nil {
 		panic(err)
