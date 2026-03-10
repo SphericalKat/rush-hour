@@ -6,12 +6,21 @@ const KEY = 'rush_hour_settings';
 
 export type ColorMode = 'auto' | 'light' | 'dark';
 
+const DEFAULT_SERVER_URL = 'https://rushhour.kat.cx';
+
 interface Settings {
   dynamicColors: boolean;
   colorMode: ColorMode;
+  liveDataEnabled: boolean;
+  serverUrl: string;
 }
 
-const defaults: Settings = { dynamicColors: true, colorMode: 'auto' };
+const defaults: Settings = {
+  dynamicColors: true,
+  colorMode: 'auto',
+  liveDataEnabled: true,
+  serverUrl: DEFAULT_SERVER_URL,
+};
 
 let cache: Settings | null = null;
 
@@ -29,11 +38,17 @@ async function load(): Promise<Settings> {
 }
 
 async function save(s: Settings) {
+  const prev = cache;
   cache = s;
-  if (Platform.OS !== 'web') {
-    await SecureStore.setItemAsync(KEY, JSON.stringify(s));
-  }
   notify(s);
+  if (Platform.OS !== 'web') {
+    try {
+      await SecureStore.setItemAsync(KEY, JSON.stringify(s));
+    } catch {
+      cache = prev;
+      notify(prev ?? defaults);
+    }
+  }
 }
 
 const listeners = new Set<(s: Settings) => void>();
@@ -61,5 +76,17 @@ export function useSettings() {
     await save({ ...current, colorMode: mode });
   };
 
-  return { settings, setDynamicColors, setColorMode };
+  const setLiveDataEnabled = async (enabled: boolean) => {
+    const current = await load();
+    await save({ ...current, liveDataEnabled: enabled });
+  };
+
+  const setServerUrl = async (url: string) => {
+    const current = await load();
+    await save({ ...current, serverUrl: url || DEFAULT_SERVER_URL });
+  };
+
+  return { settings, setDynamicColors, setColorMode, setLiveDataEnabled, setServerUrl };
 }
+
+export { DEFAULT_SERVER_URL };

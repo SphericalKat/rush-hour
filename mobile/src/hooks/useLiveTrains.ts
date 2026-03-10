@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchAllLiveTrains } from '../api/live';
 import type { LiveTrainMap } from '../api/types';
+import { useSettings } from './useSettings';
 
 const POLL_INTERVAL = 15_000; // 15 seconds, same as m-indicator
 
@@ -15,6 +16,7 @@ function mapsEqual(a: LiveTrainMap, b: LiveTrainMap): boolean {
 }
 
 export function useLiveTrains() {
+  const { settings } = useSettings();
   const [liveTrains, setLiveTrains] = useState<LiveTrainMap>({});
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -28,12 +30,16 @@ export function useLiveTrains() {
   }, []);
 
   useEffect(() => {
+    if (!settings.liveDataEnabled) {
+      setLiveTrains({});
+      return;
+    }
     load();
     intervalRef.current = setInterval(load, POLL_INTERVAL);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [load]);
+  }, [load, settings.liveDataEnabled]);
 
   return liveTrains;
 }

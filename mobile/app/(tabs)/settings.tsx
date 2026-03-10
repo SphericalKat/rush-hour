@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
@@ -9,6 +9,7 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
+  TextInput,
   View,
 } from 'react-native';
 import { Text } from '../../src/components/Text';
@@ -17,7 +18,7 @@ import { ReactNativeLegal } from 'react-native-legal';
 import { fetchTimetableVersion } from '../../src/api/timetable';
 import type { TimetableVersion } from '../../src/api/types';
 import { useAppUpdate } from '../../src/hooks/useAppUpdate';
-import { useSettings, type ColorMode } from '../../src/hooks/useSettings';
+import { useSettings, DEFAULT_SERVER_URL, type ColorMode } from '../../src/hooks/useSettings';
 import { useTheme } from '../../src/hooks/useTheme';
 import { isGitHubDistribution } from '../../src/lib/updates';
 import { shadow } from '../../src/theme';
@@ -79,7 +80,10 @@ function Row({ label, value, onPress, showChevron, destructive, children }: RowP
 
 export default function SettingsScreen() {
   const { colors, radius } = useTheme();
-  const { settings, setDynamicColors, setColorMode } = useSettings();
+  const { settings, setDynamicColors, setColorMode, setLiveDataEnabled, setServerUrl } = useSettings();
+  const [serverUrlDraft, setServerUrlDraft] = useState(settings.serverUrl);
+  const serverUrlRef = useRef<TextInput>(null);
+  useEffect(() => { setServerUrlDraft(settings.serverUrl); }, [settings.serverUrl]);
   const insets = useSafeAreaInsets();
   const [version, setVersion] = useState<TimetableVersion | null>(null);
   const [checking, setChecking] = useState(false);
@@ -177,6 +181,67 @@ export default function SettingsScreen() {
               thumbColor={settings.dynamicColors ? colors.textOnPrimary : colors.textTertiary}
             />
           </Row>
+        </>,
+      )}
+
+      {/* Live data section */}
+      <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
+        LIVE DATA
+      </Text>
+      {card(
+        <>
+          <Row label="Enable live data">
+            <Switch
+              value={settings.liveDataEnabled}
+              onValueChange={setLiveDataEnabled}
+              trackColor={{ false: colors.surfaceSecondary, true: colors.primary }}
+              thumbColor={settings.liveDataEnabled ? colors.textOnPrimary : colors.textTertiary}
+            />
+          </Row>
+          {!settings.liveDataEnabled && (
+            <>
+              <View style={[styles.divider, { backgroundColor: colors.separator }]} />
+              <View style={styles.warningRow}>
+                <Text style={[styles.warningText, { color: colors.textSecondary }]}>
+                  Live train positions, crowd reports, and delay updates require
+                  a server connection. Timetable data will still work offline.
+                </Text>
+              </View>
+            </>
+          )}
+          {settings.liveDataEnabled && (
+            <>
+              <View style={[styles.divider, { backgroundColor: colors.separator }]} />
+              <View style={styles.row}>
+                <Text style={[styles.rowLabel, { color: colors.text }]}>
+                  Server URL
+                </Text>
+              </View>
+              <View style={styles.serverInputRow}>
+                <TextInput
+                  ref={serverUrlRef}
+                  style={[
+                    styles.serverInput,
+                    {
+                      color: colors.text,
+                      backgroundColor: colors.surfaceSecondary,
+                      borderRadius: radius.md,
+                    },
+                  ]}
+                  value={serverUrlDraft}
+                  onChangeText={setServerUrlDraft}
+                  onBlur={() => setServerUrl(serverUrlDraft)}
+                  onSubmitEditing={() => setServerUrl(serverUrlDraft)}
+                  placeholder={DEFAULT_SERVER_URL}
+                  placeholderTextColor={colors.textTertiary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                  returnKeyType="done"
+                />
+              </View>
+            </>
+          )}
         </>,
       )}
 
@@ -367,5 +432,22 @@ const styles = StyleSheet.create({
   segmentedLabel: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  warningRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  warningText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  serverInputRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  serverInput: {
+    fontSize: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
 });

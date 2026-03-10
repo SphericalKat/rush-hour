@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchLiveTrainInfo } from '../api/live';
 import type { LiveTrainPosition } from '../api/types';
+import { useSettings } from './useSettings';
 
 const POLL_INTERVAL = 15_000;
 
 export function useLiveTrainInfo(trainNumber: string, enabled = true) {
+  const { settings } = useSettings();
+  enabled = enabled && settings.liveDataEnabled;
   const [position, setPosition] = useState<LiveTrainPosition | null>(null);
   const [loading, setLoading] = useState(true);
   const lastFetchRef = useRef(Date.now());
