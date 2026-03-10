@@ -1,0 +1,76 @@
+name: Build and attach APKs to release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Android SDK components
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "ndk;27.1.12297006"
+
+      - name: Decode release keystore
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > mobile/android/app/upload-keystore.jks
+
+      - name: Set up Gradle signing properties
+        run: |
+          mkdir -p ~/.gradle
+          {
+            echo "RUSH_HOUR_STORE_FILE=upload-keystore.jks"
+            echo "RUSH_HOUR_STORE_PASSWORD=${{ secrets.RUSH_HOUR_STORE_PASSWORD }}"
+            echo "RUSH_HOUR_KEY_ALIAS=${{ secrets.RUSH_HOUR_KEY_ALIAS }}"
+            echo "RUSH_HOUR_KEY_PASSWORD=${{ secrets.RUSH_HOUR_KEY_PASSWORD }}"
+          } >> ~/.gradle/gradle.properties
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Build release APKs
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+
+      - name: Rename artifacts with tag
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          cd mobile/android/app/build/outputs
+
+          for apk in apk/release/app-*-release.apk; do
+            base=$(basename "$apk" .apk)
+            mv "$apk" "apk/release/${base}-${tag}.apk"
+          done
+
+      - name: Attach artifacts to release
+        run: gh release upload "${{ github.event.release.tag_name }}" mobile/android/app/build/outputs/apk/release/app-*-release-*.apk
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
