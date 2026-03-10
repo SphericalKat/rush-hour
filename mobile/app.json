@@ -18,6 +18,7 @@
     },
     "android": {
       "package": "com.sphericalkat.rushhour",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#FFD900",
         "foregroundImage": "./assets/icon.png",
