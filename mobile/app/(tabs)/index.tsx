@@ -19,6 +19,8 @@ import type { Departure, Station } from '../../src/api/types';
 import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { StationPicker } from '../../src/components/StationPicker';
+import { UpdateBanner } from '../../src/components/UpdateBanner';
+import { useAppUpdate } from '../../src/hooks/useAppUpdate';
 import { useDepartures } from '../../src/hooks/useDepartures';
 import { useFavorites } from '../../src/hooks/useFavorites';
 import { useLiveTrains } from '../../src/hooks/useLiveTrains';
@@ -37,6 +39,7 @@ export default function DeparturesScreen() {
   const [filterFast, setFilterFast] = useState(false);
   const [filterAC, setFilterAC] = useState(false);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
+  const { update, showBanner, dismiss } = useAppUpdate();
 
   const showFavoriteMenu = React.useCallback((item: Departure) => {
     const fav = isFavorite(item.number, item.line);
@@ -126,6 +129,9 @@ export default function DeparturesScreen() {
           },
         ]}
       >
+        {showBanner && update && (
+          <UpdateBanner update={update} onDismiss={dismiss} />
+        )}
         <Text style={[styles.navTitle, { color: isDark ? colors.text : '#FFFFFF' }]}>Rush Hour</Text>
 
         <View style={styles.stationRow}>
