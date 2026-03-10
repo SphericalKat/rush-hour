@@ -63,11 +63,19 @@ jobs:
         working-directory: mobile
         run: npm ci
 
+      - name: Stamp release version into app.json
+        working-directory: mobile
+        run: |
+          tag="${{ github.event.release.tag_name || inputs.tag }}"
+          version="${tag#v}"
+          jq --arg v "$version" '.expo.version = $v' app.json > app.json.tmp && mv app.json.tmp app.json
+
       - name: Build release APKs
         working-directory: mobile/android
         run: ./gradlew assembleRelease
         env:
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_DISTRIBUTION: github
 
       - name: Upload APKs to release
         run: |
