@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ReactNativeLegal } from 'react-native-legal';
 import { fetchTimetableVersion } from '../../src/api/timetable';
 import type { TimetableVersion } from '../../src/api/types';
 import { useAppUpdate } from '../../src/hooks/useAppUpdate';
@@ -248,7 +249,7 @@ export default function SettingsScreen() {
               />
               {update ? (
                 <Row
-                  label={{`Update to ${update.release.tag_name}`}}
+                  label={`Update to ${update.release.tag_name}`}
                   onPress={() => Linking.openURL(update.downloadUrl)}
                   showChevron
                 />
@@ -265,6 +266,36 @@ export default function SettingsScreen() {
               )}
             </>
           )}
+        </>,
+      )}
+
+      {/* Legal section */}
+      <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
+        LEGAL
+      </Text>
+      {card(
+        <>
+          <Row
+            label="Privacy policy"
+            onPress={() => Linking.openURL('https://rushhour.kat.cx/privacy')}
+            showChevron
+          />
+          <View
+            style={[styles.divider, { backgroundColor: colors.separator }]}
+          />
+          <Row
+            label="Open source licenses"
+            onPress={() => ReactNativeLegal.launchLicenseListScreen('Open Source Licenses')}
+            showChevron
+          />
+          <View
+            style={[styles.divider, { backgroundColor: colors.separator }]}
+          />
+          <Row
+            label="Source"
+            onPress={() => Linking.openURL('https://git.sr.ht/~sphericalkat/rush-hour')}
+            showChevron
+          />
         </>,
       )}
     </ScrollView>
