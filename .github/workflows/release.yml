@@ -43,13 +43,12 @@ jobs:
             "ndk;27.1.12297006"
 
       - name: Decode release keystore
-        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > mobile/android/app/upload-keystore.jks
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > mobile/upload-keystore.jks
 
       - name: Set up Gradle signing properties
         run: |
           mkdir -p ~/.gradle
           {
-            echo "RUSH_HOUR_STORE_FILE=${{ github.workspace }}/mobile/android/app/upload-keystore.jks"
             echo "RUSH_HOUR_STORE_PASSWORD=${{ secrets.RUSH_HOUR_STORE_PASSWORD }}"
             echo "RUSH_HOUR_KEY_ALIAS=${{ secrets.RUSH_HOUR_KEY_ALIAS }}"
             echo "RUSH_HOUR_KEY_PASSWORD=${{ secrets.RUSH_HOUR_KEY_PASSWORD }}"
