@@ -60,9 +60,9 @@ jobs:
         env:
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
 
-      - name: Rename artifacts with tag
+      - name: Rename and upload artifacts
         run: |
-          tag="${GITHUB_REF#refs/tags/}"
+          tag="${{ github.event.release.tag_name }}"
           cd mobile/android/app/build/outputs
 
           for apk in apk/release/app-*-release.apk; do
@@ -70,7 +70,6 @@ jobs:
             mv "$apk" "apk/release/${base}-${tag}.apk"
           done
 
-      - name: Attach artifacts to release
-        run: gh release upload "${{ github.event.release.tag_name }}" mobile/android/app/build/outputs/apk/release/app-*-release-*.apk
+          gh release upload "$tag" apk/release/app-*-release-*.apk
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
