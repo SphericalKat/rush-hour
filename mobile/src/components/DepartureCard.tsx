@@ -48,7 +48,7 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
     countdownColor = '#FFFFFF';
     countdownBg = colors.countdownUrgent;
   }
-
+  
   const barColor = trainBarColor(item, colors);
 
   return (
@@ -82,7 +82,7 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
           )}
           {hideCountdown && (
             <Text style={[styles.time, { color: colors.text }]}>
-              {item.number}
+              {minutesToHHMM(item.departure)}
             </Text>
           )}
           <View style={{ flex: 1 }} />
