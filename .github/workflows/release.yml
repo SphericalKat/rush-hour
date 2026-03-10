@@ -64,16 +64,16 @@ jobs:
         env:
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
 
-      - name: Rename and upload artifacts
+      - name: Upload APKs to release
         run: |
           tag="${{ github.event.release.tag_name || inputs.tag }}"
-          cd mobile/android/app/build/outputs
+          cd mobile/android/app/build/outputs/apk/release
 
-          for apk in apk/release/app-*-release.apk; do
-            base=$(basename "$apk" .apk)
-            mv "$apk" "apk/release/${base}-${tag}.apk"
+          for apk in *.apk; do
+            base="${apk%.apk}"
+            mv "$apk" "${base}-${tag}.apk"
           done
 
-          gh release upload "$tag" apk/release/app-*-release-*.apk
+          gh release upload "$tag" *-${tag}.apk
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
