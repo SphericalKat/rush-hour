@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Rush Hour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0e;
+      --surface: #131614;
+      --border: #1e2220;
+      --border-light: #252a27;
+      --text: #e8ecea;
+      --text-muted: #6b7570;
+      --text-dim: #3d4441;
+      --accent: #c8f060;
+      --accent-dim: rgba(200, 240, 96, 0.08);
+      --accent-border: rgba(200, 240, 96, 0.18);
+    }
+
+    html {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Host Grotesk', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200, 240, 96, 0.04) 0%, transparent 70%),
+        var(--bg);
+    }
+
+    /* Rail line decoration */
+    .rail-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .rail-bg::before,
+    .rail-bg::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--border) 20%, var(--border) 80%, transparent);
+    }
+    .rail-bg::before { left: calc(50% - 360px); }
+    .rail-bg::after  { left: calc(50% + 360px); }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header */
+    header {
+      padding: 48px 0 0;
+    }
+
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      margin-bottom: 56px;
+    }
+
+    .wordmark-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(200, 240, 96, 0.6);
+    }
+
+    .wordmark-text {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .hero {
+      border-top: 1px solid var(--border);
+      padding-top: 48px;
+      margin-bottom: 64px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .hero-meta .sep {
+      width: 24px;
+      height: 1px;
+      background: var(--border-light);
+    }
+
+    /* Content */
+    .content {
+      padding-bottom: 120px;
+    }
+
+    .section {
+      margin-bottom: 56px;
+      padding-bottom: 56px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-number {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 15px;
+      font-weight: 400;
+      color: #a8b5ae;
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    /* Callout box */
+    .callout {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+
+    .callout p {
+      color: #c8d8c0;
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .callout strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Data list */
+    .data-list {
+      list-style: none;
+      margin: 20px 0;
+    }
+
+    .data-list li {
+      display: grid;
+      grid-template-columns: 16px 1fr;
+      gap: 12px;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: #a8b5ae;
+      line-height: 1.6;
+    }
+
+    .data-list li:first-child { border-top: 1px solid var(--border); }
+
+    .data-list li::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      position: relative;
+      top: 6px;
+    }
+
+    .data-list li strong {
+      display: block;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    /* Contact */
+    .contact-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      border-bottom: 1px solid var(--accent-border);
+      padding-bottom: 2px;
+      transition: border-color 0.2s;
+    }
+    .contact-link:hover { border-color: var(--accent); }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-text {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    .footer-tag {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border: 1px solid var(--border-light);
+      border-radius: 3px;
+      padding: 4px 8px;
+    }
+
+    /* Fade-in */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero     { animation: fadeUp 0.6s ease both; }
+    .section  { animation: fadeUp 0.6s ease both; }
+
+    .section:nth-of-type(1) { animation-delay: 0.05s; }
+    .section:nth-of-type(2) { animation-delay: 0.10s; }
+    .section:nth-of-type(3) { animation-delay: 0.15s; }
+    .section:nth-of-type(4) { animation-delay: 0.20s; }
+    .section:nth-of-type(5) { animation-delay: 0.25s; }
+    .section:nth-of-type(6) { animation-delay: 0.30s; }
+    .section:nth-of-type(7) { animation-delay: 0.35s; }
+
+    @media (max-width: 600px) {
+      header { padding-top: 32px; }
+      .wordmark { margin-bottom: 40px; }
+      .hero { padding-top: 32px; margin-bottom: 48px; }
+      .rail-bg::before, .rail-bg::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="rail-bg"></div>
+
+<div class="container">
+  <header>
+    <a class="wordmark" href="#">
+      <span class="wordmark-dot"></span>
+      <span class="wordmark-text">Rush Hour</span>
+    </a>
+
+    <div class="hero">
+      <p class="eyebrow">Legal</p>
+      <h1>Privacy <em>Policy</em></h1>
+      <div class="hero-meta">
+        <span>Effective 1 March 2025</span>
+        <span class="sep"></span>
+        <span>Last updated 10 March 2026</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <div class="callout">
+      <p><strong>Short version:</strong> Rush Hour does not collect personal information. Location data you share stays on your device and is used only to show your train's position to others on the same service — it is never stored on our servers.</p>
+    </div>
+
+    <div class="section">
+      <p class="section-number">01</p>
+      <h2>What we collect</h2>
+      <p>Rush Hour is designed to work with as little data as possible. Here is exactly what the app handles:</p>
+      <ul class="data-list">
+        <li>
+          <div>
+            <strong>Crowd count signals</strong>
+            An anonymous, one-way signal that increments a counter when you mark a train as busy. No device identifier, no timestamp beyond the current hour, no location.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Voluntary location (opt-in only)</strong>
+            If you choose to share your location to contribute to live train tracking, your coordinates are broadcast in real time to other users on the same service and immediately discarded by our servers. We do not store location history.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Delay reports</strong>
+            When you submit a delay report, we receive the train number, the reported delay in minutes, and an approximate timestamp. No account or device ID is attached.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Standard server logs</strong>
+            Our server software records IP addresses and request metadata for up to 24 hours for operational purposes (diagnosing outages, preventing abuse). Logs are not retained beyond this window.
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <p class="section-number">02</p>
+      <h2>What we do not collect</h2>
+      <p>We do not collect your name, email address, phone number, or any account credentials. We do not use advertising SDKs, analytics platforms, or third-party tracking. We do not build profiles or sell data — we have no mechanism to do so.</p>
+    </div>
+
+    <div class="section">
+      <p class="section-number">03</p>
+      <h2>How data is used</h2>
+      <p>The limited data described above is used solely to operate the app:</p>
+      <ul class="data-list">
+        <li><div>Crowd signals power the busyness indicator shown on departure cards.</div></li>
+        <li><div>Location data is relayed live to other users tracking the same train, then dropped.</div></li>
+        <li><div>Delay reports are aggregated to surface late-running services to all users.</div></li>
+        <li><div>Server logs are used to maintain service stability.</div></li>
+      </ul>
+      <p>None of this data is used for advertising, profiling, or shared with third parties.</p>
+    </div>
+
+    <div class="section">
+      <p class="section-number">04</p>
+      <h2>Data storage &amp; retention</h2>
+      <p>Live location data is never written to persistent storage. Crowd counts and delay reports are stored in-memory with a four-hour expiry — they reset at the end of each operating day. Timetable data is sourced from public operator schedules and contains no personal information.</p>
+      <p>Server logs are stored temporarily (up to 24 hours) on our infrastructure, then deleted automatically.</p>
+    </div>
+
+    <div class="section">
+      <p class="section-number">05</p>
+      <h2>Third-party services</h2>
+      <p>Rush Hour does not integrate with third-party analytics, advertising, or data brokers. The app communicates only with our own backend server to fetch timetable data and relay live signals.</p>
+      <p>Apple and Google's app distribution platforms (App Store, Google Play) have their own privacy practices that apply when you download the app. We have no control over those.</p>
+    </div>
+
+    <div class="section">
+      <p class="section-number">06</p>
+      <h2>Your rights</h2>
+      <p>Because we do not collect personally identifiable information, there is nothing for us to provide, correct, or delete on your behalf. If you stop using the app, no residual data about you persists on our servers beyond the 24-hour server log window.</p>
+      <p>If you have a concern about data you believe is being handled incorrectly, please reach out and we will investigate promptly.</p>
+    </div>
+
+    <div class="section">
+      <p class="section-number">07</p>
+      <h2>Changes to this policy</h2>
+      <p>If we make material changes to how Rush Hour handles data, we will update this page and revise the "last updated" date at the top. Continued use of the app after changes are posted constitutes acceptance of the revised policy.</p>
+    </div>
+
+    <div class="section">
+      <p class="section-number">08</p>
+      <h2>Contact</h2>
+      <p>Questions about this policy or how Rush Hour handles data? Get in touch:</p>
+      <p>
+        <a class="contact-link" href="mailto:privacy@rushhour.app">
+          privacy@rushhour.app
+        </a>
+      </p>
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="footer-text">&copy; 2025 Rush Hour. All rights reserved.</span>
+    <span class="footer-tag">v1.0</span>
+  </footer>
+</div>
+
+</body>
+</html>

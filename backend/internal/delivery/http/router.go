@@ -1,6 +1,7 @@
 package server
 
 import (
+	_ "embed"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -13,6 +14,9 @@ import (
 	"github.com/sphericalkat/rush-hour/backend/internal/infrastructure/hub"
 	"github.com/sphericalkat/rush-hour/backend/internal/usecase"
 )
+
+//go:embed static/privacy.html
+var privacyHTML []byte
 
 func NewRouter(
 	stationRepo station.Repository,
@@ -56,6 +60,12 @@ func NewRouter(
 	})
 
 	r.Get("/ws", wsH.Handle)
+
+	r.Get("/privacy", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(privacyHTML)
+	})
 
 	return r
 }
