@@ -61,13 +61,5 @@ target 'RushHour' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
-
-    # Xcode 16.4 / Swift 6.2 enables strict concurrency by default,
-    # which breaks expo-modules-core. Disable it until Expo SDK catches up.
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings['SWIFT_STRICT_CONCURRENCY'] = 'minimal'
-      end
-    end
   end
 end

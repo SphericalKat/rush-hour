@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -12,9 +13,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { LocationDisclosureModal } from '../../src/components/LocationDisclosureModal';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fetchTrainRoute } from '../../src/api/live';
+import { useSQLiteContext } from 'expo-sqlite';
+import { getTrainRoute } from '../../src/db/queries';
 import type { RouteStop } from '../../src/api/types';
 import { StationTimeline } from '../../src/components/StationTimeline';
 import { useLiveTrainInfo } from '../../src/hooks/useLiveTrainInfo';
@@ -91,8 +94,31 @@ export default function TrainScreen() {
 
   const { status, loading } = useTrainStatus(number, ready);
   const { position: livePosition, loading: liveLoading } = useLiveTrainInfo(number, ready);
-  const { sharing, lastMsg, toggling: sharingToggling, toggle: toggleSharing } = useLocationSharing(number, ready);
+  const db = useSQLiteContext();
+  const { sharing, lastMsg, toggling: sharingToggling, toggle: toggleSharing, startSharing } = useLocationSharing(number, ready);
+  const [showDisclosure, setShowDisclosure] = useState(false);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
+
+  // Show the prominent disclosure the first time the user tries to start sharing.
+  // After they accept once, we store the flag and skip the modal on future taps.
+  const handleSharingPress = useCallback(async () => {
+    if (sharing) {
+      toggleSharing();
+      return;
+    }
+    const seen = await SecureStore.getItemAsync('rush_hour_location_disclosure_seen');
+    if (seen) {
+      startSharing();
+    } else {
+      setShowDisclosure(true);
+    }
+  }, [sharing, toggleSharing, startSharing]);
+
+  const handleDisclosureConfirm = useCallback(async () => {
+    setShowDisclosure(false);
+    await SecureStore.setItemAsync('rush_hour_location_disclosure_seen', '1');
+    startSharing();
+  }, [startSharing]);
   const [stops, setStops] = useState<RouteStop[]>([]);
   const [stopsLoading, setStopsLoading] = useState(true);
 
@@ -142,14 +168,14 @@ export default function TrainScreen() {
 
   const loadStops = useCallback(async () => {
     try {
-      const data = await fetchTrainRoute(number, line);
+      const data = await getTrainRoute(db, number, line);
       setStops(data ?? []);
     } catch {
       // best-effort
     } finally {
       setStopsLoading(false);
     }
-  }, [number, line]);
+  }, [db, number, line]);
 
   useEffect(() => {
     if (ready) loadStops();
@@ -182,7 +208,7 @@ export default function TrainScreen() {
     >
       {/* Share your location */}
       <Section title="SHARE LOCATION" colors={colors} radius={radius}>
-        <TouchableOpacity activeOpacity={0.7} onPress={toggleSharing} disabled={sharingToggling}>
+        <TouchableOpacity activeOpacity={0.7} onPress={handleSharingPress} disabled={sharingToggling}>
           <View style={[styles.shareContainer, sharingToggling && { opacity: 0.6 }]}>
             <View style={styles.shareInfo}>
               <Ionicons
@@ -317,6 +343,11 @@ export default function TrainScreen() {
         </Text>
       </View>
     </ScrollView>
+      <LocationDisclosureModal
+        visible={showDisclosure}
+        onConfirm={handleDisclosureConfirm}
+        onDismiss={() => setShowDisclosure(false)}
+      />
     </>
   );
 }

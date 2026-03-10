@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchDepartures } from '../api/departures';
+import { useCallback, useEffect, useState } from 'react';
+import { useSQLiteContext } from 'expo-sqlite';
+import { getDepartures } from '../db/queries';
 import type { Departure } from '../api/types';
 
 interface State {
@@ -12,18 +13,18 @@ export function useDepartures(
   stationId: number | null,
   destinationId?: number | null,
 ) {
+  const db = useSQLiteContext();
   const [state, setState] = useState<State>({
     data: [],
     loading: false,
     error: null,
   });
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
     if (!stationId) return;
     setState((s) => ({ ...s, loading: s.data.length === 0, error: null }));
     try {
-      const data = await fetchDepartures(stationId, destinationId ?? undefined);
+      const data = await getDepartures(db, stationId, destinationId ?? undefined);
       setState({ data: data ?? [], loading: false, error: null });
     } catch (e) {
       setState((s) => ({
@@ -32,14 +33,10 @@ export function useDepartures(
         error: e instanceof Error ? e.message : 'Failed to load',
       }));
     }
-  }, [stationId, destinationId]);
+  }, [db, stationId, destinationId]);
 
   useEffect(() => {
     load();
-    intervalRef.current = setInterval(load, 30_000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
   }, [load]);
 
   return { ...state, refresh: load };

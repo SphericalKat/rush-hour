@@ -8,7 +8,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Platform,
   Pressable,
   StyleSheet,
@@ -17,7 +16,8 @@ import {
   View,
 } from 'react-native';
 import { Text } from './Text';
-import { fetchStations } from '../api/lines';
+import { useSQLiteContext } from 'expo-sqlite';
+import { listStations } from '../db/queries';
 import type { Station } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
 
@@ -95,23 +95,23 @@ const StationRow = React.memo(function StationRow({ item, active, onSelect, onHa
 
 export function StationPicker({ visible, selected, onSelect, onClose, title = 'Select Station' }: Props) {
   const { colors } = useTheme();
+  const db = useSQLiteContext();
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [stations, setStations] = useState<Station[]>([]);
-  const [loading, setLoading] = useState(false);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const inputRef = useRef<TextInput>(null);
   const hapticsRef = useRef<{ selectionAsync?: () => Promise<void> } | null>(null);
+
+  // Load stations once from local DB — fast enough to not need a loader
+  useEffect(() => {
+    listStations(db).then(setStations).catch(() => {});
+  }, [db]);
 
   useEffect(() => {
     if (visible) {
       setQuery('');
       inputRef.current?.clear();
-      setLoading(true);
-      fetchStations()
-        .then(setStations)
-        .catch(() => {})
-        .finally(() => setLoading(false));
       bottomSheetRef.current?.present();
     } else {
       bottomSheetRef.current?.dismiss();
@@ -241,31 +241,22 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
       </View>
 
       {/* List */}
-      {loading ? (
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator style={styles.spinner} color={colors.primary} />
-          <Text style={[styles.loadingLabel, { color: colors.textSecondary }]}>
-            Loading stations...
+      <BottomSheetFlatList
+        data={filtered}
+        keyExtractor={(s: Station) => String(s.id)}
+        contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
+        renderItem={renderItem}
+        removeClippedSubviews
+        maxToRenderPerBatch={20}
+        windowSize={9}
+        initialNumToRender={15}
+        ListEmptyComponent={
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            No stations match your search
           </Text>
-        </View>
-      ) : (
-        <BottomSheetFlatList
-          data={filtered}
-          keyExtractor={(s: Station) => String(s.id)}
-          contentContainerStyle={styles.listContent}
-          keyboardShouldPersistTaps="handled"
-          renderItem={renderItem}
-          removeClippedSubviews
-          maxToRenderPerBatch={20}
-          windowSize={9}
-          initialNumToRender={15}
-          ListEmptyComponent={
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No stations match your search
-            </Text>
-          }
-        />
-      )}
+        }
+      />
     </BottomSheetModal>
   );
 }
@@ -329,17 +320,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  loadingWrap: {
-    marginTop: 40,
-    alignItems: 'center',
-    gap: 8,
-  },
-  loadingLabel: {
-    fontSize: 14,
-  },
-  spinner: {
-    marginTop: 0,
   },
   listContent: {
     paddingHorizontal: 12,

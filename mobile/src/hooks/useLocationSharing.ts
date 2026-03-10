@@ -230,5 +230,6 @@ export function useLocationSharing(trainNumber: string, enabled = true) {
     lastMsg: isThisTrain ? state.lastMsg : null,
     toggling: state.toggling,
     toggle,
+    startSharing,
   };
 }
