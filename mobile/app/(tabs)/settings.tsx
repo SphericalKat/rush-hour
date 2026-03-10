@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
@@ -82,8 +82,19 @@ export default function SettingsScreen() {
   const { colors, radius } = useTheme();
   const { settings, setDynamicColors, setColorMode, setLiveDataEnabled, setServerUrl } = useSettings();
   const [serverUrlDraft, setServerUrlDraft] = useState(settings.serverUrl);
-  const serverUrlRef = useRef<TextInput>(null);
+  const [serverSaved, setServerSaved] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   useEffect(() => { setServerUrlDraft(settings.serverUrl); }, [settings.serverUrl]);
+  useEffect(() => {
+    return () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current); };
+  }, []);
+
+  const commitServerUrl = useCallback((url: string) => {
+    setServerUrl(url);
+    setServerSaved(true);
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setServerSaved(false), 2000);
+  }, [setServerUrl]);
   const insets = useSafeAreaInsets();
   const [version, setVersion] = useState<TimetableVersion | null>(null);
   const [checking, setChecking] = useState(false);
@@ -218,27 +229,60 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               <View style={styles.serverInputRow}>
-                <TextInput
-                  ref={serverUrlRef}
-                  style={[
-                    styles.serverInput,
-                    {
-                      color: colors.text,
-                      backgroundColor: colors.surfaceSecondary,
-                      borderRadius: radius.md,
-                    },
-                  ]}
-                  value={serverUrlDraft}
-                  onChangeText={setServerUrlDraft}
-                  onBlur={() => setServerUrl(serverUrlDraft)}
-                  onSubmitEditing={() => setServerUrl(serverUrlDraft)}
-                  placeholder={DEFAULT_SERVER_URL}
-                  placeholderTextColor={colors.textTertiary}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  returnKeyType="done"
-                />
+                <View style={styles.serverInputContainer}>
+                  <TextInput
+                    style={[
+                      styles.serverInput,
+                      {
+                        color: colors.text,
+                        backgroundColor: colors.surfaceSecondary,
+                        borderRadius: radius.md,
+                      },
+                    ]}
+                    value={serverUrlDraft}
+                    onChangeText={(text) => {
+                      setServerUrlDraft(text);
+                      setServerSaved(false);
+                    }}
+                    onSubmitEditing={() => commitServerUrl(serverUrlDraft)}
+                    placeholder={DEFAULT_SERVER_URL}
+                    placeholderTextColor={colors.textTertiary}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    returnKeyType="done"
+                  />
+                  <Pressable
+                    onPress={() => commitServerUrl(serverUrlDraft)}
+                    style={({ pressed }) => [
+                      styles.saveButton,
+                      {
+                        backgroundColor: serverSaved ? colors.primary : colors.surfaceSecondary,
+                        borderRadius: radius.md,
+                      },
+                      pressed && { opacity: 0.6 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="checkmark"
+                      size={18}
+                      color={serverSaved ? colors.textOnPrimary : colors.textSecondary}
+                    />
+                  </Pressable>
+                </View>
+                {serverUrlDraft !== DEFAULT_SERVER_URL && (
+                  <Pressable
+                    onPress={() => {
+                      setServerUrlDraft(DEFAULT_SERVER_URL);
+                      commitServerUrl(DEFAULT_SERVER_URL);
+                    }}
+                    style={({ pressed }) => pressed ? { opacity: 0.6 } : undefined}
+                  >
+                    <Text style={[styles.resetText, { color: colors.primary }]}>
+                      Reset to default
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </>
           )}
@@ -446,8 +490,22 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   serverInput: {
+    flex: 1,
     fontSize: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  serverInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  saveButton: {
+    padding: 10,
+  },
+  resetText: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
