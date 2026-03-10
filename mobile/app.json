@@ -89,7 +89,8 @@
       "expo-sqlite",
       "./plugins/android-signing",
       "./plugins/android-abi-splits",
-      "expo-background-task"
+      "expo-background-task",
+      "react-native-legal"
     ],
     "experiments": {
       "typedRoutes": true
