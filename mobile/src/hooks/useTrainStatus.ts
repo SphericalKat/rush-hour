@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchTrainStatus } from '../api/reports';
 import type { CrowdLevel, TrainStatus, WSMessage } from '../api/types';
-import { WS_URL } from '../api/client';
+import { getWsUrl } from '../api/client';
+import { useSettings } from './useSettings';
 
 interface State {
   status: TrainStatus | null;
@@ -11,6 +12,9 @@ interface State {
 }
 
 export function useTrainStatus(trainNumber: string, enabled = true) {
+  const { settings } = useSettings();
+  const liveEnabled = enabled && settings.liveDataEnabled;
+
   const [state, setState] = useState<State>({
     status: null,
     loading: true,
@@ -21,7 +25,10 @@ export function useTrainStatus(trainNumber: string, enabled = true) {
 
   // Initial REST fetch
   useEffect(() => {
-    if (!enabled) return;
+    if (!liveEnabled) {
+      setState({ status: null, loading: false, error: null, liveLevel: null });
+      return;
+    }
     setState({ status: null, loading: true, error: null, liveLevel: null });
     fetchTrainStatus(trainNumber)
       .then((status) =>
@@ -34,14 +41,15 @@ export function useTrainStatus(trainNumber: string, enabled = true) {
           error: e instanceof Error ? e.message : 'Failed to load',
         })),
       );
-  }, [trainNumber, enabled]);
+  }, [trainNumber, liveEnabled]);
 
   // WebSocket for live updates
   useEffect(() => {
-    if (!enabled) return;
+    if (!liveEnabled) return;
+    const wsUrl = getWsUrl(settings.serverUrl);
     let ws: WebSocket;
     try {
-      ws = new WebSocket(WS_URL);
+      ws = new WebSocket(wsUrl);
     } catch {
       return;
     }
@@ -73,7 +81,7 @@ export function useTrainStatus(trainNumber: string, enabled = true) {
       wsRef.current = null;
       ws.close();
     };
-  }, [trainNumber, enabled]);
+  }, [trainNumber, liveEnabled, settings.serverUrl]);
 
   return state;
 }
