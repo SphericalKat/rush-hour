@@ -2,7 +2,7 @@
   "expo": {
     "name": "Rush Hour",
     "slug": "rush-hour",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "scheme": "rush-hour",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -84,10 +84,12 @@
           }
         }
       ],
+      "expo-notifications",
       "expo-splash-screen",
       "expo-sqlite",
       "./plugins/android-signing",
-      "./plugins/android-abi-splits"
+      "./plugins/android-abi-splits",
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true

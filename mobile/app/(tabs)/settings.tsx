@@ -15,8 +15,10 @@ import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchTimetableVersion } from '../../src/api/timetable';
 import type { TimetableVersion } from '../../src/api/types';
+import { useAppUpdate } from '../../src/hooks/useAppUpdate';
 import { useSettings, type ColorMode } from '../../src/hooks/useSettings';
 import { useTheme } from '../../src/hooks/useTheme';
+import { isGitHubDistribution } from '../../src/lib/updates';
 import { shadow } from '../../src/theme';
 
 interface RowProps {
@@ -80,6 +82,7 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const [version, setVersion] = useState<TimetableVersion | null>(null);
   const [checking, setChecking] = useState(false);
+  const { update, checkNow, checkingUpdate } = useAppUpdate();
 
   const checkVersion = async () => {
     setChecking(true);
@@ -238,6 +241,30 @@ export default function SettingsScreen() {
             label="Platform"
             value={`${Platform.OS} ${Platform.Version}`}
           />
+          {isGitHubDistribution() && (
+            <>
+              <View
+                style={[styles.divider, { backgroundColor: colors.separator }]}
+              />
+              {update ? (
+                <Row
+                  label={{`Update to ${update.release.tag_name}`}}
+                  onPress={() => Linking.openURL(update.downloadUrl)}
+                  showChevron
+                />
+              ) : (
+                <Row
+                  label="Check for app update"
+                  onPress={checkNow}
+                  showChevron={!checkingUpdate}
+                >
+                  {checkingUpdate && (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  )}
+                </Row>
+              )}
+            </>
+          )}
         </>,
       )}
     </ScrollView>
