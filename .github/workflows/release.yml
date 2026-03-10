@@ -9,6 +9,9 @@ on:
         description: "Release tag to attach APKs to (e.g. v1.0.0)"
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +28,8 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-cleanup: always
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
