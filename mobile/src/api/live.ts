@@ -1,5 +1,5 @@
 import { request } from './client';
-import type { LiveTrainMap, LiveTrainPosition, RouteStop, TrainStop } from './types';
+import type { LiveTrainMap, LiveTrainPosition } from './types';
 
 export function fetchAllLiveTrains(): Promise<LiveTrainMap> {
   return request<LiveTrainMap>('/api/v1/live/trains');
@@ -7,15 +7,6 @@ export function fetchAllLiveTrains(): Promise<LiveTrainMap> {
 
 export function fetchLiveTrainInfo(trainNumber: string): Promise<LiveTrainPosition> {
   return request<LiveTrainPosition>(`/api/v1/trains/${trainNumber}/live`);
-}
-
-export function fetchTrainStops(trainNumber: string): Promise<TrainStop[]> {
-  return request<TrainStop[]>(`/api/v1/trains/${trainNumber}/stops`);
-}
-
-export function fetchTrainRoute(trainNumber: string, line?: string): Promise<RouteStop[]> {
-  const params = line ? `?line=${encodeURIComponent(line)}` : '';
-  return request<RouteStop[]>(`/api/v1/trains/${trainNumber}/route${params}`);
 }
 
 export interface PushLocationResponse {

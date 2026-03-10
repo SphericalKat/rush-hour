@@ -57,9 +57,11 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
       onLongPress={onLongPress}
       accessibilityRole="button"
       accessibilityLabel={`${item.number} to ${item.destination}, departs at ${minutesToHHMM(item.departure)}`}
-      style={[
+      android_ripple={{ color: colors.textTertiary + '30', borderless: false }}
+      style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.surface },
+        pressed && { opacity: 0.7 },
       ]}
     >
       {/* Leading color bar */}
@@ -125,16 +127,16 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
               {item.number}
             </Text>
           )}
-          {item.is_fast && (
+          {item.is_fast ? (
             <View style={[styles.badge, { backgroundColor: colors.trainFast + '18' }]}>
               <Text style={[styles.badgeLabel, { color: colors.trainFast }]}>Fast</Text>
             </View>
-          )}
-          {item.is_ac && (
+          ) : null}
+          {item.is_ac ? (
             <View style={[styles.badge, { backgroundColor: colors.trainAC + '18' }]}>
               <Text style={[styles.badgeLabel, { color: colors.trainAC }]}>AC</Text>
             </View>
-          )}
+          ) : null}
           {item.runs_on && item.runs_on !== 'daily' && (
             <View style={[styles.badge, { backgroundColor: colors.warning + '18' }]}>
               <Text style={[styles.badgeLabel, { color: colors.warning }]}>
