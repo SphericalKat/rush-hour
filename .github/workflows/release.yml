@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p ~/.gradle
           {
-            echo "RUSH_HOUR_STORE_FILE=upload-keystore.jks"
+            echo "RUSH_HOUR_STORE_FILE=${{ github.workspace }}/mobile/android/app/upload-keystore.jks"
             echo "RUSH_HOUR_STORE_PASSWORD=${{ secrets.RUSH_HOUR_STORE_PASSWORD }}"
             echo "RUSH_HOUR_KEY_ALIAS=${{ secrets.RUSH_HOUR_KEY_ALIAS }}"
             echo "RUSH_HOUR_KEY_PASSWORD=${{ secrets.RUSH_HOUR_KEY_PASSWORD }}"
