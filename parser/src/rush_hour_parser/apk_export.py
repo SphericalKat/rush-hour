@@ -69,10 +69,23 @@ CREATE TABLE IF NOT EXISTS stops (
     side          TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_stops_station   ON stops(station_id);
-CREATE INDEX IF NOT EXISTS idx_stops_train     ON stops(train_id);
-CREATE INDEX IF NOT EXISTS idx_stops_departure ON stops(departure);
+CREATE INDEX IF NOT EXISTS idx_stops_station       ON stops(station_id);
+CREATE INDEX IF NOT EXISTS idx_stops_train         ON stops(train_id);
+CREATE INDEX IF NOT EXISTS idx_stops_departure     ON stops(departure);
+CREATE INDEX IF NOT EXISTS idx_stops_train_station ON stops(train_id, station_id, stop_sequence);
+CREATE INDEX IF NOT EXISTS idx_trains_number       ON trains(number);
 """
+
+# Canonical station name overrides. The m-indicator APK uses inconsistent
+# spellings across lines — normalize to a single canonical name.
+_STATION_ALIASES: dict[str, str] = {
+    "AMBERNATH": "AMBARNATH",
+    "BHAYANDER": "BHAYANDAR",
+    "SEAWOOD DARAVE": "SEAWOOD DARAVE KARAVE",
+    "KELVA ROAD": "KELVE ROAD",
+    "DIGHA": "DIGHA GAON",
+    "NHAVA SHEVA": "NAVA SHEVA",
+}
 
 
 # m-indicator line code -> (operator_name, operator_short, line_name, line_short, line_type)
@@ -160,7 +173,7 @@ def _parse_index(data: bytes) -> dict:
     pos = 0
 
     stn_len = _read_int(data, pos); pos += 4
-    stations = data[pos:pos + stn_len].decode().split(",")
+    stations = [_STATION_ALIASES.get(s, s) for s in data[pos:pos + stn_len].decode().split(",")]
     pos += stn_len
 
     dn_len = data[pos]; pos += 1 + dn_len
@@ -250,7 +263,7 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
     ]
 
     for stn_file in station_files:
-        stn_name = stn_file.split("/")[-1]
+        stn_name = _STATION_ALIASES.get(stn_file.split("/")[-1], stn_file.split("/")[-1])
         stn_data = zf.read(stn_file)
         for i in range(len(stn_data) // 4):
             raw = stn_data[i * 4:(i + 1) * 4]

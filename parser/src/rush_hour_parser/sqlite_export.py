@@ -55,9 +55,11 @@ CREATE TABLE IF NOT EXISTS stops (
     stop_sequence INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_stops_station   ON stops(station_id);
-CREATE INDEX IF NOT EXISTS idx_stops_train     ON stops(train_id);
-CREATE INDEX IF NOT EXISTS idx_stops_departure ON stops(departure);
+CREATE INDEX IF NOT EXISTS idx_stops_station       ON stops(station_id);
+CREATE INDEX IF NOT EXISTS idx_stops_train         ON stops(train_id);
+CREATE INDEX IF NOT EXISTS idx_stops_departure     ON stops(departure);
+CREATE INDEX IF NOT EXISTS idx_stops_train_station ON stops(train_id, station_id, stop_sequence);
+CREATE INDEX IF NOT EXISTS idx_trains_number       ON trains(number);
 """
 
 
