@@ -90,6 +90,7 @@
       "expo-sqlite",
       "./plugins/android-signing",
       "./plugins/android-abi-splits",
+      "./plugins/android-flavors",
       "expo-background-task",
       "react-native-legal"
     ],
