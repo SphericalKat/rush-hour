@@ -1,9 +1,9 @@
-import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as TaskManager from 'expo-task-manager';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import { pushLocation } from '../api/live';
+import { locationProvider, type LocationObject } from '../lib/location-provider';
 import { useDeviceId } from './useDeviceId';
 
 const TASK_NAME = 'rush-hour-location-sharing';
@@ -18,7 +18,7 @@ TaskManager.defineTask(TASK_NAME, async ({ data, error }) => {
   }
 
   try {
-    const locations = (data as any)?.locations as Location.LocationObject[] | undefined;
+    const locations = (data as any)?.locations as LocationObject[] | undefined;
     if (!locations?.length) return;
 
     const trainNumber = await SecureStore.getItemAsync(STORE_TRAIN);
@@ -47,7 +47,7 @@ interface LocationSharingState {
 
 async function isTaskRunning(): Promise<boolean> {
   try {
-    return await Location.hasStartedLocationUpdatesAsync(TASK_NAME);
+    return await locationProvider.hasStartedLocationUpdatesAsync(TASK_NAME);
   } catch {
     return false;
   }
@@ -66,7 +66,7 @@ async function getActiveTrain(): Promise<string | null> {
   try {
     const train = await getActiveTrain();
     if (!train && await isTaskRunning()) {
-      await Location.stopLocationUpdatesAsync(TASK_NAME);
+      await locationProvider.stopLocationUpdatesAsync(TASK_NAME);
     }
   } catch {
     // ignore
@@ -103,7 +103,7 @@ export function useLocationSharing(trainNumber: string, enabled = true) {
     const poll = async () => {
       if (!active) return;
       try {
-        const loc = await Location.getLastKnownPositionAsync();
+        const loc = await locationProvider.getLastKnownPositionAsync();
         if (!loc || !active) return;
         const res = await pushLocation(
           trainNumber,
@@ -140,14 +140,14 @@ export function useLocationSharing(trainNumber: string, enabled = true) {
     // If already sharing for a different train, stop that first
     const activeTrain = await getActiveTrain();
     if (activeTrain && activeTrain !== trainNumber && await isTaskRunning()) {
-      await Location.stopLocationUpdatesAsync(TASK_NAME).catch(() => {});
+      await locationProvider.stopLocationUpdatesAsync(TASK_NAME).catch(() => {});
       if (deviceId) {
         pushLocation(activeTrain, 0, 0, deviceId, 'stop').catch(() => {});
       }
     }
 
     try {
-      const { status: fg } = await Location.requestForegroundPermissionsAsync();
+      const { status: fg } = await locationProvider.requestForegroundPermissionsAsync();
       if (fg !== 'granted') {
         setState(s => ({ ...s, toggling: false }));
         Alert.alert(
@@ -158,7 +158,7 @@ export function useLocationSharing(trainNumber: string, enabled = true) {
       }
 
       if (Platform.OS === 'android') {
-        const { status: bg } = await Location.requestBackgroundPermissionsAsync();
+        const { status: bg } = await locationProvider.requestBackgroundPermissionsAsync();
         if (bg !== 'granted') {
           setState(s => ({ ...s, toggling: false }));
           Alert.alert(
@@ -171,8 +171,8 @@ export function useLocationSharing(trainNumber: string, enabled = true) {
 
       await SecureStore.setItemAsync(STORE_TRAIN, trainNumber);
 
-      await Location.startLocationUpdatesAsync(TASK_NAME, {
-        accuracy: Location.Accuracy.Balanced,
+      await locationProvider.startLocationUpdatesAsync(TASK_NAME, {
+        accuracy: locationProvider.Accuracy.Balanced,
         timeInterval: 15000,
         distanceInterval: 50,
         deferredUpdatesInterval: 15000,
@@ -200,7 +200,7 @@ export function useLocationSharing(trainNumber: string, enabled = true) {
     setState(s => ({ ...s, toggling: true }));
     try {
       if (await isTaskRunning()) {
-        await Location.stopLocationUpdatesAsync(TASK_NAME);
+        await locationProvider.stopLocationUpdatesAsync(TASK_NAME);
       }
     } catch {
       // already stopped
