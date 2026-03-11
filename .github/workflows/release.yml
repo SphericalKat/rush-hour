@@ -72,7 +72,7 @@ jobs:
 
       - name: Build release APKs
         working-directory: mobile/android
-        run: ./gradlew assembleRelease
+        run: ./gradlew assemblePlayRelease
         env:
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
           EXPO_PUBLIC_DISTRIBUTION: github
@@ -80,7 +80,7 @@ jobs:
       - name: Upload APKs to release
         run: |
           tag="${{ github.event.release.tag_name || inputs.tag }}"
-          cd mobile/android/app/build/outputs/apk/release
+          cd mobile/android/app/build/outputs/apk/play/release
 
           for apk in *.apk; do
             base="${apk%.apk}"
