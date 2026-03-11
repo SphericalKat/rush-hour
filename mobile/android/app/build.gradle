@@ -96,6 +96,9 @@ android {
         versionName "0.4.2"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
     }
     splits {
         abi {
