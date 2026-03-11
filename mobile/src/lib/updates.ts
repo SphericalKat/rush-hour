@@ -1,5 +1,4 @@
 import Constants from 'expo-constants';
-import * as Notifications from 'expo-notifications';
 import * as BackgroundTask from 'expo-background-task';
 import * as TaskManager from 'expo-task-manager';
 
@@ -46,6 +45,7 @@ export async function checkAndNotify(): Promise<boolean> {
 
   if (!isNewer(release.tag_name, currentVersion)) return false;
 
+  const Notifications = require('expo-notifications');
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Update available',

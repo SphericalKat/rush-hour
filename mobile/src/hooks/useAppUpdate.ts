@@ -1,5 +1,4 @@
 import Constants from 'expo-constants';
-import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
 import {
   fetchLatestRelease,
@@ -10,6 +9,7 @@ import {
 } from '../lib/updates';
 
 if (isGitHubDistribution()) {
+  const Notifications = require('expo-notifications');
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
@@ -40,7 +40,8 @@ export function useAppUpdate() {
       const downloadUrl = release.html_url;
       setUpdate({ release, downloadUrl });
 
-      if (notify) {
+      if (notify && isGitHubDistribution()) {
+        const Notifications = require('expo-notifications');
         await Notifications.scheduleNotificationAsync({
           content: {
             title: 'Update available',
