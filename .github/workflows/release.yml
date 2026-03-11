@@ -61,7 +61,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: mobile
-        run: npm ci
+        run: |
+          npm ci
+          npx expo prebuild --platform android
 
       - name: Stamp release version into app.json
         working-directory: mobile
