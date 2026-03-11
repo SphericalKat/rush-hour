@@ -23,7 +23,7 @@
         "backgroundColor": "#FFD900",
         "foregroundImage": "./assets/icon.png",
         "backgroundImage": "./assets/icon-bg.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "monochromeImage": "./assets/icon.png"
       },
       "predictiveBackGestureEnabled": true,
       "permissions": [
