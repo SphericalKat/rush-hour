@@ -1,0 +1,10 @@
+Rush Hour is a timetable app for Mumbai's suburban railway network. Look up train schedules between any two stations on the Western, Central, and Harbour lines.
+
+Features:
+- Search trains between any two stations
+- Filter by fast/slow services
+- Save favorite routes for quick access
+- Share your live train position with other commuters
+- Works offline with a bundled timetable database
+- Configurable server URL for self-hosted backends
+- Material You theming
