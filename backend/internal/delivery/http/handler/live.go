@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -20,6 +21,9 @@ const (
 
 	// Mimic the User-Agent that m-indicator sends from an Android device.
 	androidUA = "Dalvik/2.1.0 (Linux; U; Android 14; SM-S928B Build/UP1A.231005.007);gzip"
+
+	liveCacheTTL         = 30 * time.Second
+	allLiveTrainsCacheKey = "mobond:alltrains"
 )
 
 type LiveHandler struct {
@@ -50,8 +54,16 @@ func (h *LiveHandler) postMobond(url string, form string) (*http.Response, error
 	return h.client.Do(req)
 }
 
-// GetAllLiveTrains proxies the mobond getalllivetrains endpoint.
+// GetAllLiveTrains serves cached live train data from Redis, falling back to
+// mIndicator on cache miss.
 func (h *LiveHandler) GetAllLiveTrains(w http.ResponseWriter, r *http.Request) {
+	cached, err := h.redis.Get(r.Context(), allLiveTrainsCacheKey).Bytes()
+	if err == nil && len(cached) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(cached)
+		return
+	}
+
 	resp, err := h.postMobond(allLiveTrainsURL, "")
 	if err != nil {
 		http.Error(w, "upstream error", http.StatusBadGateway)
@@ -59,8 +71,16 @@ func (h *LiveHandler) GetAllLiveTrains(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil || len(body) == 0 {
+		http.Error(w, "upstream error", http.StatusBadGateway)
+		return
+	}
+
+	h.redis.Set(r.Context(), allLiveTrainsCacheKey, body, liveCacheTTL)
+
 	w.Header().Set("Content-Type", "application/json")
-	io.Copy(w, resp.Body)
+	w.Write(body)
 }
 
 // GetLiveTrainInfo returns live position for a train by merging m-indicator
@@ -72,14 +92,21 @@ func (h *LiveHandler) GetLiveTrainInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch m-indicator data
+	// Try cached m-indicator data first, fetch on miss
 	var mobondData map[string]any
-	resp, err := h.postMobond(liveTrainInfoURL, "tn="+trainNumber)
-	if err == nil {
-		defer resp.Body.Close()
-		body, _ := io.ReadAll(resp.Body)
-		if len(body) > 0 {
-			json.Unmarshal(body, &mobondData)
+	cacheKey := liveTrainCacheKey(trainNumber)
+	cached, err := h.redis.Get(r.Context(), cacheKey).Bytes()
+	if err == nil && len(cached) > 0 {
+		json.Unmarshal(cached, &mobondData)
+	} else {
+		resp, err := h.postMobond(liveTrainInfoURL, "tn="+trainNumber)
+		if err == nil {
+			defer resp.Body.Close()
+			body, _ := io.ReadAll(resp.Body)
+			if len(body) > 0 {
+				json.Unmarshal(body, &mobondData)
+				h.redis.Set(r.Context(), cacheKey, body, liveCacheTTL)
+			}
 		}
 	}
 
@@ -238,4 +265,8 @@ func (h *LiveHandler) GetRoute(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(route)
+}
+
+func liveTrainCacheKey(trainNumber string) string {
+	return fmt.Sprintf("mobond:train:%s", trainNumber)
 }
