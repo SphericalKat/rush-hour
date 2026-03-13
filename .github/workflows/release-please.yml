@@ -13,11 +13,11 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs['mobile--release_created'] }}
-      tag_name: ${{ steps.release.outputs['mobile--tag_name'] }}
-      body: ${{ steps.release.outputs['mobile--body'] }}
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      body: ${{ steps.release.outputs.body }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v4.4.0
         id: release
         with:
           config-file: release-please-config.json
