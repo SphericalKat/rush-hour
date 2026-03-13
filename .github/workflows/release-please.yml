@@ -15,6 +15,7 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs['mobile--release_created'] }}
       tag_name: ${{ steps.release.outputs['mobile--tag_name'] }}
+      body: ${{ steps.release.outputs['mobile--body'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -26,6 +27,8 @@ jobs:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      version_code: ${{ steps.version.outputs.version_code }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -77,35 +80,73 @@ jobs:
         run: npm ci
 
       - name: Compute and set versionCode
+        id: version
         working-directory: mobile
         run: |
           tag="${{ needs.release-please.outputs.tag_name }}"
           version="${tag#v}"
           IFS='.' read -r major minor patch <<< "$version"
           versionCode=$((major * 10000 + minor * 100 + patch))
+          echo "version_code=$versionCode" >> "$GITHUB_OUTPUT"
           jq --argjson vc "$versionCode" '.expo.android.versionCode = $vc' app.json > app.json.tmp && mv app.json.tmp app.json
 
       - name: Prebuild
         working-directory: mobile
         run: npx expo prebuild --platform android
 
-      - name: Build release APKs
+      - name: Build release APKs and AAB
         working-directory: mobile/android
-        run: ./gradlew assemblePlayRelease
+        run: ./gradlew assemblePlayRelease bundlePlayRelease
         env:
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
           EXPO_PUBLIC_DISTRIBUTION: github
 
-      - name: Upload APKs to release
+      - name: Upload artifacts to GitHub release
         run: |
           tag="${{ needs.release-please.outputs.tag_name }}"
-          cd mobile/android/app/build/outputs/apk/play/release
 
+          cd mobile/android/app/build/outputs/apk/play/release
           for apk in *.apk; do
             base="${apk%.apk}"
             mv "$apk" "${base}-${tag}.apk"
           done
 
-          gh release upload "$tag" *-${tag}.apk
+          cd /home/runner/work/rush-hour/rush-hour
+          gh release upload "$tag" \
+            mobile/android/app/build/outputs/apk/play/release/*-${tag}.apk \
+            mobile/android/app/build/outputs/bundle/playRelease/app-play-release.aab
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    needs: [release-please, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Download AAB from release
+        run: |
+          tag="${{ needs.release-please.outputs.tag_name }}"
+          mkdir -p mobile/android/app/build/outputs/bundle/playRelease
+          gh release download "$tag" --pattern "app-play-release.aab" --dir mobile/android/app/build/outputs/bundle/playRelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Play Store changelog
+        run: |
+          mkdir -p fastlane/metadata/android/en-US/changelogs
+          echo "${{ needs.release-please.outputs.body }}" | head -c 500 > "fastlane/metadata/android/en-US/changelogs/${{ needs.build.outputs.version_code }}.txt"
+
+      - name: Deploy to Google Play
+        run: bundle exec fastlane android deploy
+        env:
+          PLAY_STORE_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
