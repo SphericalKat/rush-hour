@@ -2,6 +2,15 @@
 
 Train tracker for Mumbai suburban railways which covers Central, Western, Harbour, Trans-Harbour, and Port lines.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="270" alt="Departures list"></td>
+    <td><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="270" alt="Train detail"></td>
+  </tr>
+</table>
+
 ## Features
 
 - Source/Destination filtering
