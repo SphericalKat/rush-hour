@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/SphericalKat/rush-hour/compare/v0.6.0...v0.6.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* **parser:** only read files from the index ([7ee2798](https://github.com/SphericalKat/rush-hour/commit/7ee2798e7ac7bb031244ca5959441d55b67d6abf))
+
 ## [0.6.0](https://github.com/SphericalKat/rush-hour/compare/v0.5.1...v0.6.0) (2026-03-13)
 
 
