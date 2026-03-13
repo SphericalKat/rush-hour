@@ -142,9 +142,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Play Store changelog
+        env:
+          RELEASE_BODY: ${{ needs.release-please.outputs.body }}
         run: |
           mkdir -p fastlane/metadata/android/en-US/changelogs
-          echo "${{ needs.release-please.outputs.body }}" | head -c 500 > "fastlane/metadata/android/en-US/changelogs/${{ needs.build.outputs.version_code }}.txt"
+          echo "$RELEASE_BODY" \
+            | pandoc -f markdown -t html --no-highlight \
+            | head -c 500 \
+            > "fastlane/metadata/android/en-US/changelogs/${{ needs.build.outputs.version_code }}.txt"
 
       - name: Deploy to Google Play
         run: bundle exec fastlane android deploy
