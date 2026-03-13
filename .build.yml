@@ -45,6 +45,7 @@ tasks:
   - build: |
       cd rush-hour/mobile
       npm ci
+      npx expo prebuild --platform android
       cd android
       ./gradlew assembleRelease bundleRelease
   - upload: |

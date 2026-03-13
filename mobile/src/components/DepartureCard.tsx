@@ -25,6 +25,19 @@ const _RUNS_ON_LABELS: Record<string, string> = {
   not_thu_fri: 'No Thu/Fri',
 };
 
+function doesNotRunToday(runsOn: string): boolean {
+  const day = new Date().getDay(); // 0 = Sun, 6 = Sat
+  switch (runsOn) {
+    case 'not_sunday': return day === 0;
+    case 'sunday_only': return day !== 0;
+    case 'weekdays_only': return day === 0 || day === 6;
+    case 'not_saturday': return day === 6;
+    case 'not_fri_sat': return day === 5 || day === 6;
+    case 'not_thu_fri': return day === 4 || day === 5;
+    default: return false;
+  }
+}
+
 function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['colors']) {
   if (item.is_ac) return colors.trainAC;
   if (item.is_fast) return colors.trainFast;
@@ -50,18 +63,22 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
   }
   
   const barColor = trainBarColor(item, colors);
+  const isLadiesSpecial = item.note?.toLowerCase() === 'ladies special';
+  const disabled = doesNotRunToday(item.runs_on);
 
   return (
     <Pressable
-      onPress={onPress}
-      onLongPress={onLongPress}
+      onPress={disabled ? undefined : onPress}
+      onLongPress={disabled ? undefined : onLongPress}
       accessibilityRole="button"
       accessibilityLabel={`${item.number} to ${item.destination}, departs at ${minutesToHHMM(item.departure)}`}
-      android_ripple={{ color: colors.textTertiary + '30', borderless: false }}
+      accessibilityState={{ disabled }}
+      android_ripple={disabled ? null : { color: colors.textTertiary + '30', borderless: false }}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: colors.surface },
-        pressed && { opacity: 0.7 },
+        { backgroundColor: isLadiesSpecial ? colors.ladiesSpecial + '10' : item.is_ac ? colors.trainAC + '10' : colors.surface },
+        pressed && !disabled && { opacity: 0.7 },
+        disabled && { opacity: 0.4 },
       ]}
     >
       {/* Leading color bar */}
@@ -145,8 +162,8 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
             </View>
           )}
           {item.note ? (
-            <View style={[styles.badge, { backgroundColor: colors.textTertiary + '18' }]}>
-              <Text style={[styles.badgeLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+            <View style={[styles.badge, { backgroundColor: isLadiesSpecial ? colors.ladiesSpecial + '18' : colors.textTertiary + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: isLadiesSpecial ? colors.ladiesSpecial : colors.textSecondary }]} numberOfLines={1}>
                 {item.note}
               </Text>
             </View>
