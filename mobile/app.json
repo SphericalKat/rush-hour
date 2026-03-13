@@ -89,6 +89,7 @@
       "expo-splash-screen",
       "expo-sqlite",
       "./plugins/android-signing",
+      "./plugins/android-jvm-args",
       "./plugins/android-abi-splits",
       "./plugins/android-flavors",
       "expo-background-task",
