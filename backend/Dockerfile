@@ -14,6 +14,8 @@ RUN apk add --no-cache tzdata && \
 USER app
 
 COPY --from=builder /server /server
+COPY mumbai_trains.db /data/mumbai_trains.db
 EXPOSE 8080
 
+ENV TIMETABLE_DB_PATH=/data/mumbai_trains.db
 ENTRYPOINT ["/server"]
