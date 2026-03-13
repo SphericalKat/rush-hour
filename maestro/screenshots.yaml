@@ -1,0 +1,73 @@
+appId: com.sphericalkat.rushhour
+---
+# Launch the app
+- launchApp
+
+# Wait for the app to fully load
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# -- Departures screen --
+
+# Tap the "From" station picker
+- tapOn: "From"
+
+# Wait for the station picker to appear
+- extendedWaitUntil:
+    visible: "Select Station"
+    timeout: 3000
+
+# Search for and select a station
+- tapOn: "Search stations"
+- setClipboard: "Dadar"
+- pasteText
+- extendedWaitUntil:
+    visible: "Dadar"
+    timeout: 3000
+- tapOn:
+    text: "DADAR"
+    index: 0
+
+# Wait for departures to load
+- extendedWaitUntil:
+    visible: "Departures"
+    timeout: 5000
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "DeparturesList"
+
+# -- Train detail screen --
+
+# Tap the first departure card
+- tapOn:
+    text: ".*\\d{5,6}.*"
+    index: 0
+
+# Wait for train detail to load
+- extendedWaitUntil:
+    visible: "STATUS"
+    timeout: 5000
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "TrainDetail"
+
+# Go back to departures
+- back
+
+# -- Favorites tab --
+
+- tapOn: "Favorites"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- takeScreenshot: "FavoritesTab"
+
+# -- Settings tab --
+
+- tapOn: "Settings"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- takeScreenshot: "SettingsScreen"
