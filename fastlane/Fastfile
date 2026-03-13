@@ -1,0 +1,15 @@
+default_platform(:android)
+
+platform :android do
+  desc "Deploy to Google Play production track"
+  lane :deploy do
+    supply(
+      track: "production",
+      aab: "mobile/android/app/build/outputs/bundle/playRelease/app-play-release.aab",
+      metadata_path: "fastlane/metadata/android",
+      release_status: "completed",
+      skip_upload_apk: true,
+      json_key_data: ENV["PLAY_STORE_SERVICE_ACCOUNT_JSON"],
+    )
+  end
+end
