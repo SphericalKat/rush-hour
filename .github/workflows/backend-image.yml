@@ -1,0 +1,33 @@
+name: Backend Docker image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: sphericalkat/rush-hour-backend
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
