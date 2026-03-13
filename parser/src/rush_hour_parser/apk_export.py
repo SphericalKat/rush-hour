@@ -252,19 +252,22 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
     overrides = index["overrides"]
     stations_in_index = index["stations"]
 
-    # Collect departures per train from each station file
+    # Collect departures per train from each station file.
+    # Only read files listed in the index's station array — the APK also
+    # contains legacy files with old spellings (e.g. BHAYANDER alongside
+    # BHAYANDAR) that are NOT in the index. m-indicator iterates
+    # gVar.f16985f (the index station list) to build file paths, so it
+    # never touches the legacy files. Reading them causes duplicates.
     # Key: train_idx -> list of (station, departure, platform, side)
     train_stops: dict[int, list[_Stop]] = defaultdict(list)
 
-    prefix = f"assets/mumbai/local/{line_code}/"
-    station_files = [
-        n for n in zf.namelist()
-        if n.startswith(prefix) and not n.endswith("/index") and n.count("/") == 4
-    ]
-
-    for stn_file in station_files:
-        stn_name = _STATION_ALIASES.get(stn_file.split("/")[-1], stn_file.split("/")[-1])
-        stn_data = zf.read(stn_file)
+    for stn_name in stations_in_index:
+        stn_path = f"assets/mumbai/local/{line_code}/{stn_name}"
+        try:
+            stn_data = zf.read(stn_path)
+        except KeyError:
+            continue
+        canonical = _STATION_ALIASES.get(stn_name, stn_name)
         for i in range(len(stn_data) // 4):
             raw = stn_data[i * 4:(i + 1) * 4]
             time_mins = (raw[0] << 4) | ((raw[1] & 0xF0) >> 4)
@@ -274,7 +277,7 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
                 continue
 
             platform, side = _decode_platform(raw, overrides)
-            train_stops[train_idx].append(_Stop(stn_name, time_mins, platform, side))
+            train_stops[train_idx].append(_Stop(canonical, time_mins, platform, side))
 
     # Build train objects
     result: list[_ParsedTrain] = []
@@ -458,6 +461,19 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
                     conn.execute("UPDATE stations SET lat=?, lng=? WHERE id=?", (lat, lng, sid))
         except KeyError:
             print("  warning: all_stations_lat_lon.csv not found in APK", file=sys.stderr)
+
+        # Populate station shorthand codes from bundled JSON
+        codes_path = Path(__file__).resolve().parent.parent.parent / "data" / "station_codes.json"
+        if codes_path.exists():
+            with open(codes_path) as f:
+                station_codes: dict[str, str] = json.load(f)
+            for row in conn.execute("SELECT id, name FROM stations"):
+                sid, name = row
+                code = station_codes.get(name.upper())
+                if code:
+                    conn.execute("UPDATE stations SET code=? WHERE id=?", (code, sid))
+        else:
+            print("  warning: station_codes.json not found", file=sys.stderr)
 
     conn.commit()
     conn.close()

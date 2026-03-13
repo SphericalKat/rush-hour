@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -172,6 +173,17 @@ def export(
                     "VALUES (?, ?, ?, ?)",
                     (train_db_id, station_id[stop.station], stop.departure, seq),
                 )
+
+    # Populate station shorthand codes from bundled JSON
+    codes_path = Path(__file__).resolve().parent.parent.parent / "data" / "station_codes.json"
+    if codes_path.exists():
+        with open(codes_path) as f:
+            station_codes: dict[str, str] = json.load(f)
+        for row in conn.execute("SELECT id, name FROM stations"):
+            sid, name = row
+            code = station_codes.get(name.upper())
+            if code:
+                conn.execute("UPDATE stations SET code=? WHERE id=?", (code, sid))
 
     conn.commit()
     conn.close()
