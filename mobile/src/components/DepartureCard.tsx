@@ -50,6 +50,7 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
   }
   
   const barColor = trainBarColor(item, colors);
+  const isLadiesSpecial = item.note?.toLowerCase() === 'ladies special';
 
   return (
     <Pressable
@@ -60,7 +61,7 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
       android_ripple={{ color: colors.textTertiary + '30', borderless: false }}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: colors.surface },
+        { backgroundColor: isLadiesSpecial ? colors.ladiesSpecial + '10' : item.is_ac ? colors.trainAC + '10' : colors.surface },
         pressed && { opacity: 0.7 },
       ]}
     >
@@ -145,8 +146,8 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
             </View>
           )}
           {item.note ? (
-            <View style={[styles.badge, { backgroundColor: colors.textTertiary + '18' }]}>
-              <Text style={[styles.badgeLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+            <View style={[styles.badge, { backgroundColor: isLadiesSpecial ? colors.ladiesSpecial + '18' : colors.textTertiary + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: isLadiesSpecial ? colors.ladiesSpecial : colors.textSecondary }]} numberOfLines={1}>
                 {item.note}
               </Text>
             </View>
