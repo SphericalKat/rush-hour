@@ -29,8 +29,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Departures',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="train-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "train" : "train-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -38,8 +38,8 @@ export default function TabLayout() {
         name="favorites"
         options={{
           title: 'Favorites',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "heart" : "heart-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -47,8 +47,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? "settings" : "settings-outline"} size={size} color={color} />
           ),
         }}
       />
