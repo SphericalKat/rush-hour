@@ -137,10 +137,12 @@ const styles = StyleSheet.create({
   itemFirst: {
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
+    overflow: 'hidden',
   },
   itemLast: {
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
+    overflow: 'hidden',
   },
   itemLabel: {
     fontSize: 17,

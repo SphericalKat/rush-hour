@@ -197,6 +197,7 @@ export default function DeparturesScreen() {
         <View style={styles.stationRow}>
           <Pressable
             onPress={() => setPickerOpen(true)}
+            android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
             style={[
               styles.stationChip,
               station
@@ -221,6 +222,7 @@ export default function DeparturesScreen() {
 
           <Pressable
             onPress={() => setDestPickerOpen(true)}
+            android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
             style={[
               styles.stationChip,
               destination
@@ -250,6 +252,7 @@ export default function DeparturesScreen() {
                   addRouteFav(station.id, station.name, destination.id, destination.name);
                 }
               }}
+              android_ripple={{ color: colors.textTertiary + '30', borderless: true, foreground: true }}
               style={[styles.clearDest, { backgroundColor: isDark ? colors.surfaceSecondary : 'rgba(255,255,255,0.2)' }]}
               hitSlop={8}
               accessibilityRole="button"
@@ -267,6 +270,7 @@ export default function DeparturesScreen() {
           {station ? (
             <Pressable
               onPress={() => { setStation(null); setDestination(null); }}
+              android_ripple={{ color: colors.textTertiary + '30', borderless: true, foreground: true }}
               style={[styles.clearDest, { backgroundColor: isDark ? colors.surfaceSecondary : 'rgba(255,255,255,0.2)' }]}
               hitSlop={8}
               accessibilityRole="button"
@@ -281,6 +285,10 @@ export default function DeparturesScreen() {
           <View style={styles.filterRow}>
             <Pressable
               onPress={() => setFilterFast(f => !f)}
+              android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
+              accessibilityRole="button"
+              accessibilityLabel={filterFast ? 'Remove fast train filter' : 'Show only fast trains'}
+              accessibilityState={{ selected: filterFast }}
               style={[
                 styles.filterChip,
                 filterFast
@@ -294,6 +302,10 @@ export default function DeparturesScreen() {
             </Pressable>
             <Pressable
               onPress={() => setFilterAC(f => !f)}
+              android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
+              accessibilityRole="button"
+              accessibilityLabel={filterAC ? 'Remove AC train filter' : 'Show only AC trains'}
+              accessibilityState={{ selected: filterAC }}
               style={[
                 styles.filterChip,
                 filterAC
@@ -377,6 +389,7 @@ export default function DeparturesScreen() {
               {hiddenPastCount > 0 && (
                 <Pressable
                   onPress={() => setPastLimit(l => l + PAST_PAGE)}
+                  android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
                   style={[styles.showEarlier, { backgroundColor: colors.surfaceSecondary }]}
                 >
                   <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
@@ -492,6 +505,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    overflow: 'hidden',
   },
   stationLabel: {
     fontSize: 13,
@@ -506,6 +520,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 5,
+    overflow: 'hidden',
   },
   filterLabel: {
     fontSize: 12,
@@ -517,6 +532,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   listContent: {
     paddingTop: 8,
@@ -547,6 +563,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     paddingVertical: 10,
     borderRadius: 8,
+    overflow: 'hidden',
   },
   showEarlierText: {
     fontSize: 13,
