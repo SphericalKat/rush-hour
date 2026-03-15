@@ -99,7 +99,7 @@ jobs:
         run: ./gradlew assemblePlayRelease bundlePlayRelease
         env:
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
-          EXPO_PUBLIC_DISTRIBUTION: github
+          EXPO_PUBLIC_DISTRIBUTION: play
 
       - name: Upload artifacts to GitHub release
         run: |
