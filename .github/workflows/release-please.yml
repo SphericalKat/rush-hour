@@ -141,6 +141,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install pandoc
+        run: sudo apt-get install -y pandoc
+
       - name: Generate Play Store changelog
         env:
           RELEASE_BODY: ${{ needs.release-please.outputs.body }}
