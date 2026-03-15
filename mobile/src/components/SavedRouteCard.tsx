@@ -20,6 +20,7 @@ export const SavedRouteCard = React.memo(function SavedRouteCard({ route, onPres
       onLongPress={onLongPress}
       accessibilityRole="button"
       accessibilityLabel={`${route.sourceName} to ${route.destName}`}
+      android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.surface },
@@ -48,8 +49,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginVertical: 3,
     borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',

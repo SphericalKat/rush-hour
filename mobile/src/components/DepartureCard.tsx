@@ -73,7 +73,7 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
       accessibilityRole="button"
       accessibilityLabel={`${item.number} to ${item.destination}, departs at ${minutesToHHMM(item.departure)}`}
       accessibilityState={{ disabled }}
-      android_ripple={disabled ? null : { color: colors.textTertiary + '30', borderless: false }}
+      android_ripple={disabled ? null : { color: colors.textTertiary + '30', borderless: false, foreground: true }}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: isLadiesSpecial ? colors.ladiesSpecial + '10' : item.is_ac ? colors.trainAC + '10' : colors.surface },
