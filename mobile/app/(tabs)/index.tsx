@@ -1,13 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
-  Alert,
   FlatList,
-  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -16,6 +13,7 @@ import {
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Departure, DepartureWithArrival, Station } from '../../src/api/types';
+import { ActionMenu, type ActionMenuItem } from '../../src/components/ActionMenu';
 import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { SavedRouteCard } from '../../src/components/SavedRouteCard';
@@ -29,6 +27,16 @@ import { useLiveTrains } from '../../src/hooks/useLiveTrains';
 import { useRouteHistory, usePendingRoute } from '../../src/hooks/useRouteHistory';
 import { useTransferRoutes } from '../../src/hooks/useTransferRoutes';
 import { useTheme } from '../../src/hooks/useTheme';
+import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
+
+function hapticLongPress() {
+  if (Platform.OS === 'android') {
+    Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Long_Press);
+  } else {
+    hapticLongPress();
+  }
+}
 
 export default function DeparturesScreen() {
   const { colors, spacing, scheme } = useTheme();
@@ -43,7 +51,11 @@ export default function DeparturesScreen() {
   const [filterFast, setFilterFast] = useState(false);
   const [filterAC, setFilterAC] = useState(false);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
+  const isFavoriteRef = useRef(isFavorite);
+  isFavoriteRef.current = isFavorite;
   const { topRoutes, record: recordRoute, toggleFavorite: toggleRouteFav, addFavorite: addRouteFav, removeFavorite: removeRouteFav, isRouteFavorite } = useRouteHistory();
+  const isRouteFavoriteRef = useRef(isRouteFavorite);
+  isRouteFavoriteRef.current = isRouteFavorite;
   const { pendingRoute, consumePendingRoute } = usePendingRoute();
   const { update, showBanner, dismiss } = useAppUpdate();
 
@@ -56,40 +68,31 @@ export default function DeparturesScreen() {
     }
   }, [pendingRoute]);
 
+  // Action menu state
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuTitle, setMenuTitle] = useState<string | undefined>();
+  const [menuItems, setMenuItems] = useState<ActionMenuItem[]>([]);
+
   const showFavoriteMenu = React.useCallback((item: Departure) => {
-    const fav = isFavorite(item.number, item.line);
-    const label = fav ? 'Remove from Favorites' : 'Add to Favorites';
-
-    const action = () => toggleFavorite({
-      number: item.number,
-      line: item.line,
-      origin: item.origin,
-      destination: item.destination,
-      is_fast: item.is_fast,
-      is_ac: item.is_ac,
-      departure: item.departure,
-    });
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', label],
-          cancelButtonIndex: 0,
-          destructiveButtonIndex: fav ? 1 : undefined,
-        },
-        idx => { if (idx === 1) action(); },
-      );
-    } else {
-      Alert.alert(
-        `${item.number} ${item.origin} \u2192 ${item.destination}`,
-        undefined,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: label, style: fav ? 'destructive' : 'default', onPress: action },
-        ],
-      );
-    }
-  }, [isFavorite, toggleFavorite]);
+    hapticLongPress();
+    const fav = isFavoriteRef.current(item.number, item.line);
+    setMenuTitle(`${item.number} ${item.origin} \u2192 ${item.destination}`);
+    setMenuItems([{
+      label: fav ? 'Remove from Favorites' : 'Add to Favorites',
+      icon: fav ? 'heart-dislike-outline' : 'heart-outline',
+      destructive: fav,
+      onPress: () => toggleFavorite({
+        number: item.number,
+        line: item.line,
+        origin: item.origin,
+        destination: item.destination,
+        is_fast: item.is_fast,
+        is_ac: item.is_ac,
+        departure: item.departure,
+      }),
+    }]);
+    setMenuVisible(true);
+  }, [toggleFavorite]);
 
   const { data, loading, error, refresh } = useDepartures(
     station?.id ?? null,
@@ -150,30 +153,17 @@ export default function DeparturesScreen() {
   }, []);
 
   const showRouteFavoriteMenu = useCallback((route: { sourceId: number; sourceName: string; destId: number; destName: string }) => {
-    const fav = isRouteFavorite(route.sourceId, route.destId);
-    const label = fav ? 'Remove from Favorites' : 'Add to Favorites';
-    const action = () => toggleRouteFav(route.sourceId, route.destId);
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', label],
-          cancelButtonIndex: 0,
-          destructiveButtonIndex: fav ? 1 : undefined,
-        },
-        idx => { if (idx === 1) action(); },
-      );
-    } else {
-      Alert.alert(
-        `${route.sourceName} \u2192 ${route.destName}`,
-        undefined,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: label, style: fav ? 'destructive' : 'default', onPress: action },
-        ],
-      );
-    }
-  }, [isRouteFavorite, toggleRouteFav]);
+    hapticLongPress();
+    const fav = isRouteFavoriteRef.current(route.sourceId, route.destId);
+    setMenuTitle(`${route.sourceName} \u2192 ${route.destName}`);
+    setMenuItems([{
+      label: fav ? 'Remove from Favorites' : 'Add to Favorites',
+      icon: fav ? 'heart-dislike-outline' : 'heart-outline',
+      destructive: fav,
+      onPress: () => toggleRouteFav(route.sourceId, route.destId),
+    }]);
+    setMenuVisible(true);
+  }, [toggleRouteFav]);
 
   const handleTransferLegPress = useCallback((leg: DepartureWithArrival, stationName: string) => {
     if (!station) return;
@@ -438,6 +428,7 @@ export default function DeparturesScreen() {
             <DepartureCard
               item={item}
               liveStatus={liveTrains[item.number]}
+              isFavorited={isFavoriteRef.current(item.number, item.line)}
               onPress={() =>
                 router.push({
                   pathname: '/train/[number]',
@@ -466,6 +457,12 @@ export default function DeparturesScreen() {
         onSelect={setDestination}
         onClose={() => setDestPickerOpen(false)}
         title="Select Destination"
+      />
+      <ActionMenu
+        visible={menuVisible}
+        title={menuTitle}
+        items={menuItems}
+        onClose={() => setMenuVisible(false)}
       />
     </View>
   );

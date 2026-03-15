@@ -14,6 +14,7 @@ interface Props {
   delayMinutes?: number;
   liveStatus?: string;
   hideCountdown?: boolean;
+  isFavorited?: boolean;
 }
 
 const _RUNS_ON_LABELS: Record<string, string> = {
@@ -25,7 +26,7 @@ const _RUNS_ON_LABELS: Record<string, string> = {
   not_thu_fri: 'No Thu/Fri',
 };
 
-function doesNotRunToday(runsOn: string): boolean {
+export function doesNotRunToday(runsOn: string): boolean {
   const day = new Date().getDay(); // 0 = Sun, 6 = Sat
   switch (runsOn) {
     case 'not_sunday': return day === 0;
@@ -44,7 +45,7 @@ function trainBarColor(item: Departure, colors: ReturnType<typeof useTheme>['col
   return colors.trainSlow;
 }
 
-export const DepartureCard = React.memo(function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, liveStatus, hideCountdown }: Props) {
+export const DepartureCard = React.memo(function DepartureCard({ item, onPress, onLongPress, delayMinutes = 0, liveStatus, hideCountdown, isFavorited }: Props) {
   const { colors } = useTheme();
 
   const until = minutesUntil(item.departure);
@@ -62,9 +63,10 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
     countdownBg = colors.countdownUrgent;
   }
   
-  const barColor = trainBarColor(item, colors);
   const isLadiesSpecial = item.note?.toLowerCase() === 'ladies special';
   const disabled = doesNotRunToday(item.runs_on);
+  const g = colors.textTertiary; // grey override for disabled cards
+  const barColor = disabled ? g : trainBarColor(item, colors);
 
   return (
     <Pressable
@@ -76,9 +78,9 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
       android_ripple={disabled ? null : { color: colors.textTertiary + '30', borderless: false, foreground: true }}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: isLadiesSpecial ? colors.ladiesSpecial + '10' : item.is_ac ? colors.trainAC + '10' : colors.surface },
+        { backgroundColor: disabled ? colors.surfaceSecondary : isLadiesSpecial ? colors.ladiesSpecial + '10' : item.is_ac ? colors.trainAC + '10' : colors.surface },
         pressed && !disabled && { opacity: 0.7 },
-        disabled && { opacity: 0.4 },
+        disabled && styles.disabled,
       ]}
     >
       {/* Leading color bar */}
@@ -88,31 +90,31 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
         {/* Top row: time + platform + countdown */}
         <View style={styles.header}>
           {!hideCountdown && (
-            <Text style={[styles.time, { color: colors.text }]}>
+            <Text style={[styles.time, { color: disabled ? g : colors.text }, disabled && styles.strikethrough]}>
               {minutesToHHMM(item.departure)}
             </Text>
           )}
-          {!hideCountdown && isDelayed && (
+          {!hideCountdown && isDelayed && !disabled && (
             <Text style={[styles.delay, { color: colors.danger }]}>
               +{delayMinutes}m
             </Text>
           )}
           {hideCountdown && (
-            <Text style={[styles.time, { color: colors.text }]}>
+            <Text style={[styles.time, { color: disabled ? g : colors.text }, disabled && styles.strikethrough]}>
               {minutesToHHMM(item.departure)}
             </Text>
           )}
           <View style={{ flex: 1 }} />
           {item.platform ? (
-            <View style={[styles.platformPill, { backgroundColor: colors.platformMuted }]}>
-              <Text style={[styles.platformLabel, { color: colors.platform }]}>
+            <View style={[styles.platformPill, { backgroundColor: disabled ? g + '18' : colors.platformMuted }]}>
+              <Text style={[styles.platformLabel, { color: disabled ? g : colors.platform }, disabled && styles.strikethrough]}>
                 PF {item.platform}
               </Text>
             </View>
           ) : null}
           {!hideCountdown && (
-            <View style={[styles.countdownPill, { backgroundColor: countdownBg }]}>
-              <Text style={[styles.countdown, { color: countdownColor }]}>
+            <View style={[styles.countdownPill, { backgroundColor: disabled ? 'transparent' : countdownBg }]}>
+              <Text style={[styles.countdown, { color: disabled ? g : countdownColor }, disabled && styles.strikethrough]}>
                 {isDue ? 'Due' : formatCountdown(until)}
               </Text>
             </View>
@@ -120,14 +122,14 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
         </View>
 
         {/* Route */}
-        <Text style={[styles.route, { color: colors.textSecondary }]} numberOfLines={1}>
+        <Text style={[styles.route, { color: disabled ? g : colors.textSecondary }, disabled && styles.strikethrough]} numberOfLines={1}>
           {item.origin}
-          <Text style={{ color: colors.textTertiary }}>{' \u2192 '}</Text>
+          <Text style={{ color: g }}>{' \u2192 '}</Text>
           {item.destination}
         </Text>
 
         {/* Live tracking status */}
-        {liveStatus ? (
+        {liveStatus && !disabled ? (
           <View style={[styles.liveRow, { backgroundColor: colors.success + '14' }]}>
             <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
             <Text style={[styles.liveText, { color: colors.success }]} numberOfLines={1}>
@@ -140,36 +142,39 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
         <View style={styles.meta}>
           <LineChip shortName={item.line} size="sm" />
           {!hideCountdown && (
-            <Text style={[styles.trainNum, { color: colors.textTertiary }]}>
+            <Text style={[styles.trainNum, { color: g }, disabled && styles.strikethrough]}>
               {item.number}
             </Text>
           )}
           {item.is_fast ? (
-            <View style={[styles.badge, { backgroundColor: colors.trainFast + '18' }]}>
-              <Text style={[styles.badgeLabel, { color: colors.trainFast }]}>Fast</Text>
+            <View style={[styles.badge, { backgroundColor: disabled ? g + '18' : colors.trainFast + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: disabled ? g : colors.trainFast }, disabled && styles.strikethrough]}>Fast</Text>
             </View>
           ) : null}
           {item.is_ac ? (
-            <View style={[styles.badge, { backgroundColor: colors.trainAC + '18' }]}>
-              <Text style={[styles.badgeLabel, { color: colors.trainAC }]}>AC</Text>
+            <View style={[styles.badge, { backgroundColor: disabled ? g + '18' : colors.trainAC + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: disabled ? g : colors.trainAC }, disabled && styles.strikethrough]}>AC</Text>
             </View>
           ) : null}
           {item.runs_on && item.runs_on !== 'daily' && (
-            <View style={[styles.badge, { backgroundColor: colors.warning + '18' }]}>
-              <Text style={[styles.badgeLabel, { color: colors.warning }]}>
+            <View style={[styles.badge, { backgroundColor: disabled ? g + '18' : colors.warning + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: disabled ? g : colors.warning }, disabled && styles.strikethrough]}>
                 {_RUNS_ON_LABELS[item.runs_on] ?? item.runs_on}
               </Text>
             </View>
           )}
           {item.note ? (
-            <View style={[styles.badge, { backgroundColor: isLadiesSpecial ? colors.ladiesSpecial + '18' : colors.textTertiary + '18' }]}>
-              <Text style={[styles.badgeLabel, { color: isLadiesSpecial ? colors.ladiesSpecial : colors.textSecondary }]} numberOfLines={1}>
+            <View style={[styles.badge, { backgroundColor: disabled ? g + '18' : isLadiesSpecial ? colors.ladiesSpecial + '18' : colors.textTertiary + '18' }]}>
+              <Text style={[styles.badgeLabel, { color: disabled ? g : isLadiesSpecial ? colors.ladiesSpecial : colors.textSecondary }, disabled && styles.strikethrough]} numberOfLines={1}>
                 {item.note}
               </Text>
             </View>
           ) : null}
           <View style={{ flex: 1 }} />
-          <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+          {isFavorited && !disabled ? (
+            <Ionicons name="heart" size={12} color={colors.danger} style={{ marginRight: 2 }} />
+          ) : null}
+          <Ionicons name="chevron-forward" size={14} color={g} />
         </View>
       </View>
     </Pressable>
@@ -178,7 +183,8 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
   prev.item === next.item &&
   prev.liveStatus === next.liveStatus &&
   prev.delayMinutes === next.delayMinutes &&
-  prev.hideCountdown === next.hideCountdown,
+  prev.hideCountdown === next.hideCountdown &&
+  prev.isFavorited === next.isFavorited,
 );
 
 const styles = StyleSheet.create({
@@ -188,6 +194,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 10,
     overflow: 'hidden',
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  strikethrough: {
+    textDecorationLine: 'line-through',
   },
   bar: {
     width: 5,
