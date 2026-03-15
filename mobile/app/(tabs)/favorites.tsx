@@ -1,16 +1,14 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  ActionSheetIOS,
-  Alert,
   FlatList,
-  Platform,
   StyleSheet,
   View,
 } from 'react-native';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActionMenu, type ActionMenuItem } from '../../src/components/ActionMenu';
 import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { SavedRouteCard } from '../../src/components/SavedRouteCard';
@@ -19,6 +17,16 @@ import { useFavorites, type FavoriteTrain } from '../../src/hooks/useFavorites';
 import { useRouteHistory, setPendingRoute, type SavedRoute } from '../../src/hooks/useRouteHistory';
 import { useLiveTrains } from '../../src/hooks/useLiveTrains';
 import { useTheme } from '../../src/hooks/useTheme';
+import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
+
+function hapticLongPress() {
+  if (Platform.OS === 'android') {
+    Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Long_Press);
+  } else {
+    hapticLongPress();
+  }
+}
 
 function favToDeparture(fav: FavoriteTrain): Departure {
   return {
@@ -48,52 +56,32 @@ export default function FavoritesScreen() {
   const { favoriteRoutes, removeFavorite: removeRouteFav } = useRouteHistory();
   const liveTrains = useLiveTrains();
 
-  const showRemoveMenu = React.useCallback((item: FavoriteTrain) => {
-    const action = () => toggle(item);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuTitle, setMenuTitle] = useState<string | undefined>();
+  const [menuItems, setMenuItems] = useState<ActionMenuItem[]>([]);
 
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Remove from Favorites'],
-          cancelButtonIndex: 0,
-          destructiveButtonIndex: 1,
-        },
-        idx => { if (idx === 1) action(); },
-      );
-    } else {
-      Alert.alert(
-        `${item.number} ${item.origin} \u2192 ${item.destination}`,
-        undefined,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove', style: 'destructive', onPress: action },
-        ],
-      );
-    }
+  const showRemoveMenu = React.useCallback((item: FavoriteTrain) => {
+    hapticLongPress();
+    setMenuTitle(`${item.number} ${item.origin} \u2192 ${item.destination}`);
+    setMenuItems([{
+      label: 'Remove from Favorites',
+      icon: 'heart-dislike-outline',
+      destructive: true,
+      onPress: () => toggle(item),
+    }]);
+    setMenuVisible(true);
   }, [toggle]);
 
   const showRouteRemoveMenu = React.useCallback((item: SavedRoute) => {
-    const action = () => removeRouteFav(item.sourceId, item.destId);
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Remove from Favorites'],
-          cancelButtonIndex: 0,
-          destructiveButtonIndex: 1,
-        },
-        idx => { if (idx === 1) action(); },
-      );
-    } else {
-      Alert.alert(
-        `${item.sourceName} \u2192 ${item.destName}`,
-        undefined,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove', style: 'destructive', onPress: action },
-        ],
-      );
-    }
+    hapticLongPress();
+    setMenuTitle(`${item.sourceName} \u2192 ${item.destName}`);
+    setMenuItems([{
+      label: 'Remove from Favorites',
+      icon: 'heart-dislike-outline',
+      destructive: true,
+      onPress: () => removeRouteFav(item.sourceId, item.destId),
+    }]);
+    setMenuVisible(true);
   }, [removeRouteFav]);
 
   const hasAnything = favorites.length > 0 || favoriteRoutes.length > 0;
@@ -181,6 +169,13 @@ export default function FavoritesScreen() {
           }
         />
       )}
+
+      <ActionMenu
+        visible={menuVisible}
+        title={menuTitle}
+        items={menuItems}
+        onClose={() => setMenuVisible(false)}
+      />
     </View>
   );
 }
