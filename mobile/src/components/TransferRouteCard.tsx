@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 6,
     paddingVertical: 3,
+    marginTop: 4
   },
   liveDot: {
     width: 6,
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 6,
     borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: 2,
+    marginTop: 4,
   },
   footerText: {
     fontSize: 11,
