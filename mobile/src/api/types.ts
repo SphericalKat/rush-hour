@@ -74,6 +74,19 @@ export interface RouteStop {
   is_stop: boolean;
 }
 
+export interface DepartureWithArrival extends Departure {
+  arrival: number; // minutes from midnight at the leg's endpoint
+}
+
+export interface TransferRoute {
+  transferStation: string;
+  leg1: DepartureWithArrival; // source -> transfer
+  leg2: DepartureWithArrival; // transfer -> destination
+  waitMinutes: number;
+  totalMinutes: number;
+  arrivalTime: number; // minutes from midnight at final destination
+}
+
 export type Direction = 'down' | 'up';
 export type CrowdLevel = 'low' | 'moderate' | 'crowded';
 

@@ -15,16 +15,19 @@ import {
 } from 'react-native';
 import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Departure, Station } from '../../src/api/types';
+import type { Departure, DepartureWithArrival, Station } from '../../src/api/types';
 import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { StationPicker } from '../../src/components/StationPicker';
+import { TransferRouteCard } from '../../src/components/TransferRouteCard';
 import { UpdateBanner } from '../../src/components/UpdateBanner';
 import { useAppUpdate } from '../../src/hooks/useAppUpdate';
 import { useDepartures } from '../../src/hooks/useDepartures';
 import { useFavorites } from '../../src/hooks/useFavorites';
 import { useLiveTrains } from '../../src/hooks/useLiveTrains';
+import { useTransferRoutes } from '../../src/hooks/useTransferRoutes';
 import { useTheme } from '../../src/hooks/useTheme';
+import { minutesUntil } from '../../src/utils/time';
 
 export default function DeparturesScreen() {
   const { colors, spacing, scheme } = useTheme();
@@ -82,6 +85,15 @@ export default function DeparturesScreen() {
   );
 
   const liveTrains = useLiveTrains();
+
+  const { data: transferRoutes, loading: transferLoading } = useTransferRoutes(
+    station?.id ?? null,
+    destination?.id ?? null,
+  );
+
+  // Transfer routes are already filtered to current time at the query level
+  const visibleTransfers = transferRoutes;
+
   const filteredData = useMemo(() => data.filter(d => {
     if (filterFast && !d.is_fast) return false;
     if (filterAC && !d.is_ac) return false;
@@ -112,6 +124,14 @@ export default function DeparturesScreen() {
   React.useEffect(() => {
     setPastLimit(5);
   }, [station, destination, filterFast, filterAC]);
+
+  const handleTransferLegPress = useCallback((leg: DepartureWithArrival, stationName: string) => {
+    if (!station) return;
+    router.push({
+      pathname: '/train/[number]',
+      params: { number: leg.number, station: stationName, origin: leg.origin, destination: leg.destination, line: leg.line },
+    });
+  }, [station, router]);
 
   const stationFieldText = station ? station.name : 'From';
   const destFieldText = destination ? destination.name : 'To (any)';
@@ -283,12 +303,40 @@ export default function DeparturesScreen() {
             </>
           }
           ListEmptyComponent={
-            !loading ? (
+            loading || transferLoading ? (
+              <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 32 }} />
+            ) : visibleTransfers.length === 0 ? (
               <EmptyState
                 icon="😴"
                 title="No upcoming trains"
                 subtitle="Try a different destination or check back later."
               />
+            ) : null
+          }
+          ListFooterComponent={
+            visibleTransfers.length > 0 ? (
+              <View>
+                <View style={styles.listHeader}>
+                  <Text style={[styles.listTitle, { color: colors.textTertiary }]}>
+                    With Transfer
+                  </Text>
+                  {transferLoading ? (
+                    <ActivityIndicator color={colors.primary} size="small" />
+                  ) : (
+                    <Text style={[styles.listMeta, { color: colors.textSecondary }]}>
+                      {`${visibleTransfers.length} route${visibleTransfers.length === 1 ? '' : 's'}`}
+                    </Text>
+                  )}
+                </View>
+                {visibleTransfers.slice(0, 20).map((r, i) => (
+                  <TransferRouteCard
+                    key={`${r.leg1.number}-${r.transferStation}-${r.leg2.number}-${i}`}
+                    route={r}
+                    onPressLeg={handleTransferLegPress}
+                    liveTrains={liveTrains}
+                  />
+                ))}
+              </View>
             ) : null
           }
           renderItem={({ item }) => (
