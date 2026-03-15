@@ -11,6 +11,7 @@ interface Props {
 
 export const LineChip = React.memo(function LineChip({ shortName, size = 'md' }: Props) {
   const { scheme } = useTheme();
+  const display = shortName.replace(/-ML$/, '');
   const color = lineColor(shortName, scheme);
   const small = size === 'sm';
 
@@ -30,7 +31,7 @@ export const LineChip = React.memo(function LineChip({ shortName, size = 'md' }:
         ]}
         numberOfLines={1}
       >
-        {shortName}
+        {display}
       </Text>
     </View>
   );
