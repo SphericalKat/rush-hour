@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Departure, DepartureWithArrival, Station } from '../../src/api/types';
 import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
+import { SavedRouteCard } from '../../src/components/SavedRouteCard';
 import { StationPicker } from '../../src/components/StationPicker';
 import { TransferRouteCard } from '../../src/components/TransferRouteCard';
 import { UpdateBanner } from '../../src/components/UpdateBanner';
@@ -25,9 +26,9 @@ import { useAppUpdate } from '../../src/hooks/useAppUpdate';
 import { useDepartures } from '../../src/hooks/useDepartures';
 import { useFavorites } from '../../src/hooks/useFavorites';
 import { useLiveTrains } from '../../src/hooks/useLiveTrains';
+import { useRouteHistory, usePendingRoute } from '../../src/hooks/useRouteHistory';
 import { useTransferRoutes } from '../../src/hooks/useTransferRoutes';
 import { useTheme } from '../../src/hooks/useTheme';
-import { minutesUntil } from '../../src/utils/time';
 
 export default function DeparturesScreen() {
   const { colors, spacing, scheme } = useTheme();
@@ -42,7 +43,18 @@ export default function DeparturesScreen() {
   const [filterFast, setFilterFast] = useState(false);
   const [filterAC, setFilterAC] = useState(false);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
+  const { topRoutes, record: recordRoute, toggleFavorite: toggleRouteFav, addFavorite: addRouteFav, removeFavorite: removeRouteFav, isRouteFavorite } = useRouteHistory();
+  const { pendingRoute, consumePendingRoute } = usePendingRoute();
   const { update, showBanner, dismiss } = useAppUpdate();
+
+  // Pick up route selections from other tabs (e.g. favorites)
+  React.useEffect(() => {
+    if (pendingRoute) {
+      setStation({ id: pendingRoute.sourceId, name: pendingRoute.sourceName, code: '' });
+      setDestination({ id: pendingRoute.destId, name: pendingRoute.destName, code: '' });
+      consumePendingRoute();
+    }
+  }, [pendingRoute]);
 
   const showFavoriteMenu = React.useCallback((item: Departure) => {
     const fav = isFavorite(item.number, item.line);
@@ -125,6 +137,44 @@ export default function DeparturesScreen() {
     setPastLimit(5);
   }, [station, destination, filterFast, filterAC]);
 
+  // Record route search when both stations are selected
+  React.useEffect(() => {
+    if (station && destination) {
+      recordRoute(station.id, station.name, destination.id, destination.name);
+    }
+  }, [station?.id, destination?.id]);
+
+  const handleSavedRoutePress = useCallback((route: { sourceId: number; sourceName: string; destId: number; destName: string }) => {
+    setStation({ id: route.sourceId, name: route.sourceName, code: '' });
+    setDestination({ id: route.destId, name: route.destName, code: '' });
+  }, []);
+
+  const showRouteFavoriteMenu = useCallback((route: { sourceId: number; sourceName: string; destId: number; destName: string }) => {
+    const fav = isRouteFavorite(route.sourceId, route.destId);
+    const label = fav ? 'Remove from Favorites' : 'Add to Favorites';
+    const action = () => toggleRouteFav(route.sourceId, route.destId);
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', label],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: fav ? 1 : undefined,
+        },
+        idx => { if (idx === 1) action(); },
+      );
+    } else {
+      Alert.alert(
+        `${route.sourceName} \u2192 ${route.destName}`,
+        undefined,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: label, style: fav ? 'destructive' : 'default', onPress: action },
+        ],
+      );
+    }
+  }, [isRouteFavorite, toggleRouteFav]);
+
   const handleTransferLegPress = useCallback((leg: DepartureWithArrival, stationName: string) => {
     if (!station) return;
     router.push({
@@ -134,7 +184,7 @@ export default function DeparturesScreen() {
   }, [station, router]);
 
   const stationFieldText = station ? station.name : 'From';
-  const destFieldText = destination ? destination.name : 'To (any)';
+  const destFieldText = destination ? destination.name : 'To';
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -201,13 +251,36 @@ export default function DeparturesScreen() {
             </Text>
           </Pressable>
 
-          {destination ? (
+          {station && destination ? (
             <Pressable
-              onPress={() => setDestination(null)}
+              onPress={() => {
+                if (isRouteFavorite(station.id, destination.id)) {
+                  removeRouteFav(station.id, destination.id);
+                } else {
+                  addRouteFav(station.id, station.name, destination.id, destination.name);
+                }
+              }}
               style={[styles.clearDest, { backgroundColor: isDark ? colors.surfaceSecondary : 'rgba(255,255,255,0.2)' }]}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Clear destination filter"
+              accessibilityLabel={isRouteFavorite(station.id, destination.id) ? 'Remove route from favorites' : 'Add route to favorites'}
+            >
+              <Ionicons
+                name={isRouteFavorite(station.id, destination.id) ? 'heart' : 'heart-outline'}
+                size={14}
+                color={isRouteFavorite(station.id, destination.id)
+                  ? colors.danger
+                  : (isDark ? colors.textSecondary : 'rgba(255,255,255,0.8)')}
+              />
+            </Pressable>
+          ) : null}
+          {station ? (
+            <Pressable
+              onPress={() => { setStation(null); setDestination(null); }}
+              style={[styles.clearDest, { backgroundColor: isDark ? colors.surfaceSecondary : 'rgba(255,255,255,0.2)' }]}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
             >
               <Ionicons name="close" size={14} color={isDark ? colors.textSecondary : 'rgba(255,255,255,0.8)'} />
             </Pressable>
@@ -247,12 +320,34 @@ export default function DeparturesScreen() {
       </View>
 
       {/* Departure list */}
-      {!station ? (
-        <EmptyState
-          icon="🚉"
-          title="Pick a station"
-          subtitle="Tap above to choose a station and see upcoming departures."
-        />
+      {!(station && destination) ? (
+        topRoutes.length > 0 ? (
+          <FlatList
+            data={topRoutes}
+            keyExtractor={r => `${r.sourceId}-${r.destId}`}
+            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + spacing.base }]}
+            ListHeaderComponent={
+              <View style={styles.listHeader}>
+                <Text style={[styles.listTitle, { color: colors.textTertiary }]}>
+                  Recents
+                </Text>
+              </View>
+            }
+            renderItem={({ item }) => (
+              <SavedRouteCard
+                route={item}
+                onPress={() => handleSavedRoutePress(item)}
+                onLongPress={() => showRouteFavoriteMenu(item)}
+              />
+            )}
+          />
+        ) : (
+          <EmptyState
+            icon="🚉"
+            title="Pick a route"
+            subtitle="Select both a start and destination station to see trains."
+          />
+        )
       ) : error ? (
         <EmptyState
           icon="⚠️"
