@@ -45,6 +45,7 @@ function LegRow({
   return (
     <Pressable
       onPress={onPress}
+      android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
       style={({ pressed }) => [styles.leg, pressed && { opacity: 0.7 }]}
       accessibilityRole="button"
       accessibilityLabel={`Train ${leg.number} to ${destination}`}
