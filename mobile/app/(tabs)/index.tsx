@@ -34,7 +34,7 @@ function hapticLongPress() {
   if (Platform.OS === 'android') {
     Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Long_Press);
   } else {
-    hapticLongPress();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }
 }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text as RNText, View } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../hooks/useTheme';
 
@@ -13,7 +13,7 @@ export function EmptyState({ icon = '🚆', title, subtitle }: Props) {
   const { colors } = useTheme();
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
+      <RNText style={styles.icon}>{icon}</RNText>
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {subtitle ? (
         <Text style={[styles.subtitle, { color: colors.textTertiary }]}>
