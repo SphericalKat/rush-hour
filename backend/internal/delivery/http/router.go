@@ -18,6 +18,9 @@ import (
 //go:embed static/privacy.html
 var privacyHTML []byte
 
+//go:embed static/support.html
+var supportHTML []byte
+
 func NewRouter(
 	stationRepo station.Repository,
 	trainRepo train.Repository,
@@ -65,6 +68,12 @@ func NewRouter(
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write(privacyHTML)
+	})
+
+	r.Get("/support", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(supportHTML)
 	})
 
 	return r

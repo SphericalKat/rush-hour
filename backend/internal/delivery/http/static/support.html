@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support. Rush Hour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      background: #fafaf9;
+      color: #1a1a1a;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 48px 24px 64px;
+    }
+
+    .container {
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 48px;
+    }
+
+    .brand {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #1a1a1a;
+    }
+
+    section {
+      margin-bottom: 36px;
+    }
+
+    p {
+      font-size: 15px;
+      color: #444;
+      margin-bottom: 12px;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    ul {
+      list-style: disc;
+      padding-left: 20px;
+      margin: 10px 0 12px;
+    }
+
+    ul li {
+      font-size: 15px;
+      color: #444;
+      margin-bottom: 8px;
+      line-height: 1.7;
+    }
+
+    ul li strong {
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+
+    a {
+      color: #1a1a1a;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: #555;
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid #e0dfdc;
+      font-size: 12px;
+      color: #999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    footer img {
+      max-width: 1em;
+      max-height: 1em;
+      margin-left: 0.2em;
+      vertical-align: text-bottom;
+    }
+
+    footer a {
+      color: #999;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 32px 20px 48px; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="brand">Rush Hour</div>
+    <h1>Support</h1>
+  </header>
+
+  <section>
+    <h2>Get in touch</h2>
+    <p>If you run into a bug, have a question, or want to suggest a feature, reach out by email. We typically respond within a day or two.</p>
+    <p><a href="mailto:support@kat.bio">support@kat.bio</a></p>
+  </section>
+
+  <section>
+    <h2>Common questions</h2>
+    <ul>
+      <li><strong>Train times look wrong.</strong> Rush Hour uses official timetable data from Mumbai's suburban railways. If a scheduled time seems off, it may reflect a recent timetable change we haven't picked up yet. Let us know and we'll investigate.</li>
+      <li><strong>Location sharing isn't working.</strong> Make sure you've granted location permissions in your device settings. Rush Hour needs "Always" or "While Using" access depending on whether you want background sharing.</li>
+      <li><strong>The app shows no departures.</strong> Check your internet connection. If you're online and still seeing nothing, the backend may be temporarily unavailable. Try again in a few minutes.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Report a bug</h2>
+    <p>When reporting a bug, it helps to include your device model, OS version, and steps to reproduce the issue. Screenshots are welcome.</p>
+    <p><a href="https://github.com/SphericalKat/rush-hour/issues">Open an issue on GitHub</a></p>
+  </section>
+
+  <footer>
+    <span>This work is marked <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt=""><img src="https://mirrors.creativecommons.org/presskit/icons/zero.svg" alt=""></span>
+  </footer>
+</div>
+
+</body>
+</html>
