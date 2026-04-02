@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/SphericalKat/rush-hour/compare/v0.9.1...v0.10.0) (2026-04-02)
+
+
+### Features
+
+* **ios:** create release configs and icons ([5da131c](https://github.com/SphericalKat/rush-hour/commit/5da131c8c5f648b0e31ea2a07fcdfa832bcdda1e))
+
+
+### Bug Fixes
+
+* **android:** prevent creating multiple signing blocks ([f2b92d1](https://github.com/SphericalKat/rush-hour/commit/f2b92d1331ad2ff665f06ad2a2f87a050916e789))
+* **deps:** update dependency react-native-gesture-handler to ~2.31.0 ([cbff40f](https://github.com/SphericalKat/rush-hour/commit/cbff40fbdd29edd308736243d115146e0fccf8db))
+* **deps:** update dependency react-native-gesture-handler to ~2.31.0 ([8e84ec9](https://github.com/SphericalKat/rush-hour/commit/8e84ec9aa3366e16d9ec693b0536e15602da587b))
+* **vibration:** fix vibration on ios ([74af1da](https://github.com/SphericalKat/rush-hour/commit/74af1dae71260146b79ea0e64d41d3364aad8895))
+
 ## [0.9.1](https://github.com/SphericalKat/rush-hour/compare/v0.9.0...v0.9.1) (2026-04-01)
 
 
