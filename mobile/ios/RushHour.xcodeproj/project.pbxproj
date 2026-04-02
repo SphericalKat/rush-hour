@@ -9,27 +9,39 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		3F7A3A55C8BE4261BF5C5713 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 53ED15D93FFA4C5FA2C1D0F1 /* AppIcon.icon */; };
+		A3DEC5432FFE7125029EBC5C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 30E9EDCBAD282D70BF6A72FF /* PrivacyInfo.xcprivacy */; };
+		B17BD2368709BF5C8DE0CE27 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C68496805EA5C31D5EA34DDB /* ExpoModulesProvider.swift */; };
+		B98F7EFA2F2045C8B8D8311F /* DMSans_400Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E94BB6CC6FE042A6BF9DDA14 /* DMSans_400Regular.ttf */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		D1B5F071D05A298E3D9BE913 /* libPods-RushHour.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C6BA0446A126295C9688EB8 /* libPods-RushHour.a */; };
+		E067FDAFCF284040B33EB233 /* DMSans_500Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 66C893A589D9456B998BB9CB /* DMSans_500Medium.ttf */; };
+		EFF631DBCE764F65A0B6AAB8 /* DMSans_700Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D82ABD3FB4C54DD69CB45CE9 /* DMSans_700Bold.ttf */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		37E4D7261B7144BABB9C2F72 /* DMSans_400Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1BBBBA3F715140BCA874BCD3 /* DMSans_400Regular.ttf */; };
-		A2800D38CB0E43EE84440BC2 /* DMSans_500Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 54A17C7F3AB74DC68441C230 /* DMSans_500Medium.ttf */; };
-		1F311CB01FD54D6D844676F2 /* DMSans_600SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7A75DC62FBAB49AB8D4D2F2F /* DMSans_600SemiBold.ttf */; };
-		585B17601247465E82AD6BAF /* DMSans_700Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D214E72227014DD9860101C7 /* DMSans_700Bold.ttf */; };
+		F68AD2D4FBF54404889E8D78 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2E3216A7E5FE420798B39C31 /* Settings.bundle */; };
+		F94DBACFF7A44EC69C441232 /* DMSans_600SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C703679D856C444FA19AEF3A /* DMSans_600SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* RushHour.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RushHour.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = RushHour/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = RushHour/Info.plist; sourceTree = "<group>"; };
+		1C6BA0446A126295C9688EB8 /* libPods-RushHour.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RushHour.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E3216A7E5FE420798B39C31 /* Settings.bundle */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = "wrapper.plug-in"; name = Settings.bundle; path = Settings.bundle; sourceTree = "<group>"; };
+		30E9EDCBAD282D70BF6A72FF /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = RushHour/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		53ED15D93FFA4C5FA2C1D0F1 /* AppIcon.icon */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = AppIcon.icon; path = RushHour/AppIcon.icon; sourceTree = "<group>"; };
+		66C893A589D9456B998BB9CB /* DMSans_500Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = DMSans_500Medium.ttf; path = "../node_modules/@expo-google-fonts/dm-sans/500Medium/DMSans_500Medium.ttf"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = RushHour/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B72F5B5AB319A917EF72F4FB /* Pods-RushHour.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RushHour.debug.xcconfig"; path = "Target Support Files/Pods-RushHour/Pods-RushHour.debug.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		C68496805EA5C31D5EA34DDB /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-RushHour/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		C703679D856C444FA19AEF3A /* DMSans_600SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = DMSans_600SemiBold.ttf; path = "../node_modules/@expo-google-fonts/dm-sans/600SemiBold/DMSans_600SemiBold.ttf"; sourceTree = "<group>"; };
+		D37EBC8F7C41C361585BA975 /* Pods-RushHour.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RushHour.release.xcconfig"; path = "Target Support Files/Pods-RushHour/Pods-RushHour.release.xcconfig"; sourceTree = "<group>"; };
+		D82ABD3FB4C54DD69CB45CE9 /* DMSans_700Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = DMSans_700Bold.ttf; path = "../node_modules/@expo-google-fonts/dm-sans/700Bold/DMSans_700Bold.ttf"; sourceTree = "<group>"; };
+		E94BB6CC6FE042A6BF9DDA14 /* DMSans_400Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = DMSans_400Regular.ttf; path = "../node_modules/@expo-google-fonts/dm-sans/400Regular/DMSans_400Regular.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = RushHour/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* RushHour-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RushHour-Bridging-Header.h"; path = "RushHour/RushHour-Bridging-Header.h"; sourceTree = "<group>"; };
-		1BBBBA3F715140BCA874BCD3 /* DMSans_400Regular.ttf */ = {isa = PBXFileReference; name = "DMSans_400Regular.ttf"; path = "../node_modules/@expo-google-fonts/dm-sans/400Regular/DMSans_400Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		54A17C7F3AB74DC68441C230 /* DMSans_500Medium.ttf */ = {isa = PBXFileReference; name = "DMSans_500Medium.ttf"; path = "../node_modules/@expo-google-fonts/dm-sans/500Medium/DMSans_500Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		7A75DC62FBAB49AB8D4D2F2F /* DMSans_600SemiBold.ttf */ = {isa = PBXFileReference; name = "DMSans_600SemiBold.ttf"; path = "../node_modules/@expo-google-fonts/dm-sans/600SemiBold/DMSans_600SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		D214E72227014DD9860101C7 /* DMSans_700Bold.ttf */ = {isa = PBXFileReference; name = "DMSans_700Bold.ttf"; path = "../node_modules/@expo-google-fonts/dm-sans/700Bold/DMSans_700Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1B5F071D05A298E3D9BE913 /* libPods-RushHour.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -52,16 +65,50 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
+				53ED15D93FFA4C5FA2C1D0F1 /* AppIcon.icon */,
+				2E3216A7E5FE420798B39C31 /* Settings.bundle */,
+				30E9EDCBAD282D70BF6A72FF /* PrivacyInfo.xcprivacy */,
 			);
 			name = RushHour;
+			sourceTree = "<group>";
+		};
+		1C1BC3497B82E2E68847022A /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				B72F5B5AB319A917EF72F4FB /* Pods-RushHour.debug.xcconfig */,
+				D37EBC8F7C41C361585BA975 /* Pods-RushHour.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
+				1C6BA0446A126295C9688EB8 /* libPods-RushHour.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		44C16090F0D3CD0B1E5DD7D6 /* RushHour */ = {
+			isa = PBXGroup;
+			children = (
+				C68496805EA5C31D5EA34DDB /* ExpoModulesProvider.swift */,
+			);
+			name = RushHour;
+			sourceTree = "<group>";
+		};
+		739FA0AD247D4FF4ABA6A38A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E94BB6CC6FE042A6BF9DDA14 /* DMSans_400Regular.ttf */,
+				66C893A589D9456B998BB9CB /* DMSans_500Medium.ttf */,
+				C703679D856C444FA19AEF3A /* DMSans_600SemiBold.ttf */,
+				D82ABD3FB4C54DD69CB45CE9 /* DMSans_700Bold.ttf */,
+			);
+			name = Resources;
+			path = "";
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -78,7 +125,9 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				5B625398625347C9941645E6 /* Resources */,
+				739FA0AD247D4FF4ABA6A38A /* Resources */,
+				1C1BC3497B82E2E68847022A /* Pods */,
+				8940A85ED8EA6196C81FB834 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -93,6 +142,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		8940A85ED8EA6196C81FB834 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				44C16090F0D3CD0B1E5DD7D6 /* RushHour */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -102,18 +159,6 @@
 			path = RushHour/Supporting;
 			sourceTree = "<group>";
 		};
-		5B625398625347C9941645E6 /* Resources */ = {
-			isa = "PBXGroup";
-			children = (
-				1BBBBA3F715140BCA874BCD3 /* DMSans_400Regular.ttf */,
-				54A17C7F3AB74DC68441C230 /* DMSans_500Medium.ttf */,
-				7A75DC62FBAB49AB8D4D2F2F /* DMSans_600SemiBold.ttf */,
-				D214E72227014DD9860101C7 /* DMSans_700Bold.ttf */,
-			);
-			name = Resources;
-			sourceTree = "<group>";
-			path = "";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -122,11 +167,14 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "RushHour" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
+				3D2E937FAFFC48F78E5C949C /* Generate licenses with LicensePlist */,
+				178840B7B208DAA1A6562D50 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
+				8715FB187C5604CE56D38C1E /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -176,10 +224,13 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				37E4D7261B7144BABB9C2F72 /* DMSans_400Regular.ttf in Resources */,
-				A2800D38CB0E43EE84440BC2 /* DMSans_500Medium.ttf in Resources */,
-				1F311CB01FD54D6D844676F2 /* DMSans_600SemiBold.ttf in Resources */,
-				585B17601247465E82AD6BAF /* DMSans_700Bold.ttf in Resources */,
+				3F7A3A55C8BE4261BF5C5713 /* AppIcon.icon in Resources */,
+				F68AD2D4FBF54404889E8D78 /* Settings.bundle in Resources */,
+				B98F7EFA2F2045C8B8D8311F /* DMSans_400Regular.ttf in Resources */,
+				E067FDAFCF284040B33EB233 /* DMSans_500Medium.ttf in Resources */,
+				F94DBACFF7A44EC69C441232 /* DMSans_600SemiBold.ttf in Resources */,
+				EFF631DBCE764F65A0B6AAB8 /* DMSans_700Bold.ttf in Resources */,
+				A3DEC5432FFE7125029EBC5C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,6 +276,44 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		178840B7B208DAA1A6562D50 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/RushHour/RushHour.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-RushHour/expo-configure-project.sh",
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Pods/Target Support Files/Pods-RushHour/ExpoModulesProvider.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-RushHour/expo-configure-project.sh\"\n";
+		};
+		3D2E937FAFFC48F78E5C949C /* Generate licenses with LicensePlist */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate licenses with LicensePlist";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "${PODS_ROOT}/LicensePlist/license-plist --add-version-numbers --output-path ./Settings.bundle";
+		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -232,19 +321,55 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RushHour/Pods-RushHour-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/EXApplication/ExpoApplication_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/EXUpdates/EXUpdates.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/RCTI18nStrings.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoNotifications/ExpoNotifications_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoSystemUI/ExpoSystemUI_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoTaskManager/ExpoTaskManager_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoApplication_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXUpdates.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCTI18nStrings.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoNotifications_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoSystemUI_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoTaskManager_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RushHour/Pods-RushHour-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8715FB187C5604CE56D38C1E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-RushHour/Pods-RushHour-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RushHour/Pods-RushHour-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -255,6 +380,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				B17BD2368709BF5C8DE0CE27 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,10 +389,13 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B72F5B5AB319A917EF72F4FB /* Pods-RushHour.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = RushHour/RushHour.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WTFJCJJ39A;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -284,23 +413,26 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.sphericalkat.rushhour";
-				PRODUCT_NAME = "RushHour";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sphericalkat.rushhour;
+				PRODUCT_NAME = RushHour;
 				SWIFT_OBJC_BRIDGING_HEADER = "RushHour/RushHour-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
-				TARGETED_DEVICE_FAMILY = "1";
-				CODE_SIGN_ENTITLEMENTS = RushHour/RushHour.entitlements;
 			};
 			name = Debug;
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D37EBC8F7C41C361585BA975 /* Pods-RushHour.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = RushHour/RushHour.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WTFJCJJ39A;
 				INFOPLIST_FILE = RushHour/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -313,13 +445,13 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.sphericalkat.rushhour";
-				PRODUCT_NAME = "RushHour";
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sphericalkat.rushhour;
+				PRODUCT_NAME = RushHour;
 				SWIFT_OBJC_BRIDGING_HEADER = "RushHour/RushHour-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
 				VERSIONING_SYSTEM = "apple-generic";
-				TARGETED_DEVICE_FAMILY = "1";
-				CODE_SIGN_ENTITLEMENTS = RushHour/RushHour.entitlements;
 			};
 			name = Release;
 		};
@@ -375,10 +507,16 @@
 					/usr/lib/swift,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = "\"$(inherited)\"";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -427,9 +565,14 @@
 					/usr/lib/swift,
 					"$(inherited)",
 				);
-				LIBRARY_SEARCH_PATHS = "\"$(inherited)\"";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
