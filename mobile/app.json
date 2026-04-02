@@ -2,7 +2,7 @@
   "expo": {
     "name": "Rush Hour",
     "slug": "rush-hour",
-    "version": "0.9.1",
+    "version": "0.10.0",
     "scheme": "rush-hour",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -45,7 +45,12 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-secure-store", { "faceIDPermission": false }],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       [
         "expo-location",
         {
