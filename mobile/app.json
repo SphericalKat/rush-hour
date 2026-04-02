@@ -14,7 +14,16 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.sphericalkat.rushhour"
+      "bundleIdentifier": "com.sphericalkat.rushhour",
+      "icon": "./assets/AppIcon.icon",
+      "appleTeamId": "WTFJCJJ39A",
+      "buildNumber": "900",
+      "infoPlist": {
+        "LSApplicationCategoryType": "public.app-category.navigation"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.sphericalkat.rushhour",
@@ -36,7 +45,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
+      ["expo-secure-store", { "faceIDPermission": false }],
       [
         "expo-location",
         {
@@ -90,6 +99,7 @@
       "expo-sqlite",
       "./plugins/android-signing",
       "./plugins/android-jvm-args",
+      "./plugins/ios-icon-fallback",
       "./plugins/android-abi-splits",
       "./plugins/android-flavors",
       "expo-background-task",
