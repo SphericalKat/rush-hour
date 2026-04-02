@@ -92,8 +92,8 @@ android {
         applicationId 'com.sphericalkat.rushhour'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "0.5.1"
+        versionCode 550000600
+        versionName "0.9.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
