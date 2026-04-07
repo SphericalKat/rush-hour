@@ -15,7 +15,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.4
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/stretchr/testify v1.11.1
-	modernc.org/sqlite v1.48.0
+	modernc.org/sqlite v1.48.1
 )
 
 require (
