@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.3,
   },
