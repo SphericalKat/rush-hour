@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.0](https://github.com/SphericalKat/rush-hour/compare/v0.10.0...v0.11.0) (2026-04-09)
+
+
+### Features
+
+* **nav:** use native navigation bars on android/ios ([a254af7](https://github.com/SphericalKat/rush-hour/commit/a254af74a80580b85a34257a3d7fa62a16c98008))
+
+
+### Bug Fixes
+
+* **deps:** update module modernc.org/sqlite to v1.48.1 ([d8d2799](https://github.com/SphericalKat/rush-hour/commit/d8d2799559e4b2cc117045d236142a2f01b498fc))
+* **deps:** update module modernc.org/sqlite to v1.48.1 ([5910bdb](https://github.com/SphericalKat/rush-hour/commit/5910bdba5279c723e2ae85ca2080b23acd3e84ef))
+* **ios:** force navbar to follow app darkness ([83b027e](https://github.com/SphericalKat/rush-hour/commit/83b027e661d83924b003b512f0e2034563ceac65))
+* **tabs:** inherit app theme color ([838c8ee](https://github.com/SphericalKat/rush-hour/commit/838c8eecf465bd2e82d53e83dc6021a01cddd7ea))
+
 ## [0.10.0](https://github.com/SphericalKat/rush-hour/compare/v0.9.1...v0.10.0) (2026-04-02)
 
 
