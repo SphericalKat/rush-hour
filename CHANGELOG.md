@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/SphericalKat/rush-hour/compare/v0.11.0...v0.11.1) (2026-04-20)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/knadh/koanf/parsers/toml to v2 ([6bb3b7a](https://github.com/SphericalKat/rush-hour/commit/6bb3b7a69b2a0a3c13e7fa78a18218b1b81581b1))
+* **deps:** update module github.com/knadh/koanf/providers/env to v2 ([a7f53b0](https://github.com/SphericalKat/rush-hour/commit/a7f53b0154007e65bfee62621fd403a894f52fe4))
+
 ## [0.11.0](https://github.com/SphericalKat/rush-hour/compare/v0.10.0...v0.11.0) (2026-04-09)
 
 
