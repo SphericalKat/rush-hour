@@ -74,6 +74,9 @@ CREATE INDEX IF NOT EXISTS idx_stops_train         ON stops(train_id);
 CREATE INDEX IF NOT EXISTS idx_stops_departure     ON stops(departure);
 CREATE INDEX IF NOT EXISTS idx_stops_train_station ON stops(train_id, station_id, stop_sequence);
 CREATE INDEX IF NOT EXISTS idx_trains_number       ON trains(number);
+CREATE INDEX IF NOT EXISTS idx_lines_operator      ON lines(operator_id);
+CREATE INDEX IF NOT EXISTS idx_line_stations_station_line ON line_stations(station_id, line_id);
+CREATE INDEX IF NOT EXISTS idx_trains_line         ON trains(line_id);
 """
 
 # Canonical station name overrides. The m-indicator APK uses inconsistent
