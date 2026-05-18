@@ -1,0 +1,3 @@
+- Make tab titles larger
+- Use native navigation bars
+- Fix theme color handling

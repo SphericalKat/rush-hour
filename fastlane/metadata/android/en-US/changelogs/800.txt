@@ -1,0 +1,3 @@
+- Highlight ladies special trains
+- Grey out trains that do not run on the selected day
+- Improve release note generation

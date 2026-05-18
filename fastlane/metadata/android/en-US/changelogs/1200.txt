@@ -1,0 +1,3 @@
+- Fix Android versionCode handling in releases
+- Improve F-Droid release metadata
+- Update release tooling dependencies

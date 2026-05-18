@@ -1,0 +1,3 @@
+- Use filled icons for selected tabs
+- Regenerate the Android project
+- Improve release build stability

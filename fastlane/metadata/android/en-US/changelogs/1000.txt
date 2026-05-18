@@ -1,0 +1,3 @@
+- Restore Gradle compatibility
+- Update app dependencies
+- Keep release builds stable
