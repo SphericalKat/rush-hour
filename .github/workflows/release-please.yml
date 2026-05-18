@@ -23,6 +23,30 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+      - name: Sync Android versionCode into release PR
+        if: steps.release.outputs.pr != ''
+        run: |
+          branch='${{ fromJSON(steps.release.outputs.pr).headBranchName }}'
+          git fetch origin "$branch"
+          git checkout "$branch"
+
+          version="$(jq -r '.expo.version' mobile/app.json)"
+          IFS='.' read -r major minor patch <<< "$version"
+          versionCode=$((major * 10000 + minor * 100 + patch))
+
+          jq --argjson vc "$versionCode" '.expo.android.versionCode = $vc' mobile/app.json > mobile/app.json.tmp
+          mv mobile/app.json.tmp mobile/app.json
+
+          if git diff --quiet -- mobile/app.json; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mobile/app.json
+          git commit -m "chore: update android version code"
+          git push origin "HEAD:$branch"
+
   build:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
@@ -79,16 +103,22 @@ jobs:
         working-directory: mobile
         run: npm ci
 
-      - name: Compute and set versionCode
+      - name: Verify versionCode
         id: version
         working-directory: mobile
         run: |
           tag="${{ needs.release-please.outputs.tag_name }}"
           version="${tag#v}"
           IFS='.' read -r major minor patch <<< "$version"
-          versionCode=$((major * 10000 + minor * 100 + patch))
+          expectedVersionCode=$((major * 10000 + minor * 100 + patch))
+          versionCode="$(jq -r '.expo.android.versionCode' app.json)"
+
+          if [ "$versionCode" != "$expectedVersionCode" ]; then
+            echo "app.json versionCode is $versionCode, expected $expectedVersionCode for $tag"
+            exit 1
+          fi
+
           echo "version_code=$versionCode" >> "$GITHUB_OUTPUT"
-          jq --argjson vc "$versionCode" '.expo.android.versionCode = $vc' app.json > app.json.tmp && mv app.json.tmp app.json
 
       - name: Prebuild
         working-directory: mobile
