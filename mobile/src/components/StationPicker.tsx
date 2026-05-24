@@ -97,6 +97,43 @@ const StationRow = React.memo(function StationRow({ item, active, onSelect, onHa
   );
 });
 
+const StationSkeletonRows = React.memo(function StationSkeletonRows({
+  colors,
+}: {
+  colors: ReturnType<typeof useTheme>['colors'];
+}) {
+  return (
+    <View style={styles.skeletonList} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {Array.from({ length: 8 }, (_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.skeletonRow,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <View style={[styles.skeletonAccent, { backgroundColor: colors.surfaceSecondary }]} />
+          <View style={styles.skeletonMain}>
+            <View style={styles.skeletonTextGroup}>
+              <View
+                style={[
+                  styles.skeletonName,
+                  { backgroundColor: colors.surfaceSecondary },
+                  index % 3 === 1 && styles.skeletonNameShort,
+                ]}
+              />
+              <View style={[styles.skeletonCode, { backgroundColor: colors.surfaceSecondary }]} />
+            </View>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+});
+
 export const StationPicker = React.forwardRef<StationPickerRef, Props>(function StationPicker(
   { selected, onSelect, title = 'Select Station' },
   ref,
@@ -290,7 +327,9 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
             </Text>
           }
         />
-      ) : null}
+      ) : (
+        <StationSkeletonRows colors={colors} />
+      )}
     </BottomSheetModal>
   );
 });
@@ -417,5 +456,45 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 56,
     fontSize: 15,
+  },
+  skeletonList: {
+    paddingHorizontal: 12,
+    paddingBottom: 20,
+    gap: 8,
+  },
+  skeletonRow: {
+    position: 'relative',
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  skeletonAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+  },
+  skeletonMain: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  skeletonTextGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  skeletonName: {
+    width: '58%',
+    height: 16,
+    borderRadius: 8,
+  },
+  skeletonNameShort: {
+    width: '44%',
+  },
+  skeletonCode: {
+    width: 42,
+    height: 18,
+    borderRadius: 9,
   },
 });
