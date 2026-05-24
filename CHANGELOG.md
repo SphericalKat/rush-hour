@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.0](https://github.com/SphericalKat/rush-hour/compare/v0.12.0...v0.13.0) (2026-05-24)
+
+
+### Features
+
+* show station picker loading skeleton ([5e86916](https://github.com/SphericalKat/rush-hour/commit/5e86916a8e029f041307bb44900c8418d1f8c926))
+
+
+### Bug Fixes
+
+* open station picker with bottom sheet modal ref ([d7fa43d](https://github.com/SphericalKat/rush-hour/commit/d7fa43dad16938623a35c0036b90b9df01dfad95))
+* reduce station picker opening stutter ([d4a1fad](https://github.com/SphericalKat/rush-hour/commit/d4a1fad874833f49465b74f297d4eef0e88763aa))
+
 ## [0.12.0](https://github.com/SphericalKat/rush-hour/compare/v0.11.0...v0.12.0) (2026-05-18)
 
 
