@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v6
         if: steps.release.outputs.pr != ''
 
-      - name: Sync Android versionCode into release PR
+      - name: Sync Android metadata into release PR
         if: steps.release.outputs.pr != ''
         run: |
           branch='${{ fromJSON(steps.release.outputs.pr).headBranchName }}'
@@ -40,14 +40,42 @@ jobs:
           jq --argjson vc "$versionCode" '.expo.android.versionCode = $vc' mobile/app.json > mobile/app.json.tmp
           mv mobile/app.json.tmp mobile/app.json
 
-          if git diff --quiet -- mobile/app.json; then
+          changelogFile="fastlane/metadata/android/en-US/changelogs/${versionCode}.txt"
+          mkdir -p "$(dirname "$changelogFile")"
+          awk -v version="$version" '
+            $0 ~ "^## \\[" version "\\]" { in_section = 1; next }
+            in_section && /^## \[/ { exit }
+            in_section && /^\* / { print }
+          ' CHANGELOG.md \
+            | sed -E \
+              -e 's/^\* /- /' \
+              -e 's/\*\*([^*]+):\*\* /\1: /g' \
+              -e 's/\*\*([^*]+)\*\*: /\1: /g' \
+              -e 's/ \(\[[0-9a-f]+\]\([^)]+\)\)//g' \
+              -e 's/[[:space:]]+$//' \
+            | grep -Ev '^- deps:|^- chore\(deps\):' \
+            | awk '
+              BEGIN { total = 0 }
+              {
+                line_length = length($0) + 1
+                if (total + line_length > 500) exit
+                print
+                total += line_length
+              }
+            ' > "$changelogFile"
+
+          if [ ! -s "$changelogFile" ]; then
+            printf -- '- Update Rush Hour to %s\n' "$version" > "$changelogFile"
+          fi
+
+          if git diff --quiet -- mobile/app.json "$changelogFile"; then
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add mobile/app.json
-          git commit -m "chore: update android version code"
+          git add mobile/app.json "$changelogFile"
+          git commit -m "chore: update android release metadata"
           git push origin "HEAD:$branch"
 
   build:
