@@ -6,7 +6,7 @@ import {
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -22,11 +22,14 @@ import type { Station } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
 
 interface Props {
-  visible: boolean;
   selected: Station | null;
   onSelect: (s: Station) => void;
-  onClose: () => void;
   title?: string;
+}
+
+export interface StationPickerRef {
+  present: () => void;
+  dismiss: () => void;
 }
 
 interface StationRowProps {
@@ -93,7 +96,10 @@ const StationRow = React.memo(function StationRow({ item, active, onSelect, onHa
   );
 });
 
-export function StationPicker({ visible, selected, onSelect, onClose, title = 'Select Station' }: Props) {
+export const StationPicker = React.forwardRef<StationPickerRef, Props>(function StationPicker(
+  { selected, onSelect, title = 'Select Station' },
+  ref,
+) {
   const { colors } = useTheme();
   const db = useSQLiteContext();
   const [query, setQuery] = useState('');
@@ -108,15 +114,20 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
     listStations(db).then(setStations).catch(() => {});
   }, [db]);
 
-  useEffect(() => {
-    if (visible) {
-      setQuery('');
-      inputRef.current?.clear();
-      bottomSheetRef.current?.present();
-    } else {
-      bottomSheetRef.current?.dismiss();
-    }
-  }, [visible]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      present: () => {
+        setQuery('');
+        inputRef.current?.clear();
+        bottomSheetRef.current?.present();
+      },
+      dismiss: () => {
+        bottomSheetRef.current?.dismiss();
+      },
+    }),
+    [],
+  );
 
   const filtered = useMemo(() => {
     if (!deferredQuery.trim()) return stations;
@@ -149,7 +160,7 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
           active={active}
           onSelect={(s) => {
             onSelect(s);
-            onClose();
+            bottomSheetRef.current?.dismiss();
           }}
           onHaptic={() => {
             try {
@@ -168,7 +179,7 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
         />
       );
     },
-    [selected, colors, onSelect, onClose],
+    [selected, colors, onSelect],
   );
 
   return (
@@ -177,7 +188,6 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
       snapPoints={['84%']}
       enableDynamicSizing={false}
       enablePanDownToClose
-      onDismiss={onClose}
       backdropComponent={renderBackdrop}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
@@ -201,7 +211,7 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
             {filtered.length} result{filtered.length === 1 ? '' : 's'}
           </Text>
         </View>
-        <Pressable onPress={onClose} hitSlop={12} style={styles.cancelBtn}>
+        <Pressable onPress={() => bottomSheetRef.current?.dismiss()} hitSlop={12} style={styles.cancelBtn}>
           <Text style={[styles.cancel, { color: colors.primary }]}>Cancel</Text>
         </Pressable>
       </View>
@@ -259,7 +269,7 @@ export function StationPicker({ visible, selected, onSelect, onClose, title = 'S
       />
     </BottomSheetModal>
   );
-}
+});
 
 const styles = StyleSheet.create({
   sheetBackground: {

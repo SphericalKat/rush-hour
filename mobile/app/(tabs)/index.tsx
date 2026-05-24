@@ -17,7 +17,7 @@ import { ActionMenu, type ActionMenuItem } from '../../src/components/ActionMenu
 import { DepartureCard } from '../../src/components/DepartureCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { SavedRouteCard } from '../../src/components/SavedRouteCard';
-import { StationPicker } from '../../src/components/StationPicker';
+import { StationPicker, type StationPickerRef } from '../../src/components/StationPicker';
 import { TransferRouteCard } from '../../src/components/TransferRouteCard';
 import { UpdateBanner } from '../../src/components/UpdateBanner';
 import { useAppUpdate } from '../../src/hooks/useAppUpdate';
@@ -46,8 +46,8 @@ export default function DeparturesScreen() {
 
   const [station, setStation] = useState<Station | null>(null);
   const [destination, setDestination] = useState<Station | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [destPickerOpen, setDestPickerOpen] = useState(false);
+  const stationPickerRef = useRef<StationPickerRef>(null);
+  const destinationPickerRef = useRef<StationPickerRef>(null);
   const [filterFast, setFilterFast] = useState(false);
   const [filterAC, setFilterAC] = useState(false);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
@@ -196,7 +196,7 @@ export default function DeparturesScreen() {
 
         <View style={styles.stationRow}>
           <Pressable
-            onPress={() => setPickerOpen(true)}
+            onPress={() => stationPickerRef.current?.present()}
             android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
             style={[
               styles.stationChip,
@@ -221,7 +221,7 @@ export default function DeparturesScreen() {
           <Ionicons name="arrow-forward" size={14} color={isDark ? colors.textTertiary : 'rgba(255,255,255,0.5)'} />
 
           <Pressable
-            onPress={() => setDestPickerOpen(true)}
+            onPress={() => destinationPickerRef.current?.present()}
             android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
             style={[
               styles.stationChip,
@@ -459,16 +459,14 @@ export default function DeparturesScreen() {
       )}
 
       <StationPicker
-        visible={pickerOpen}
+        ref={stationPickerRef}
         selected={station}
         onSelect={setStation}
-        onClose={() => setPickerOpen(false)}
       />
       <StationPicker
-        visible={destPickerOpen}
+        ref={destinationPickerRef}
         selected={destination}
         onSelect={setDestination}
-        onClose={() => setDestPickerOpen(false)}
         title="Select Destination"
       />
       <ActionMenu
