@@ -8,6 +8,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useDeferredValue, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
+  Keyboard,
   Platform,
   Pressable,
   StyleSheet,
@@ -105,9 +106,11 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [stations, setStations] = useState<Station[]>([]);
+  const [listReady, setListReady] = useState(false);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const inputRef = useRef<TextInput>(null);
   const hapticsRef = useRef<{ selectionAsync?: () => Promise<void> } | null>(null);
+  const snapPoints = useMemo(() => ['84%'], []);
 
   // Load stations once from local DB — fast enough to not need a loader
   useEffect(() => {
@@ -118,12 +121,11 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
     ref,
     () => ({
       present: () => {
-        setQuery('');
-        inputRef.current?.clear();
         bottomSheetRef.current?.present();
       },
       dismiss: () => {
-        bottomSheetRef.current?.dismiss();
+        Keyboard.dismiss();
+        bottomSheetRef.current?.close();
       },
     }),
     [],
@@ -159,8 +161,9 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
           item={item}
           active={active}
           onSelect={(s) => {
+            Keyboard.dismiss();
             onSelect(s);
-            bottomSheetRef.current?.dismiss();
+            bottomSheetRef.current?.close();
           }}
           onHaptic={() => {
             try {
@@ -182,12 +185,24 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
     [selected, colors, onSelect],
   );
 
+  const handleSheetChange = useCallback((index: number) => {
+    if (index >= 0) {
+      setListReady(true);
+      return;
+    }
+
+    setQuery('');
+    inputRef.current?.clear();
+  }, []);
+
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['84%']}
+      snapPoints={snapPoints}
       enableDynamicSizing={false}
+      enableDismissOnClose={false}
       enablePanDownToClose
+      onChange={handleSheetChange}
       backdropComponent={renderBackdrop}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
@@ -211,7 +226,14 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
             {filtered.length} result{filtered.length === 1 ? '' : 's'}
           </Text>
         </View>
-        <Pressable onPress={() => bottomSheetRef.current?.dismiss()} hitSlop={12} style={styles.cancelBtn}>
+        <Pressable
+          onPress={() => {
+            Keyboard.dismiss();
+            bottomSheetRef.current?.close();
+          }}
+          hitSlop={12}
+          style={styles.cancelBtn}
+        >
           <Text style={[styles.cancel, { color: colors.primary }]}>Cancel</Text>
         </Pressable>
       </View>
@@ -251,22 +273,24 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
       </View>
 
       {/* List */}
-      <BottomSheetFlatList
-        data={filtered}
-        keyExtractor={(s: Station) => String(s.id)}
-        contentContainerStyle={styles.listContent}
-        keyboardShouldPersistTaps="handled"
-        renderItem={renderItem}
-        removeClippedSubviews
-        maxToRenderPerBatch={20}
-        windowSize={9}
-        initialNumToRender={15}
-        ListEmptyComponent={
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No stations match your search
-          </Text>
-        }
-      />
+      {listReady ? (
+        <BottomSheetFlatList
+          data={filtered}
+          keyExtractor={(s: Station) => String(s.id)}
+          contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
+          renderItem={renderItem}
+          removeClippedSubviews
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          initialNumToRender={8}
+          ListEmptyComponent={
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              No stations match your search
+            </Text>
+          }
+        />
+      ) : null}
     </BottomSheetModal>
   );
 });
