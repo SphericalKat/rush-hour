@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.13.1](https://github.com/SphericalKat/rush-hour/compare/v0.13.0...v0.13.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/knadh/koanf/parsers/toml/v2 to v2.2.1 ([8d52ea6](https://github.com/SphericalKat/rush-hour/commit/8d52ea64e7f2ac0864c1785d81dad07525af28ec))
+* **deps:** update module github.com/knadh/koanf/parsers/toml/v2 to v2.2.1 ([486b3d9](https://github.com/SphericalKat/rush-hour/commit/486b3d93a3c527783ba170f97fa16257f29ffe14))
+* inline Expo public env reads ([cfd2af6](https://github.com/SphericalKat/rush-hour/commit/cfd2af60a3679d16b8cce7194c5cfdcec8c3db5a))
+
 ## [0.13.0](https://github.com/SphericalKat/rush-hour/compare/v0.12.0...v0.13.0) (2026-05-24)
 
 
