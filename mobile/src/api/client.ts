@@ -14,7 +14,7 @@ async function getServerUrl(): Promise<string> {
       if (settings.serverUrl) return settings.serverUrl;
     }
   } catch {}
-  return process.env['EXPO_PUBLIC_API_URL'] ?? DEFAULT_SERVER_URL;
+  return process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_SERVER_URL;
 }
 
 export function getWsUrl(baseUrl: string): string {

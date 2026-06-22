@@ -44,7 +44,7 @@ export interface LocationProvider {
 
 function createProvider(): LocationProvider {
   // On iOS or non-fdroid Android builds, use expo-location (GMS-backed)
-  if (Platform.OS !== 'android' || process.env['EXPO_PUBLIC_DISTRIBUTION'] !== 'fdroid') {
+  if (Platform.OS !== 'android' || process.env.EXPO_PUBLIC_DISTRIBUTION !== 'fdroid') {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const ExpoLocation = require('expo-location');
     return {

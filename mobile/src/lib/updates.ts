@@ -15,7 +15,7 @@ export interface GitHubRelease {
 }
 
 export function isGitHubDistribution(): boolean {
-  return process.env['EXPO_PUBLIC_DISTRIBUTION'] === 'github';
+  return process.env.EXPO_PUBLIC_DISTRIBUTION === 'github';
 }
 
 /** Compare semver strings. Returns true when remote > local. */
