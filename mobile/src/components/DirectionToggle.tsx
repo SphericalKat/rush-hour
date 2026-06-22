@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   activeIndicator: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     margin: 1,
   },
   label: {

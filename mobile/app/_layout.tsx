@@ -2,8 +2,8 @@ import "../global.css";
 
 import { PortalHost } from "@rn-primitives/portal";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import * as SplashScreen from "expo-splash-screen";
 import { SQLiteProvider } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";

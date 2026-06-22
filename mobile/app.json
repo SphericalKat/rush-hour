@@ -7,11 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFD900"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sphericalkat.rushhour",
@@ -100,7 +95,14 @@
         }
       ],
       "expo-notifications",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FFD900"
+        }
+      ],
       "expo-sqlite",
       "./plugins/android-signing",
       "./plugins/android-jvm-args",
@@ -108,7 +110,8 @@
       "./plugins/android-abi-splits",
       "./plugins/android-flavors",
       "expo-background-task",
-      "react-native-legal"
+      "react-native-legal",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
