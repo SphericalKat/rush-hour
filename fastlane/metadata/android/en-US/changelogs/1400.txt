@@ -1,0 +1,3 @@
+- Update Mumbai local timetable data
+- Add fallback support for the F-Droid location module
+- Update react-native-reanimated
