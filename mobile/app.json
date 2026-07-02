@@ -2,7 +2,7 @@
   "expo": {
     "name": "Rush Hour",
     "slug": "rush-hour",
-    "version": "0.13.1",
+    "version": "0.14.0",
     "scheme": "rush-hour",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
     },
     "android": {
       "package": "com.sphericalkat.rushhour",
-      "versionCode": 1301,
+      "versionCode": 1400,
       "adaptiveIcon": {
         "backgroundColor": "#FFD900",
         "foregroundImage": "./assets/icon.png",

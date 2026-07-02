@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.14.0](https://github.com/SphericalKat/rush-hour/compare/v0.13.1...v0.14.0) (2026-07-02)
+
+
+### Features
+
+* update Mumbai timetable data ([7593b8a](https://github.com/SphericalKat/rush-hour/commit/7593b8ab349837a6bcc0eae0886b51274844dfba))
+* update Mumbai timetable data ([d4d4c2f](https://github.com/SphericalKat/rush-hour/commit/d4d4c2fb944731a46299a3c99dc37ac546439f35))
+
+
+### Bug Fixes
+
+* **deps:** update dependency react-native-reanimated to v4.5.1 ([ebdb8ad](https://github.com/SphericalKat/rush-hour/commit/ebdb8ade28a3c1442f75daf913780523257df388))
+* **deps:** update dependency react-native-reanimated to v4.5.1 ([a266333](https://github.com/SphericalKat/rush-hour/commit/a2663337752308b312693b08c68e475d2bc1316b))
+* fall back to fdroid location module ([37d5115](https://github.com/SphericalKat/rush-hour/commit/37d511597cb982e4d1454df4467550fe0b022d10))
+
 ## [0.13.1](https://github.com/SphericalKat/rush-hour/compare/v0.13.0...v0.13.1) (2026-06-22)
 
 
