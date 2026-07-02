@@ -1,0 +1,2 @@
+- Show a loading skeleton while stations load
+- Fix station picker opening and reduce stutter
