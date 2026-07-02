@@ -43,24 +43,37 @@ export interface LocationProvider {
 }
 
 function createProvider(): LocationProvider {
-  // On iOS or non-fdroid Android builds, use expo-location (GMS-backed)
-  if (Platform.OS !== 'android' || process.env.EXPO_PUBLIC_DISTRIBUTION !== 'fdroid') {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ExpoLocation = require('expo-location');
-    return {
-      requestForegroundPermissionsAsync: () => ExpoLocation.requestForegroundPermissionsAsync(),
-      requestBackgroundPermissionsAsync: () => ExpoLocation.requestBackgroundPermissionsAsync(),
-      getLastKnownPositionAsync: () => ExpoLocation.getLastKnownPositionAsync(),
-      startLocationUpdatesAsync: (t: string, o: LocationUpdateOptions) =>
-        ExpoLocation.startLocationUpdatesAsync(t, o),
-      stopLocationUpdatesAsync: (t: string) => ExpoLocation.stopLocationUpdatesAsync(t),
-      hasStartedLocationUpdatesAsync: (t: string) =>
-        ExpoLocation.hasStartedLocationUpdatesAsync(t),
-      Accuracy: ExpoLocation.Accuracy,
-    };
+  if (Platform.OS === 'android' && process.env.EXPO_PUBLIC_DISTRIBUTION === 'fdroid') {
+    return createFdroidLocationProvider();
   }
 
-  // F-Droid build: use our GMS-free module
+  try {
+    return createExpoLocationProvider();
+  } catch (error) {
+    if (Platform.OS === 'android' && isMissingExpoLocationError(error)) {
+      return createFdroidLocationProvider();
+    }
+    throw error;
+  }
+}
+
+function createExpoLocationProvider(): LocationProvider {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const ExpoLocation = require('expo-location');
+  return {
+    requestForegroundPermissionsAsync: () => ExpoLocation.requestForegroundPermissionsAsync(),
+    requestBackgroundPermissionsAsync: () => ExpoLocation.requestBackgroundPermissionsAsync(),
+    getLastKnownPositionAsync: () => ExpoLocation.getLastKnownPositionAsync(),
+    startLocationUpdatesAsync: (t: string, o: LocationUpdateOptions) =>
+      ExpoLocation.startLocationUpdatesAsync(t, o),
+    stopLocationUpdatesAsync: (t: string) => ExpoLocation.stopLocationUpdatesAsync(t),
+    hasStartedLocationUpdatesAsync: (t: string) =>
+      ExpoLocation.hasStartedLocationUpdatesAsync(t),
+    Accuracy: ExpoLocation.Accuracy,
+  };
+}
+
+function createFdroidLocationProvider(): LocationProvider {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const FdroidLocation = require('../../modules/fdroid-location/src');
   return {
@@ -74,6 +87,10 @@ function createProvider(): LocationProvider {
       FdroidLocation.hasStartedLocationUpdatesAsync(t),
     Accuracy: FdroidLocation.Accuracy,
   };
+}
+
+function isMissingExpoLocationError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("Cannot find native module 'ExpoLocation'");
 }
 
 export const locationProvider = createProvider();
