@@ -4,6 +4,8 @@ Replaces the PDF parsing pipeline entirely. The APK bundles pre-processed
 binary timetable data for all Mumbai suburban lines with platform info.
 """
 
+import csv
+import io
 import json
 import sqlite3
 import struct
@@ -17,13 +19,13 @@ from statistics import median
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS operators (
-    id         INTEGER PRIMARY KEY,
+    id         INTEGER NOT NULL PRIMARY KEY,
     name       TEXT NOT NULL,
     short_name TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS lines (
-    id          INTEGER PRIMARY KEY,
+    id          INTEGER NOT NULL PRIMARY KEY,
     operator_id INTEGER NOT NULL REFERENCES operators(id),
     name        TEXT NOT NULL,
     short_name  TEXT NOT NULL UNIQUE,
@@ -31,7 +33,7 @@ CREATE TABLE IF NOT EXISTS lines (
 );
 
 CREATE TABLE IF NOT EXISTS stations (
-    id   INTEGER PRIMARY KEY,
+    id   INTEGER NOT NULL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     code TEXT,
     lat  REAL,
@@ -46,7 +48,7 @@ CREATE TABLE IF NOT EXISTS line_stations (
 );
 
 CREATE TABLE IF NOT EXISTS trains (
-    id          INTEGER PRIMARY KEY,
+    id          INTEGER NOT NULL PRIMARY KEY,
     line_id     INTEGER NOT NULL REFERENCES lines(id),
     number      TEXT NOT NULL,
     code        TEXT,
@@ -60,7 +62,7 @@ CREATE TABLE IF NOT EXISTS trains (
 );
 
 CREATE TABLE IF NOT EXISTS stops (
-    id            INTEGER PRIMARY KEY,
+    id            INTEGER NOT NULL PRIMARY KEY,
     train_id      INTEGER NOT NULL REFERENCES trains(id),
     station_id    INTEGER NOT NULL REFERENCES stations(id),
     departure     INTEGER NOT NULL,
@@ -84,16 +86,39 @@ CREATE INDEX IF NOT EXISTS idx_trains_line         ON trains(line_id);
 _STATION_ALIASES: dict[str, str] = {
     "AMBERNATH": "AMBARNATH",
     "BHAYANDER": "BHAYANDAR",
+    "CHARNI ROAD - GIRGAON": "CHARNI ROAD",
     "SEAWOOD DARAVE": "SEAWOOD DARAVE KARAVE",
     "KELVA ROAD": "KELVE ROAD",
+    "KHARBAV": "KHARBAO",
+    "KHARGHAR - BELPADA": "KHARGHAR",
     "DIGHA": "DIGHA GAON",
+    "MAHALAXMI": "MAHALAKSHMI",
+    "MANSAROVAR": "MANASAROVAR",
+    "MARINE LINES - KALBADEVI": "MARINE LINES",
+    "MUMBAI CENTRAL - JSS METRO": "MUMBAI CENTRAL",
     "NHAVA SHEVA": "NAVA SHEVA",
+    "TALOJA": "TALOJA PANCHANAND",
+    "VAITARNA": "VAITARANA",
+}
+
+_COORDINATE_ALIASES: dict[str, str] = {
+    "CHARNI ROAD": "CHARNI ROAD - GIRGAON",
+    "KHARBAO": "KHARBAV",
+    "KHARGHAR": "KHARGHAR - BELPADA",
+    "MAHALAKSHMI": "MAHALAXMI",
+    "MANASAROVAR": "MANSAROVAR",
+    "MARINE LINES": "MARINE LINES - KALBADEVI",
+    "MUMBAI CENTRAL": "MUMBAI CENTRAL - JSS METRO",
+    "NAVA SHEVA": "NHAVA SHEVA",
+    "TALOJA PANCHANAND": "TALOJA",
+    "VAITARANA": "VAITARNA",
 }
 
 
 # m-indicator line code -> (operator_name, operator_short, line_name, line_short, line_type)
 _LINE_META: dict[str, tuple[str, str, str, str, str]] = {
     "C":  ("Central Railway", "CR", "Central Line", "CR-ML", "suburban_rail"),
+    "DVP": ("Central Railway", "CR", "Port Line", "CR-PL", "suburban_rail"),
     "H":  ("Central Railway", "CR", "Harbour Line", "CR-HB", "suburban_rail"),
     "T":  ("Central Railway", "CR", "Trans-Harbour Line", "CR-TH", "suburban_rail"),
     "U":  ("Central Railway", "CR", "Uran Line", "CR-UR", "suburban_rail"),
@@ -176,7 +201,8 @@ def _parse_index(data: bytes) -> dict:
     pos = 0
 
     stn_len = _read_int(data, pos); pos += 4
-    stations = [_STATION_ALIASES.get(s, s) for s in data[pos:pos + stn_len].decode().split(",")]
+    file_stations = data[pos:pos + stn_len].decode().split(",")
+    stations = [_STATION_ALIASES.get(s, s) for s in file_stations]
     pos += stn_len
 
     dn_len = data[pos]; pos += 1 + dn_len
@@ -218,6 +244,7 @@ def _parse_index(data: bytes) -> dict:
             train_numbers[int(cols[0])] = cols[1]
 
     return {
+        "file_stations": file_stations,
         "stations": stations,
         "trains": trains,
         "overrides": overrides,
@@ -254,6 +281,7 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
     train_numbers = index["train_numbers"]
     overrides = index["overrides"]
     stations_in_index = index["stations"]
+    file_stations_in_index = index["file_stations"]
 
     # Collect departures per train from each station file.
     # Only read files listed in the index's station array — the APK also
@@ -264,13 +292,12 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
     # Key: train_idx -> list of (station, departure, platform, side)
     train_stops: dict[int, list[_Stop]] = defaultdict(list)
 
-    for stn_name in stations_in_index:
-        stn_path = f"assets/mumbai/local/{line_code}/{stn_name}"
+    for stn_file_name, canonical in zip(file_stations_in_index, stations_in_index, strict=True):
+        stn_path = f"assets/mumbai/local/{line_code}/{stn_file_name}"
         try:
             stn_data = zf.read(stn_path)
         except KeyError:
             continue
-        canonical = _STATION_ALIASES.get(stn_name, stn_name)
         for i in range(len(stn_data) // 4):
             raw = stn_data[i * 4:(i + 1) * 4]
             time_mins = (raw[0] << 4) | ((raw[1] & 0xF0) >> 4)
@@ -333,6 +360,36 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
         ))
 
     return result
+
+
+def _load_station_coords(zf: zipfile.ZipFile) -> dict[str, tuple[float, float]]:
+    try:
+        csv_data = zf.read("assets/mumbai/local/stationlist.csv").decode()
+    except KeyError:
+        csv_data = ""
+
+    coords: dict[str, tuple[float, float]] = {}
+    if csv_data:
+        for row in csv.DictReader(io.StringIO(csv_data)):
+            name = (row.get("station") or "").strip()
+            lat = (row.get("lat") or "").strip()
+            lng = (row.get("lon") or "").strip()
+            if name and lat and lng:
+                coords[name.upper()] = (float(lat), float(lng))
+
+    if coords:
+        return coords
+
+    try:
+        csv_data = zf.read("assets/mumbai/local/all_stations_lat_lon.csv").decode()
+    except KeyError:
+        return {}
+
+    for line in csv_data.strip().split("\n"):
+        parts = line.strip().split(",")
+        if len(parts) == 3:
+            coords[parts[0].strip().upper()] = (float(parts[1]), float(parts[2]))
+    return coords
 
 
 def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
@@ -438,32 +495,17 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
                     )
 
         # Populate station coordinates from bundled CSV
-        try:
-            csv_data = zf.read("assets/mumbai/local/all_stations_lat_lon.csv").decode()
-            coords: dict[str, tuple[float, float]] = {}
-            for line in csv_data.strip().split("\n"):
-                parts = line.strip().split(",")
-                if len(parts) == 3:
-                    coords[parts[0].strip().upper()] = (float(parts[1]), float(parts[2]))
+        coords = _load_station_coords(zf)
+        if not coords:
+            print("  warning: station coordinate CSV not found in APK", file=sys.stderr)
 
-            # Name variants: our DB may use slightly different spellings
-            aliases = {
-                "AMBERNATH": "AMBARNATH",
-                "BHAYANDER": "BHAYANDAR",
-                "DIGHA": "DIGHA GAON",
-                "KELVA ROAD": "KELVE ROAD",
-                "SEAWOOD DARAVE": "SEAWOOD DARAVE KARAVE",
-            }
-
-            for row in conn.execute("SELECT id, name FROM stations"):
-                sid, name = row
-                key = name.upper()
-                csv_key = aliases.get(key, key)
-                if csv_key in coords:
-                    lat, lng = coords[csv_key]
-                    conn.execute("UPDATE stations SET lat=?, lng=? WHERE id=?", (lat, lng, sid))
-        except KeyError:
-            print("  warning: all_stations_lat_lon.csv not found in APK", file=sys.stderr)
+        for row in conn.execute("SELECT id, name FROM stations"):
+            sid, name = row
+            key = name.upper()
+            csv_key = _COORDINATE_ALIASES.get(key, key)
+            if csv_key in coords:
+                lat, lng = coords[csv_key]
+                conn.execute("UPDATE stations SET lat=?, lng=? WHERE id=?", (lat, lng, sid))
 
         # Populate station shorthand codes from bundled JSON
         codes_path = Path(__file__).resolve().parent.parent.parent / "data" / "station_codes.json"
@@ -472,7 +514,8 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
                 station_codes: dict[str, str] = json.load(f)
             for row in conn.execute("SELECT id, name FROM stations"):
                 sid, name = row
-                code = station_codes.get(name.upper())
+                key = name.upper()
+                code = station_codes.get(key) or station_codes.get(_COORDINATE_ALIASES.get(key, ""))
                 if code:
                     conn.execute("UPDATE stations SET code=? WHERE id=?", (code, sid))
         else:
