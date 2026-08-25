@@ -1,0 +1,11 @@
+- add fastlane metadata
+- add mobile app
+- allow searching by station code
+- app: set up nativewind components
+- automate releases with release-please
+- backend: add GPS position resolver and location sharing endpoint
+- backend: add platform field to departures API
+- backend: add Redis caching for departures
+- backend: add route endpoint with pass-through stations
+- backend: expose runs_on and note in departures API
+- backend: merge crowdsourced and m-indicator live data
