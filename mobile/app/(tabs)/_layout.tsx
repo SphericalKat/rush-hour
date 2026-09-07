@@ -11,11 +11,12 @@ export default function TabLayout() {
   const { colors } = useTheme();
   const { settings } = useSettings();
 
-  // On Android, when dynamic colors are disabled the native tab bar
-  // still picks up the system Material You palette. Override explicitly
-  // so the bar matches the app's own color tokens.
+  // On Android, override the native tab bar whenever dynamic colors
+  // are not actively applied (unsupported or disabled) so the bar
+  // matches the app's own color tokens instead of the system palette
+  // or native theme colors.
   const needsManualColors =
-    supportsDynamicColors() && !settings.dynamicColors;
+    Platform.OS === 'android' && (!supportsDynamicColors() || !settings.dynamicColors);
 
   return (
     <NativeTabs
