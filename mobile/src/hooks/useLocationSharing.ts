@@ -157,16 +157,16 @@ export function useLocationSharing(trainNumber: string, enabled = true) {
         return;
       }
 
-      if (Platform.OS === 'android') {
-        const { status: bg } = await locationProvider.requestBackgroundPermissionsAsync();
-        if (bg !== 'granted') {
-          setState(s => ({ ...s, toggling: false }));
-          Alert.alert(
-            'Background Location Required',
-            'Please select "Allow all the time" so tracking works when your phone is in your pocket. Tap Start again after granting.',
-          );
-          return;
-        }
+      const { status: bg } = await locationProvider.requestBackgroundPermissionsAsync();
+      if (bg !== 'granted') {
+        setState(s => ({ ...s, toggling: false }));
+        Alert.alert(
+          'Background Location Required',
+          Platform.OS === 'ios'
+            ? 'Please set Location to "Always" in Settings so tracking works when your phone is in your pocket. Tap Start again after granting.'
+            : 'Please select "Allow all the time" so tracking works when your phone is in your pocket. Tap Start again after granting.',
+        );
+        return;
       }
 
       await SecureStore.setItemAsync(STORE_TRAIN, trainNumber);

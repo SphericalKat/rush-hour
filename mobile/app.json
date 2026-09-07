@@ -51,6 +51,7 @@
         {
           "locationWhenInUsePermission": "Rush Hour uses your location to share live train position with other commuters.",
           "locationAlwaysAndWhenInUsePermission": "Rush Hour uses your location in the background to keep sharing live train position while your phone is in your pocket.",
+          "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
         }
