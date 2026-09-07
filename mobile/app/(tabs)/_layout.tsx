@@ -3,6 +3,7 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { Platform } from 'react-native';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useSettings } from '../../src/hooks/useSettings';
+import { supportsDynamicColors } from '../../src/theme';
 
 const FONT_FAMILY = Platform.OS === 'ios' ? 'DM Sans' : 'DMSans';
 
@@ -14,7 +15,7 @@ export default function TabLayout() {
   // still picks up the system Material You palette. Override explicitly
   // so the bar matches the app's own color tokens.
   const needsManualColors =
-    Platform.OS === 'android' && !settings.dynamicColors;
+    supportsDynamicColors() && !settings.dynamicColors;
 
   return (
     <NativeTabs

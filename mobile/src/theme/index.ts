@@ -117,6 +117,12 @@ export const darkColors: typeof lightColors = {
 
 export type AppColors = typeof lightColors;
 
+// Android 12+ (API 31+) supports Material You dynamic colors.
+// iOS and older Android versions always use the static palette.
+export function supportsDynamicColors(): boolean {
+  return Platform.OS === 'android' && Number(Platform.Version) >= 31;
+}
+
 // Return the platform-appropriate static palette.
 export function getStaticColors(scheme: 'light' | 'dark'): AppColors {
   if (Platform.OS === 'ios') {

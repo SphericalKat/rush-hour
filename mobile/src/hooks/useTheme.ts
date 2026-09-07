@@ -1,12 +1,13 @@
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { useMemo } from 'react';
-import { Platform, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import {
   getStaticColors,
   mapM3ToAppColors,
   radius,
   shadow,
   spacing,
+  supportsDynamicColors,
   type,
 } from '../theme';
 import { useSettings } from './useSettings';
@@ -30,8 +31,9 @@ export function useTheme() {
       return getStaticColors(scheme);
     }
 
-    // iOS: use Apple's semantic color values
-    if (Platform.OS === 'ios') {
+    // Dynamic colors are only supported on Android 12+ (Material You).
+    // iOS uses its own static palette, older Android falls back to static.
+    if (!supportsDynamicColors()) {
       return getStaticColors(scheme);
     }
 

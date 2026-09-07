@@ -21,7 +21,7 @@ import { useAppUpdate } from '../../src/hooks/useAppUpdate';
 import { useSettings, DEFAULT_SERVER_URL, type ColorMode } from '../../src/hooks/useSettings';
 import { useTheme } from '../../src/hooks/useTheme';
 import { isGitHubDistribution } from '../../src/lib/updates';
-import { shadow } from '../../src/theme';
+import { shadow, supportsDynamicColors } from '../../src/theme';
 
 interface RowProps {
   label: string;
@@ -183,15 +183,19 @@ export default function SettingsScreen() {
               })}
             </View>
           </Row>
-          <View style={[styles.divider, { backgroundColor: colors.separator }]} />
-          <Row label="Dynamic colors">
-            <Switch
-              value={settings.dynamicColors}
-              onValueChange={setDynamicColors}
-              trackColor={{ false: colors.surfaceSecondary, true: colors.primary }}
-              thumbColor={settings.dynamicColors ? colors.textOnPrimary : colors.textTertiary}
-            />
-          </Row>
+          {supportsDynamicColors() && (
+            <>
+              <View style={[styles.divider, { backgroundColor: colors.separator }]} />
+              <Row label="Dynamic colors">
+                <Switch
+                  value={settings.dynamicColors}
+                  onValueChange={setDynamicColors}
+                  trackColor={{ false: colors.surfaceSecondary, true: colors.primary }}
+                  thumbColor={settings.dynamicColors ? colors.textOnPrimary : colors.textTertiary}
+                />
+              </Row>
+            </>
+          )}
         </>,
       )}
 
