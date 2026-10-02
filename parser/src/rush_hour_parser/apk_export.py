@@ -273,6 +273,22 @@ def _decode_platform(raw: bytes, overrides: dict[str, tuple[str, str]]) -> tuple
     return "", ""
 
 
+_MIDNIGHT_GAP_MINS = 500
+
+
+def _order_stops(stops: list[_Stop]) -> list[_Stop]:
+    ordered = sorted(stops, key=lambda s: s.departure)
+    gap_idx = next(
+        (i for i in range(len(ordered) - 1)
+         if ordered[i + 1].departure - ordered[i].departure > _MIDNIGHT_GAP_MINS),
+        None,
+    )
+    if gap_idx is None:
+        return ordered
+    after_midnight = [_Stop(s.station, s.departure + 1440, s.platform, s.side) for s in ordered[:gap_idx + 1]]
+    return ordered[gap_idx + 1:] + after_midnight
+
+
 def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_ParsedTrain]:
     """Parse a line's index + station files into a list of trains with stops."""
     index_path = f"assets/mumbai/local/{line_code}/index"
@@ -321,20 +337,7 @@ def _build_trains_from_line(zf: zipfile.ZipFile, line_code: str) -> list[_Parsed
         is_ac = "AC" in meta.extra
         runs_on, note = _parse_schedule(meta.extra)
 
-        # Sort stops by departure time, handling midnight wraparound
-        stops.sort(key=lambda s: s.departure)
-
-        # Fix midnight wraparound: if times go backwards, add 1440
-        fixed: list[_Stop] = []
-        prev = -1
-        offset = 0
-        for s in stops:
-            t = s.departure + offset
-            if prev >= 0 and t < prev - 60:
-                offset += 1440
-                t += 1440
-            fixed.append(_Stop(s.station, t, s.platform, s.side))
-            prev = t
+        fixed = _order_stops(stops)
 
         # Truncate at the declared destination. The per-station binary
         # files often include stops beyond the terminus (yard movements,
@@ -444,7 +447,7 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
                 for s in t.stops:
                     all_stations.add(s.station)
 
-            for name in all_stations:
+            for name in sorted(all_stations):
                 conn.execute("INSERT OR IGNORE INTO stations (name) VALUES (?)", (name,))
 
             station_ids: dict[str, int] = {
@@ -469,7 +472,7 @@ def export_apk(apk_path: str | Path, db_path: str | Path) -> None:
                     for i, s in enumerate(t.stops):
                         seq_samples[s.station].append(n - i)
 
-            station_order = sorted(all_stations, key=lambda s: median(seq_samples.get(s, [9999])))
+            station_order = sorted(sorted(all_stations), key=lambda s: median(seq_samples.get(s, [9999])))
             for seq, name in enumerate(station_order):
                 conn.execute(
                     "INSERT OR IGNORE INTO line_stations (line_id, station_id, sequence) VALUES (?, ?, ?)",
