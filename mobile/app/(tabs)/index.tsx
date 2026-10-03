@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../src/components/Icon';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -79,7 +79,7 @@ export default function DeparturesScreen() {
     setMenuTitle(`${item.number} ${item.origin} \u2192 ${item.destination}`);
     setMenuItems([{
       label: fav ? 'Remove from Favorites' : 'Add to Favorites',
-      icon: fav ? 'heart-dislike-outline' : 'heart-outline',
+      icon: fav ? 'heart-break' : 'heart',
       destructive: fav,
       onPress: () => toggleFavorite({
         number: item.number,
@@ -158,7 +158,7 @@ export default function DeparturesScreen() {
     setMenuTitle(`${route.sourceName} \u2192 ${route.destName}`);
     setMenuItems([{
       label: fav ? 'Remove from Favorites' : 'Add to Favorites',
-      icon: fav ? 'heart-dislike-outline' : 'heart-outline',
+      icon: fav ? 'heart-break' : 'heart',
       destructive: fav,
       onPress: () => toggleRouteFav(route.sourceId, route.destId),
     }]);
@@ -218,7 +218,7 @@ export default function DeparturesScreen() {
             </Text>
           </Pressable>
 
-          <Ionicons name="arrow-forward" size={14} color={isDark ? colors.textTertiary : 'rgba(255,255,255,0.5)'} />
+          <Icon name="arrow-right" size={14} color={isDark ? colors.textTertiary : 'rgba(255,255,255,0.5)'} />
 
           <Pressable
             onPress={() => destinationPickerRef.current?.present()}
@@ -258,8 +258,9 @@ export default function DeparturesScreen() {
               accessibilityRole="button"
               accessibilityLabel={isRouteFavorite(station.id, destination.id) ? 'Remove route from favorites' : 'Add route to favorites'}
             >
-              <Ionicons
-                name={isRouteFavorite(station.id, destination.id) ? 'heart' : 'heart-outline'}
+              <Icon
+                name="heart"
+                weight={isRouteFavorite(station.id, destination.id) ? 'fill' : 'regular'}
                 size={14}
                 color={isRouteFavorite(station.id, destination.id)
                   ? colors.danger
@@ -276,7 +277,7 @@ export default function DeparturesScreen() {
               accessibilityRole="button"
               accessibilityLabel="Clear search"
             >
-              <Ionicons name="close" size={14} color={isDark ? colors.textSecondary : 'rgba(255,255,255,0.8)'} />
+              <Icon name="x" size={14} color={isDark ? colors.textSecondary : 'rgba(255,255,255,0.8)'} />
             </Pressable>
           ) : null}
         </View>
@@ -392,7 +393,7 @@ export default function DeparturesScreen() {
                   android_ripple={{ color: colors.textTertiary + '30', borderless: false, foreground: true }}
                   style={[styles.showEarlier, { backgroundColor: colors.surfaceSecondary }]}
                 >
-                  <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                  <Icon name="clock" size={14} color={colors.textSecondary} />
                   <Text style={[styles.showEarlierText, { color: colors.textSecondary }]}>
                     {`Show ${Math.min(PAST_PAGE, hiddenPastCount)} earlier train${Math.min(PAST_PAGE, hiddenPastCount) === 1 ? '' : 's'}`}
                   </Text>

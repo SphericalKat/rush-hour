@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../src/components/Icon';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { StatusBar } from 'expo-status-bar';
@@ -155,8 +155,9 @@ export default function TrainScreen() {
       headerRight: () => (
         <Pressable onPress={handleToggleFav} hitSlop={8} style={{ marginRight: 12 }}>
           <Animated.View style={{ transform: [{ scale: heartScale }] }}>
-            <Ionicons
-              name={fav ? 'heart' : 'heart-outline'}
+            <Icon
+              name="heart"
+              weight={fav ? 'fill' : 'regular'}
               size={22}
               color={fav ? colors.danger : colors.textSecondary}
             />
@@ -211,8 +212,9 @@ export default function TrainScreen() {
         <TouchableOpacity activeOpacity={0.7} onPress={handleSharingPress} disabled={sharingToggling}>
           <View style={[styles.shareContainer, sharingToggling && { opacity: 0.6 }]}>
             <View style={styles.shareInfo}>
-              <Ionicons
-                name={sharing ? 'navigate' : 'navigate-outline'}
+              <Icon
+                name="navigation-arrow"
+                weight={sharing ? 'fill' : 'regular'}
                 size={20}
                 color={sharing ? colors.success : colors.textSecondary}
               />
@@ -333,8 +335,8 @@ export default function TrainScreen() {
 
       {/* Footer note */}
       <View style={styles.liveNote}>
-        <Ionicons
-          name="radio-outline"
+        <Icon
+          name="broadcast"
           size={12}
           color={colors.textTertiary}
         />

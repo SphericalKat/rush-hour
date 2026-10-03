@@ -5,7 +5,7 @@ import {
   BottomSheetModal,
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import React, { useCallback, useDeferredValue, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -285,7 +285,7 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
           },
         ]}
       >
-        <Ionicons name="search" size={16} color={colors.textSecondary} />
+        <Icon name="magnifying-glass" size={16} color={colors.textSecondary} />
         <BottomSheetTextInput
           ref={inputRef as React.RefObject<any>}
           onChangeText={setQuery}
@@ -304,7 +304,7 @@ export const StationPicker = React.forwardRef<StationPickerRef, Props>(function 
             accessibilityRole="button"
             accessibilityLabel="Clear search query"
           >
-            <Ionicons name="close" size={12} color={colors.textSecondary} />
+            <Icon name="x" size={12} color={colors.textSecondary} />
           </Pressable>
         ) : null}
       </View>

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '../../src/components/Icon';
 import Constants from 'expo-constants';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -54,8 +54,8 @@ function Row({ label, value, onPress, showChevron, destructive, children }: RowP
         ) : null}
         {children}
         {showChevron && (
-          <Ionicons
-            name="chevron-forward"
+          <Icon
+            name="caret-right"
             size={16}
             color={colors.textTertiary}
           />
@@ -267,8 +267,8 @@ export default function SettingsScreen() {
                       pressed && { opacity: 0.6 },
                     ]}
                   >
-                    <Ionicons
-                      name="checkmark"
+                    <Icon
+                      name="check"
                       size={18}
                       color={serverSaved ? colors.textOnPrimary : colors.textSecondary}
                     />

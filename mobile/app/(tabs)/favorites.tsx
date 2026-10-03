@@ -65,7 +65,7 @@ export default function FavoritesScreen() {
     setMenuTitle(`${item.number} ${item.origin} \u2192 ${item.destination}`);
     setMenuItems([{
       label: 'Remove from Favorites',
-      icon: 'heart-dislike-outline',
+      icon: 'heart-break',
       destructive: true,
       onPress: () => toggle(item),
     }]);
@@ -77,7 +77,7 @@ export default function FavoritesScreen() {
     setMenuTitle(`${item.sourceName} \u2192 ${item.destName}`);
     setMenuItems([{
       label: 'Remove from Favorites',
-      icon: 'heart-dislike-outline',
+      icon: 'heart-break',
       destructive: true,
       onPress: () => removeRouteFav(item.sourceId, item.destId),
     }]);

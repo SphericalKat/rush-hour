@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { PhosphorRegular } from '../../src/components/Icon';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { Platform } from 'react-native';
 import { useTheme } from '../../src/hooks/useTheme';
@@ -33,8 +33,8 @@ export default function TabLayout() {
           sf={{ default: 'tram', selected: 'tram.fill' }}
           src={
             <NativeTabs.Trigger.VectorIcon
-              family={Ionicons}
-              name="train-outline"
+              family={PhosphorRegular}
+              name="train"
             />
           }
         />
@@ -45,8 +45,8 @@ export default function TabLayout() {
           sf={{ default: 'heart', selected: 'heart.fill' }}
           src={
             <NativeTabs.Trigger.VectorIcon
-              family={Ionicons}
-              name="heart-outline"
+              family={PhosphorRegular}
+              name="heart"
             />
           }
         />
@@ -57,8 +57,8 @@ export default function TabLayout() {
           sf={{ default: 'gearshape', selected: 'gearshape.fill' }}
           src={
             <NativeTabs.Trigger.VectorIcon
-              family={Ionicons}
-              name="settings-outline"
+              family={PhosphorRegular}
+              name="gear"
             />
           }
         />

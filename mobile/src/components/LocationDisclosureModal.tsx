@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import React from 'react';
 import {
   Modal,
@@ -34,7 +34,7 @@ export function LocationDisclosureModal({ visible, onConfirm, onDismiss }: Props
         <View style={[styles.handle, { backgroundColor: colors.border }]} />
 
         <View style={[styles.iconWrap, { backgroundColor: colors.primary + '18' }]}>
-          <Ionicons name="navigate" size={28} color={colors.primary} />
+          <Icon name="navigation-arrow" weight="fill" size={28} color={colors.primary} />
         </View>
 
         <Text style={[styles.title, { color: colors.text }]}>
@@ -46,7 +46,7 @@ export function LocationDisclosureModal({ visible, onConfirm, onDismiss }: Props
         </Text>
 
         <View style={[styles.row, { borderColor: colors.border }]}>
-          <Ionicons name="shield-checkmark-outline" size={14} color={colors.textTertiary} />
+          <Icon name="shield-check" size={14} color={colors.textTertiary} />
           <Text style={[styles.note, { color: colors.textTertiary }]}>
             No account required. No data retained.
           </Text>

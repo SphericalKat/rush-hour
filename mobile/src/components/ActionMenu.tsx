@@ -4,7 +4,7 @@ import {
   BottomSheetModal,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from './Icon';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
@@ -12,7 +12,7 @@ import { useTheme } from '../hooks/useTheme';
 
 export interface ActionMenuItem {
   label: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   destructive?: boolean;
   onPress: () => void;
 }
@@ -82,7 +82,7 @@ export function ActionMenu({ visible, title, items, onClose }: Props) {
           >
             <View style={styles.itemRow}>
               {item.icon ? (
-                <Ionicons
+                <Icon
                   name={item.icon}
                   size={24}
                   color={item.destructive ? colors.danger : colors.text}

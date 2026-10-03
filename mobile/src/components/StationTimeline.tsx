@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from './Text';
@@ -246,8 +246,8 @@ export const StationTimeline = React.memo(function StationTimeline({ stops, live
                 ) : null}
                 {stop.side ? (
                   <View style={styles.sideRow}>
-                    <Ionicons
-                      name={stop.side === 'L' ? 'arrow-back' : 'arrow-forward'}
+                    <Icon
+                      name={stop.side === 'L' ? 'arrow-left' : 'arrow-right'}
                       size={10}
                       color={colors.textTertiary}
                     />

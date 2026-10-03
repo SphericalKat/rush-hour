@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Text } from './Text';
 import { LineChip } from './LineChip';
 import { useTheme } from '../hooks/useTheme';
@@ -127,7 +127,7 @@ export const TransferRouteCard = React.memo(function TransferRouteCard({
 
         {/* Transfer indicator */}
         <View style={[styles.transferRow, { borderColor: colors.textTertiary + '30' }]}>
-          <Ionicons name="swap-vertical" size={14} color={colors.textTertiary} />
+          <Icon name="arrows-down-up" size={14} color={colors.textTertiary} />
           <Text style={[styles.transferText, { color: colors.textTertiary }]}>
             Change at {transferStation}
           </Text>
@@ -154,7 +154,7 @@ export const TransferRouteCard = React.memo(function TransferRouteCard({
             {formatCountdown(totalMinutes)} total
           </Text>
           <View style={{ flex: 1 }} />
-          <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+          <Icon name="caret-right" size={14} color={colors.textTertiary} />
         </View>
       </View>
     </View>

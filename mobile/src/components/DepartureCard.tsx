@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import type { Departure } from '../api/types';
 import { useTheme } from '../hooks/useTheme';
 import { formatCountdown, minutesToHHMM, minutesUntil } from '../utils/time';
@@ -172,9 +172,9 @@ export const DepartureCard = React.memo(function DepartureCard({ item, onPress, 
           ) : null}
           <View style={{ flex: 1 }} />
           {isFavorited && !disabled ? (
-            <Ionicons name="heart" size={12} color={colors.danger} style={{ marginRight: 2 }} />
+            <Icon name="heart" weight="fill" size={12} color={colors.danger} style={{ marginRight: 2 }} />
           ) : null}
-          <Ionicons name="chevron-forward" size={14} color={g} />
+          <Icon name="caret-right" size={14} color={g} />
         </View>
       </View>
     </Pressable>

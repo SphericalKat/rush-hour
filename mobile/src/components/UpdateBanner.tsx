@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import React from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
@@ -28,7 +28,7 @@ export function UpdateBanner({ update, onDismiss }: UpdateBannerProps) {
         style={styles.body}
         onPress={() => Linking.openURL(update.downloadUrl)}
       >
-        <Ionicons name="download-outline" size={18} color={colors.primary} />
+        <Icon name="download-simple" size={18} color={colors.primary} />
         <View style={styles.textWrap}>
           <Text style={[styles.title, { color: colors.text }]}>
             {update.release.tag_name} available
@@ -39,7 +39,7 @@ export function UpdateBanner({ update, onDismiss }: UpdateBannerProps) {
         </View>
       </Pressable>
       <Pressable onPress={onDismiss} hitSlop={8} style={styles.close}>
-        <Ionicons name="close" size={16} color={colors.textTertiary} />
+        <Icon name="x" size={16} color={colors.textTertiary} />
       </Pressable>
     </View>
   );

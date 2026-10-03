@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from './Icon';
 import { Text } from './Text';
 import { useTheme } from '../hooks/useTheme';
 import type { SavedRoute } from '../hooks/useRouteHistory';
@@ -28,8 +28,9 @@ export const SavedRouteCard = React.memo(function SavedRouteCard({ route, onPres
       ]}
     >
       <View style={styles.row}>
-        <Ionicons
-          name={route.isFavorite ? 'heart' : 'time-outline'}
+        <Icon
+          name={route.isFavorite ? 'heart' : 'clock'}
+          weight={route.isFavorite ? 'fill' : 'regular'}
           size={16}
           color={route.isFavorite ? colors.danger : colors.textTertiary}
         />
@@ -38,7 +39,7 @@ export const SavedRouteCard = React.memo(function SavedRouteCard({ route, onPres
           <Text style={{ color: colors.textTertiary }}>{' \u2192 '}</Text>
           {route.destName}
         </Text>
-        <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+        <Icon name="caret-right" size={14} color={colors.textTertiary} />
       </View>
     </Pressable>
   );
