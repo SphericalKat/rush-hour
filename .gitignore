@@ -3,3 +3,5 @@
 *.db-shm
 *.db-wal
 decompiled/
+mobile/android
+mobile/ios
