@@ -13,7 +13,7 @@ module.exports = function androidAbiSplitsPlugin(config) {
             reset()
             enable true
             universalApk false
-            include "armeabi-v7a", "arm64-v8a"
+            include "armeabi-v7a", "arm64-v8a", "x86_64"
         }
     }`
       );
