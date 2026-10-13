@@ -12,6 +12,7 @@ import { ActivityIndicator, Appearance, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useTheme } from "../src/hooks/useTheme";
+import { useSettings } from "../src/hooks/useSettings";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,12 +22,17 @@ export default function RootLayout() {
   }, []);
 
   const { colors, scheme } = useTheme();
+  const { settings } = useSettings();
 
   // Tell iOS the app-level color scheme so native components
   // (e.g. the iOS 26 floating tab bar) respect the user's in-app choice.
+  // When following the system, reset to 'unspecified' instead of
+  // writing the resolved scheme back: setColorScheme() masks
+  // useColorScheme(), so writing scheme here would make 'auto' stick
+  // to the last manual choice instead of the device theme.
   useEffect(() => {
-    Appearance.setColorScheme(scheme);
-  }, [scheme]);
+    Appearance.setColorScheme(settings.colorMode === 'auto' ? 'unspecified' : scheme);
+  }, [scheme, settings.colorMode]);
 
   const navTheme = useMemo(() => {
     const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
